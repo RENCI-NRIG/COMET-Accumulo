@@ -1,0 +1,157 @@
+swagger: '2.0'
+info:
+  version: '1.0.0'
+  title: 'COMET Accumulo Query Layer API'
+  description: 'COMET Accumulo Query Layer API'
+  termsOfService: None
+  contact:
+    name: Cong Wang
+    url: 'https://github.com/RENCI-NRIG/COMET-Accumulo'
+    email: cwang@renci.org
+  license:
+    name: MIT
+    url: 'http://opensource.org/licenses/MIT'
+# host: 'localhost:8080'
+# basePath: /v1
+# schemes:
+#  - http
+paths:
+  /writeScope:
+    post:
+      summary: |
+        Create or modify a named scope for slice/sliver within a context, with visibility label (user_key | comet_admin):
+      description: |
+        Create or modify a named scope for slice/sliver within a context, with visibility label (user_key | comet_admin):
+        - Operation requires write access
+        - Substitute existing value with new value
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/contextID'
+        - $ref: '#/parameters/family'
+        - $ref: '#/parameters/Key'
+        - $ref: '#/parameters/Value'
+        - $ref: '#/parameters/readToken'
+        - $ref: '#/parameters/writeToken'
+      responses:
+        200:
+          description: OK
+    
+  /readScope:
+    get:
+      summary: |
+        Retrieve a value from a named scope within a context. 
+      description: | 
+        Retrieve a value from a named scope within a context. 
+        - Operation requires read access
+        
+        Need to distinguish the following situations:
+        - The scope value is null
+        - The scope existed, but was deleted
+        - The scope never existed (for the period of garbage collection)
+        - Scope visibility doesn’t match
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/contextID'
+        - $ref: '#/parameters/family'
+        - $ref: '#/parameters/Key'
+        - $ref: '#/parameters/readToken'
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: object
+            properties:
+              value:
+                type: boolean
+
+  /enumerateScope:
+    get:
+      summary: |
+        Retrieve a list of existing scopes within a given context.  
+      description: | 
+        Retrieve a list of existing scopes within a given context.  
+        - Operation requires read access
+        - Returns list of  [ {family, key} ]
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/contextID'
+        - $ref: '#/parameters/family'
+        - $ref: '#/parameters/readToken'
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: object
+            properties:
+              value:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+          
+  /deleteScope:
+    post:
+      summary: |
+        Delete scope within a context. 
+      description: | 
+        Delete scope within a context.  
+        - Operation requires write access
+        
+      produces:
+        - application/json
+      parameters:
+        - $ref: '#/parameters/contextID'
+        - $ref: '#/parameters/family'
+        - $ref: '#/parameters/Key'
+        - $ref: '#/parameters/readToken'
+        - $ref: '#/parameters/writeToken'
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: object
+            properties:
+              value:
+                type: string
+parameters:
+  contextID:
+    name: contextID
+    in: query
+    type: string
+    required: true
+  family:
+    name: family
+    in: query
+    type: string
+    required: true
+  Key:
+    name: Key
+    in: query
+    type: string
+    required: true
+  Value:
+    name: Value
+    in: query
+    type: string
+    required: true
+  readToken:
+    name: readToken
+    in: query
+    type: string
+    required: true
+  writeToken:
+    name: writeToken
+    in: query
+    type: string
+    required: true
+# Added by API Auto Mocking Plugin
+host: virtserver.swaggerhub.com
+basePath: /cwang/Comet-Accumulo-Query-Layer/1.0.0
+schemes:
+ - https
+ - http
