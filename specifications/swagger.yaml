@@ -11,10 +11,10 @@ info:
   license:
     name: MIT
     url: 'http://opensource.org/licenses/MIT'
-# host: 'localhost:8080'
-# basePath: /v1
-# schemes:
-#  - http
+host: 'localhost:8080'
+basePath: /v1
+schemes:
+  - http
 paths:
   /writeScope:
     post:
@@ -149,9 +149,3 @@ parameters:
     in: query
     type: string
     required: true
-# Added by API Auto Mocking Plugin
-host: virtserver.swaggerhub.com
-basePath: /cwang/Comet-Accumulo-Query-Layer/1.0.0
-schemes:
- - https
- - http
