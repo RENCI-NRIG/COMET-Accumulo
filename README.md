@@ -4,4 +4,10 @@ COMET is a distributed RESTful meta-data service which stores key-value oriented
 
 The COMET phase 2 is based on new design of mapping cloud service entries to Accumulo table entries.
 
-Details TBD...
+The COMET API specifications can be found on [SwaggerHub](https://app.swaggerhub.com/apis/cwang/Comet-Accumulo-Query-Layer/1.0.0#/), which is also available as YAML in /specifications/swagger.yaml
+
+To run the COMET server, please execute the following:
+
+```
+mvn clean package jetty:run
+```
