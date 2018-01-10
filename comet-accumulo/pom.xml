@@ -1,9 +1,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>renci</groupId>
-  <artifactId>comet-accumulo</artifactId>
+  <groupId>io.swagger</groupId>
+  <artifactId>swagger-jaxrs-server</artifactId>
   <packaging>jar</packaging>
-  <name>comet-accumulo</name>
+  <name>swagger-jaxrs-server</name>
   <version>1.0.0</version>
 
   <licenses>
@@ -156,6 +156,7 @@
         <groupId>javax.validation</groupId>
         <artifactId>validation-api</artifactId>
         <version>1.1.0.Final</version>
+    <!--    <scope>provided</scope> -->
     </dependency>
 
   </dependencies>
