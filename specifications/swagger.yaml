@@ -9,8 +9,8 @@ info:
     url: 'https://github.com/RENCI-NRIG/COMET-Accumulo'
     email: cwang@renci.org
   license:
-    name: MIT
-    url: 'http://opensource.org/licenses/MIT'
+    name: EPL-2.0
+    url: 'https://opensource.org/licenses/EPL-2.0'
 host: 'localhost:8080'
 basePath: /v1
 schemes:
