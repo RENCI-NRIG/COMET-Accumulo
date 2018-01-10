@@ -25,7 +25,8 @@ The server within this repository is based on [Jersey](https://jersey.github.io)
 - From the generate code icon (downward facing arrow), select **Server** > **jaxrs**
 - A file named `jaxrs-server-generated.zip` should be downloaded.
 - Once unzipped, the file structure should look as follows
-	![screen shot 2018-01-10 at 1 41 20 pm](https://user-images.githubusercontent.com/5332509/34789379-07249b7a-f60c-11e7-837a-578588b0d55d.png)
+
+  ![screen shot 2018-01-10 at 1 41 20 pm](https://user-images.githubusercontent.com/5332509/34789379-07249b7a-f60c-11e7-837a-578588b0d55d.png)
 
 ### Running the server
 
