@@ -20,8 +20,7 @@ public class Bootstrap extends HttpServlet {
       .contact(new Contact()
         .email("cwang@renci.org"))
       .license(new License()
-        .name("MIT")
-        .url("http://opensource.org/licenses/MIT"));
+        .name("Eclipse Public License"));
 
     ServletContext context = config.getServletContext();
     Swagger swagger = new Swagger().info(info);
