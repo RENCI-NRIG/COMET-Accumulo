@@ -10,6 +10,21 @@ COMET phase 2 is based on new design of mapping cloud service entries to [Accumu
 
 The [COMET Accumulo Query Layer API](https://app.swaggerhub.com/apis/cwang/Comet-Accumulo-Query-Layer/1.0.0) has been created using [Swagger API 2.0](https://swagger.io/docs/specification/2-0/basic-structure/), and is also available as YAML in [specifications/swagger.yaml](specifications/swagger.yaml)
 
+### Running the server
+
+The server within this repository is based on [Jersey](https://jersey.github.io) and [Java API for RESTful Web Services (JAX-RS)](https://en.wikipedia.org/wiki/Java_API_for_RESTful_Web_Services) and uses [Maven](https://maven.apache.org/what-is-maven.html) to control the build process.
+
+```
+$ cd /PATH_TO/COMET-Accumulo/comet-accumulo/
+$ mvn clean package jetty:run
+```
+
+Validate that the server is running at: [http://localhost:8080/v1/swagger.json](http://localhost:8080/v1/swagger.json) (Example below)
+
+<img width="80%" alt="http://localhost:8080/v1/swagger.json" src="https://user-images.githubusercontent.com/5332509/34850991-0ff8259c-f6f6-11e7-99b4-72d391615d17.png">
+
+## Initial Code Generation
+
 ### API Server
 
 Swagger enables the generation of clients and servers in a variety of common programming languages via the [swagger codegen](https://github.com/swagger-api/swagger-codegen) project.
@@ -88,13 +103,13 @@ Server: Jetty(9.2.9.v20150224)
 {"code":4,"type":"ok","message":"magic!"}
 ```
 
-### Updates to Swagger specification
+## Updates to Swagger specification
 
 Since swaggerhub only generates server stub code, it becomes the task of the developer(s) to differentiate foundational code changes that occur when the underlying specification is updated.
 
 There is no good way to predict a-priori which elements will need to be modified, and the experience of the developer(s) integrating the updated code will be relied upon to do the updates effectively.
 
-**Workflow for updates**:
+### Workflow for updates:
 
 1. Update the specification in swaggerhub and save the results
 2. Generate new JAX-RS server stub code into a separate directory
