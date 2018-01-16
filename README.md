@@ -6,6 +6,9 @@ COMET is a distributed RESTful meta-data service which stores key-value oriented
 
 COMET phase 2 is based on new design of mapping cloud service entries to [Accumulo](https://accumulo.apache.org) table entries.
 
+
+![comet accumulo architecture](https://user-images.githubusercontent.com/29924060/35002282-2bcad8f4-fab7-11e7-882c-0f5041f81cbd.png)
+
 ## COMET API implementation
 
 The [COMET Accumulo Query Layer API](https://app.swaggerhub.com/apis/cwang/Comet-Accumulo-Query-Layer/1.0.0) has been created using [Swagger API 2.0](https://swagger.io/docs/specification/2-0/basic-structure/), and is also available as YAML in [specifications/swagger.yaml](specifications/swagger.yaml)
