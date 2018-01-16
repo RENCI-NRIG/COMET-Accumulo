@@ -14,7 +14,7 @@ info:
 host: 'localhost:8080'
 basePath: /v1
 schemes:
-  - http
+  - https
 paths:
   /writeScope:
     post:
