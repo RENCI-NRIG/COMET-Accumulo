@@ -6,6 +6,7 @@ import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Instance;
+import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
@@ -51,7 +52,7 @@ interface AccumuloOperationsApiIfce {
 	 * @param userName
 	 * @return 
 	 */       
-    JSONObject deleteAccumuloTable(String tableName);
+    JSONObject deleteAccumuloTable(Connector conn, String tableName) throws TableNotFoundException, AccumuloException, AccumuloSecurityException;
     
     /**
 	 * Create new Accumulo table.
@@ -62,7 +63,7 @@ interface AccumuloOperationsApiIfce {
 	 * @param visibility
 	 * @return 
 	 */    
-    JSONObject addAccumuloRow(String tableName, Text colFam, Text colQual, Text value, Text visibility);
+    JSONObject addAccumuloRow(Connector conn, String tableName, Text rowID, Text colFam, Text colQual, Value value, Text visibility) throws TableNotFoundException, MutationsRejectedException;
 
     /**
 	 * Create new Accumulo table.
@@ -80,8 +81,9 @@ interface AccumuloOperationsApiIfce {
 	 * @param visibility
 	 * @param numberOfThreads
 	 * @return 
+	 * @throws TableNotFoundException 
 	 */       
-    JSONObject enumerateTable(String tableName, String visibility, String numberOfThreads);
+    JSONObject enumerateTable(Connector conn, String tableName, String visibility, String numberOfThreads) throws TableNotFoundException;
 
     /**
 	 * Enumerate table to get all rows with specific visibility.
@@ -91,5 +93,5 @@ interface AccumuloOperationsApiIfce {
 	 * @param visibility
 	 * @return 
 	 */  
-    JSONObject readRow(String tableName, Text colFam, Text colQual, Text visibility);
+    JSONObject readRow(Connector conn, String tableName, Text rowID, Text colFam, Text colQual, Text visibility) throws TableNotFoundException;
 }

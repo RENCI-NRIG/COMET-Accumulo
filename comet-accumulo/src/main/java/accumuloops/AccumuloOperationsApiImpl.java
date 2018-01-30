@@ -1,11 +1,13 @@
 package accumuloops;
 
+import org.apache.accumulo.core.cli.ScannerOpts;
 import org.apache.accumulo.core.client.AccumuloException;
 
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Instance;
+import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
@@ -89,10 +91,28 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
 	 * Delete Accumulo table.
 	 * @param tableName
 	 * @return 
+     * @throws TableNotFoundException 
+     * @throws AccumuloSecurityException 
+     * @throws AccumuloException 
 	 */       
-    public JSONObject deleteAccumuloTable(String tableName) {
-		return null;
-    		
+    public JSONObject deleteAccumuloTable(Connector conn, String tableName) throws TableNotFoundException, AccumuloException, AccumuloSecurityException {
+    		JSONObject output = new JSONObject();
+    		TableOperations ops = conn.tableOperations();
+    		if (ops.exists(tableName)) {
+    			ops.delete(tableName);
+    			try {
+    				output.put(SUCCESS, "success, deleted table: " + tableName);
+    			} catch (JSONException e1) {
+    				log.error("JSON Exception: " + e1.getMessage());
+    			}
+    		} else {
+    			try {
+    				return output.put(ERROR, "Unable to delete table. Table notfound");
+    			} catch (JSONException e1) {
+    				log.error("JSON Exception: " + e1.getMessage());
+    			}
+    		}
+    		return output;
     }
     
     /**
@@ -103,10 +123,22 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
 	 * @param value
 	 * @param visibility
 	 * @return 
+     * @throws TableNotFoundException 
+     * @throws MutationsRejectedException 
 	 */    
-    public JSONObject addAccumuloRow(String tableName, Text colFam, Text colQual, Text value, Text visibility) {
-		return null;
-    		
+    public JSONObject addAccumuloRow(Connector conn, String tableName, Text rowID, Text colFam, Text colQual, Value value, Text visibility) throws TableNotFoundException, MutationsRejectedException {
+    		JSONObject output = new JSONObject();
+    		@SuppressWarnings("deprecation")
+			BatchWriter bw = conn.createBatchWriter(tableName,1000000, 60000, 2);
+    		Mutation mutation = new Mutation(rowID);
+    		mutation.put(colFam, colQual, value);
+    		bw.addMutation(mutation);
+    		try {
+			output.put(SUCCESS, "success, deleted table: " + tableName);
+		} catch (JSONException e1) {
+			log.error("JSON Exception: " + e1.getMessage());
+		}
+    		return output;
     }
 
     /**
@@ -127,8 +159,18 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
 	 * @param visibility
 	 * @param numberOfThreads
 	 * @return 
+     * @throws TableNotFoundException 
 	 */       
-    public JSONObject enumerateTable(String tableName, String visibility, String numberOfThreads) {
+    public JSONObject enumerateTable(Connector conn, String tableName, String visibility, String numberOfThreads) throws TableNotFoundException {
+    		Scanner scan = conn.createScanner(tableName, new Authorizations());
+        scan.setRange(new Range("row1", "row1"));
+        Iterator<Map.Entry<Key,Value>> iterator = scan.iterator();
+        while (iterator.hasNext()) {
+        		Map.Entry<Key, Value> entry = iterator.next();
+        		Key key = entry.getKey();
+        		Value gotValue = entry.getValue();
+        		System.out.println(key + " ==> " + gotValue);
+        }
     		return null;
     }
 
@@ -139,8 +181,16 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
 	 * @param colQual
 	 * @param visibility
 	 * @return 
+     * @throws TableNotFoundException 
 	 */  
-    public JSONObject readRow(String tableName, Text colFam, Text colQual, Text visibility) {
+    public JSONObject readRow(Connector conn, String tableName, Text rowID, Text colFam, Text colQual, Text visibility) throws TableNotFoundException {
+    	// Create a scanner
+        Scanner scanner = conn.createScanner(tableName, Authorizations.EMPTY);
+        ScannerOpts scanOpts = new ScannerOpts();
+        scanner.setBatchSize(scanOpts.scanBatchSize);
+        // Say start key is the one with key of row
+        // and end key is the one that immediately follows the row
+        scanner.setRange(new Range(rowID));
     		return null;
     }
 }
