@@ -73,7 +73,7 @@ interface AccumuloOperationsApiIfce {
 	 * @param visibility
 	 * @return 
 	 */        
-    String deleteAccumuloRow(String tableName, Text colFam, Text colQual, Text visibility);    
+    JSONObject deleteAccumuloRow(Connector conn, Scanner scanner, String tableName, Text family, Text colFam, Text colQual, Text visibility) throws TableNotFoundException;    
     
     /**
 	 * Enumerate table to get all rows with specific visibility.
@@ -93,5 +93,5 @@ interface AccumuloOperationsApiIfce {
 	 * @param visibility
 	 * @return 
 	 */  
-    JSONObject readRow(Connector conn, String tableName, Text rowID, Text colFam, Text colQual, Text visibility) throws TableNotFoundException;
+     Scanner readRow(Connector conn, String tableName, Text rowID) throws TableNotFoundException;
 }
