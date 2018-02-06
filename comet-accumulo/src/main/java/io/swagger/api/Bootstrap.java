@@ -29,20 +29,24 @@ import org.apache.hadoop.io.Text;
 
 
 public class Bootstrap extends HttpServlet {
+    public static final int DefaultServerPort = 8080;
+    public static final int DefaultSSLServerPort = 8443;
+    private final boolean withSSL = true;
+
   @Override
-  public void init(ServletConfig config) throws ServletException {
-    Info info = new Info()
-      .title("Swagger Server")
-      .description("COMET Accumulo Query Layer API")
-      .termsOfService("None")
-      .contact(new Contact()
-        .email("cwang@renci.org"))
-      .license(new License()
-        .name("Eclipse Public License"));
-
-    ServletContext context = config.getServletContext();
-    Swagger swagger = new Swagger().info(info);
-
-    new SwaggerContextService().withServletConfig(config).updateSwagger(swagger);
-  }
+  	public void init(ServletConfig config) throws ServletException {
+	  	Info info = new Info()
+	      .title("Swagger Server")
+	      .description("COMET Accumulo Query Layer API")
+	      .termsOfService("None")
+	      .contact(new Contact()
+    		  .email("cwang@renci.org"))
+	      .license(new License()
+		  .name("Eclipse Public License"));
+	
+	  	ServletContext context = config.getServletContext();
+	    Swagger swagger = new Swagger().info(info);
+	
+	    new SwaggerContextService().withServletConfig(config).updateSwagger(swagger);
+  	}
 }
