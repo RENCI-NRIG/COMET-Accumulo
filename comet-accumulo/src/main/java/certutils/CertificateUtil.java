@@ -55,12 +55,10 @@ public class CertificateUtil {
                 StringBuffer stringbuffer = new StringBuffer();
                 String s1;
                 for (; (s1 = bufferedReader.readLine()) != null
-                        && s1.indexOf("-----END CERTIFICATE") == -1; stringbuffer.append(s1.trim()))
-                    ;
+                        && s1.indexOf("-----END CERTIFICATE") == -1; stringbuffer.append(s1.trim()));
 
                 if (s1 == null)
-                    throw new IOException(
-                            (new StringBuilder()).append("-----END CERTIFICATE").append(" not found").toString());
+                    throw new IOException((new StringBuilder()).append("-----END CERTIFICATE").append(" not found").toString());
 
                 certificateChain.add(createCertFromPem(stringbuffer.toString()));
 
@@ -156,12 +154,14 @@ public class CertificateUtil {
             return null;
         }
 
-        DERInputStream inp = new DERInputStream(new ByteArrayInputStream(cert.getPublicKey().getEncoded())); // get
+        @SuppressWarnings({ "deprecation", "resource" })
+		DERInputStream inp = new DERInputStream(new ByteArrayInputStream(cert.getPublicKey().getEncoded())); // get
                                                                                                              // encoded
                                                                                                              // pub key
                                                                                                              // from
                                                                                                              // cert
-        String keyid = getKeyidFromDER(inp.readObject());
+        @SuppressWarnings("deprecation")
+		String keyid = getKeyidFromDER(inp.readObject());
         if (keyid != null) {
             return keyid;
         } else {
