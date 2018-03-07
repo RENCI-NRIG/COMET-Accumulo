@@ -14,6 +14,7 @@ import java.security.cert.CertPathValidator;
 import java.security.cert.CertPathValidatorException;
 import java.security.cert.CertStore;
 import java.security.cert.CertStoreParameters;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.CollectionCertStoreParameters;
@@ -22,9 +23,15 @@ import java.security.cert.PKIXCertPathValidatorResult;
 import java.security.cert.X509CertSelector;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.log4j.Logger;
+import org.apache.ws.commons.util.Base64;
+import org.apache.ws.commons.util.Base64.DecodingException;
 //import orca.util.Base64;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.DERBitString;
@@ -32,8 +39,42 @@ import org.bouncycastle.asn1.DEREncodable;
 import org.bouncycastle.asn1.DERInputStream;
 import org.bouncycastle.asn1.DERObjectIdentifier;
 
-public class CertificateUtil {
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.cert.CertPathValidatorException;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
+import java.util.Properties;
 
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.log4j.Logger;
+import certutils.*;
+import org.apache.ws.commons.util.Base64;
+
+import javax.net.ssl.HttpsURLConnection; 
+import javax.net.ssl.KeyManagerFactory; 
+import javax.net.ssl.SSLContext; 
+import javax.net.ssl.SSLSocketFactory; 
+import javax.net.ssl.TrustManagerFactory; 
+import java.security.GeneralSecurityException; 
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+
+import io.swagger.api.COMETClientUtils;
+
+public class CertificateUtil {
+	private static final Logger log = Logger.getLogger(COMETClientUtils.class);
+	private static ThreadLocal<HttpServletRequest> request = new ThreadLocal<HttpServletRequest>();
+	private boolean strongCheck = true;
+	
     /**
      * converts a certificate chain string in to a list of certificate objects
      * 
@@ -78,8 +119,9 @@ public class CertificateUtil {
      * @param pemString
      * @return
      * @throws CertificateException
+     * @throws DecodingException 
      */
-    public static X509Certificate createCertFromPem(String pemString) throws CertificateException {
+    public static X509Certificate createCertFromPem(String pemString) throws CertificateException, DecodingException {
         ByteArrayInputStream bytearrayinputstream = new ByteArrayInputStream(Base64.decode(pemString));
         CertificateFactory certificatefactory = CertificateFactory.getInstance("X.509");
         X509Certificate certificate = (X509Certificate) certificatefactory.generateCertificate(bytearrayinputstream);
@@ -156,10 +198,7 @@ public class CertificateUtil {
 
         @SuppressWarnings({ "deprecation", "resource" })
 		DERInputStream inp = new DERInputStream(new ByteArrayInputStream(cert.getPublicKey().getEncoded())); // get
-                                                                                                             // encoded
-                                                                                                             // pub key
-                                                                                                             // from
-                                                                                                             // cert
+                                                          // cert
         @SuppressWarnings("deprecation")
 		String keyid = getKeyidFromDER(inp.readObject());
         if (keyid != null) {
@@ -212,6 +251,138 @@ public class CertificateUtil {
         return hexString;
     }
 
+    
+    /**
+     * Compare base64 encoding of a cert to a first cert in a chain
+     * @param act_base64
+     * @param chain
+     * @return
+     */
+	protected static boolean compareCertsBase64(String cert_base64, X509Certificate[] chain) {
+	    	
+	    	if ((cert_base64 == null) || (chain == null) || (chain.length == 0))
+	    		return false;
+	
+	      	// compare the 64-bit encodings of certificates (for simplicity)
+	    	byte[] bytes = null;
+	
+	    	try {
+	    		bytes = chain[0].getEncoded();
+	    	} catch (CertificateEncodingException e) {
+	    		throw new RuntimeException("Failed to encode the certificate");
+	    	}
+	    	
+	    	String base64 = Base64.encode(bytes).trim();
+	    	
+	    	return cert_base64.trim().equals(base64);
+	}
+	
+	public String testSSLCert(String guid, String cert64) {
+		String status = "STATUS for " + guid + " : ";
+		
+		if (checkSecure()) {
+			status += "Security = SSL USED; ";
+			if ((getClientCerts() == null) || (getClientCerts().length == 0)) {
+				status += "Certificate = NONE; ";
+			} else {
+				if (compareCertsBase64(cert64, getClientCerts())) {
+					status += "Certificate = MATCH; ";
+				} else {
+					status += "Certificate = MISMATCH; ";
+				}
+			}
+		} else {
+			status += "Security = NO SSL USED; ";
+		}
+		return status;
+	}
+	
+	/**
+     * Check if the client is using secure channel
+     * @return
+     */
+	protected boolean checkSecure() {
+	    	// if comms are secure, session id will be set
+	    	HttpServletRequest pRequest = getThreadRequest();
+	    	String sslSessionId = (String)pRequest.getAttribute("javax.servlet.request.ssl_session");
+	
+	    	// if ssl session id is present, client using SSL/TLS
+	    	if (sslSessionId == null) {
+	    		return false;
+	    	}
+	    	return true;
+	}
+    
+	/**
+     * Retrieve certificate chain if available (null if not)
+     * @return
+     */
+    protected X509Certificate[] getClientCerts() {
+	    	if (checkSecure()) {
+	        	HttpServletRequest pRequest = getThreadRequest();
+	        	Object certChain = pRequest.getAttribute("javax.servlet.request.X509Certificate");
+	    		if (certChain != null) {
+	    			return (X509Certificate[])certChain;
+	    		} else {
+	    			return null;
+	    		}
+	    	}
+	    	return null;
+    }
+    
+    protected static HttpServletRequest getThreadRequest() {
+		return (HttpServletRequest)request.get();
+	}
+    
+    /**
+     * Check client certificate against the database
+     * @param clientID
+     * @param trustKeyStorePath
+     * @param keyStorePassword
+     * @return 
+     * @throws CertPathValidatorException 
+     */
+    protected boolean clientCertCheck(String clientID,  String trustKeyStorePath, String keyStorePassword) throws CertPathValidatorException {
+	    	try {
+	    		// get the cert chains from SSL
+		    	X509Certificate[] certChain = getClientCerts();
+		    	InputStream trustStoreInput = new FileInputStream(trustKeyStorePath);
+		    	char[] password = keyStorePassword.toCharArray();
+		    	KeyStore anchors = KeyStore.getInstance(KeyStore.getDefaultType());
+	        anchors.load(trustStoreInput, password);
+		    	
+		    	if ((certChain == null) || (certChain.length == 0)) {
+		    		if (!strongCheck) {
+		    			log.info("Client did not present an SSL client certificate, strong checking is disabled, proceeding.");
+		    			return true;
+		    		} else {
+		    			log.error("Client did not present an SSL client certificate, strong checking is enabled, blocking");
+		    			return false;
+		    		}
+		    	}
+		    	
+		    	if (clientID == null)
+		    		return false;
+		    	
+			X509Certificate cert = CertificateUtil.verifyCertChain(Arrays.asList(certChain), trustKeyStorePath, keyStorePassword);
+			
+			Enumeration<String> en = anchors.aliases();
+			
+			while (en.hasMoreElements()) {
+				String ali = (String)en.nextElement();
+			    if(cert ==  (X509Certificate) anchors.getCertificate(ali)) {
+			         return true;
+			    }
+			}
+			
+		    return false;
+		    
+	    	} catch (Exception e) {
+	    		throw new CertPathValidatorException("A valid certificate path does not exist"
+	                    + System.getProperty("line.separator") + e.getMessage());
+	    	}
+    }
+	
     /**
      * Method to convert to hex from byte array
      * 
