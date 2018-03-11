@@ -62,11 +62,24 @@ public class HTTPSServer {
             // Create trust manager
             TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
             trustManagerFactory.init(keyStore);
-            TrustManager[] tm = trustManagerFactory.getTrustManagers();
-             
+            //TrustManager[] tm = trustManagerFactory.getTrustManagers();
+            TrustManager tm = new X509TrustManager() {
+                public X509Certificate[] getAcceptedIssuers() {
+                		return new X509Certificate[0];
+                }
+
+                public void checkClientTrusted(X509Certificate[] certs, String authType) {
+
+                }
+
+                public void checkServerTrusted(X509Certificate[] certs, String authType) {
+                }
+            };
+            
             // Initialize SSLContext
             SSLContext sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(km, tm, null);
+            sslContext.init(km, new TrustManager[] { tm }, null);
+            //sslContext.init(km, tm, null);
              
             return sslContext;
         } catch (Exception ex){

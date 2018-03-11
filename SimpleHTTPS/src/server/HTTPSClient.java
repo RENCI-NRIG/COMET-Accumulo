@@ -47,7 +47,7 @@ public class HTTPSClient {
     private SSLContext createSSLContext(){
         try{
             KeyStore keyStore = KeyStore.getInstance("PKCS12");
-            FileInputStream fis = new FileInputStream("/Users/congwang/Desktop/CAMP/keys/p12s/cometclient.p12");
+            FileInputStream fis = new FileInputStream("/Users/congwang/Desktop/CAMP/keys/p12s/cometclient-self.p12");
             keyStore.load(fis, "".toCharArray());
             fis.close();
             
@@ -64,11 +64,23 @@ public class HTTPSClient {
             // Create trust manager
             TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
             trustManagerFactory.init(keyStore);
-            TrustManager[] tm = trustManagerFactory.getTrustManagers();
+            TrustManager tm = new X509TrustManager() {
+                public X509Certificate[] getAcceptedIssuers() {
+                    //return null;
+                		return new X509Certificate[0];
+                }
+
+                public void checkClientTrusted(X509Certificate[] certs, String authType) {
+
+                }
+
+                public void checkServerTrusted(X509Certificate[] certs, String authType) {
+                }
+            };
              
             // Initialize SSLContext
             SSLContext sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(km, tm, null);
+            sslContext.init(km, new TrustManager[] { tm }, null);
              
             return sslContext;
         } catch (Exception ex){

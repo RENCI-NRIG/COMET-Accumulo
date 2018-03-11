@@ -15,7 +15,7 @@ public class ClientConfigProps {
 	public static String COMET_CLIENT_ACCUMULO_IFCETABLE_PROP = "comet.client.table.ifce";
 	public static String COMET_CLIENT_ACCUMULO_MEMBUFF = "comet.client.accumulo.membuff";
 	public static String COMET_CLIENT_ACCUMULO_NUMTHREADS = "comet.client.accumulo.numthreads";
-	public static String COMET_CLIENT_ACCUMULO_KEYSTORE_TYPE="coment.client.keystore.type";
+	public static String COMET_CLIENT_ACCUMULO_KEYSTORE_TYPE="comet.client.keystore.type";
 	public static String COMET_CLIENT_ACCUMULO_TRUSTSTORE_TYPE="comet.client.truststore.type";
 	
 	public static String COMET_CLIENT_ACCUMULO_LABEL_ACTOR = "comet.service.auth.label.actor";
