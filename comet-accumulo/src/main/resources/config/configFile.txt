@@ -1,0 +1,12 @@
+comet.client.keystore=/Users/congwang/Dropbox/2Renci-work/Projects/CAMP/UNDER_DEVELOPMENT/COMET-Accumulo/comet-accumulo/src/main/resources/jetty-ssl.keystore
+comet.client.keystore.pass=
+comet.client.truststore=/Users/congwang/Dropbox/2Renci-work/Projects/CAMP/UNDER_DEVELOPMENT/COMET-Accumulo/comet-accumulo/src/main/resources/comet-server-truststore.jks
+comet.client.truststore.pass=
+comet.client.accumulo.instance=exogeni
+comet.client.zookeeperse.hosts=zoo1,zoo2,zoo3
+comet.client.table.main=trace
+comet.client.accumulo.user.default=root
+comet.client.accumulo.user.default.pass=secret
+comet.client.table.ifce=interfaces
+comet.client.keystore.type=JKS
+comet.client.truststore.type=JKS

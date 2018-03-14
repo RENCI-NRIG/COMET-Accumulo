@@ -1,9 +1,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>io.swagger</groupId>
-  <artifactId>swagger-jaxrs-server</artifactId>
+  <groupId>org.renci</groupId>
+  <artifactId>comet-server</artifactId>
   <packaging>jar</packaging>
-  <name>swagger-jaxrs-server</name>
+  <name>comet-server</name>
   <version>1.0.0</version>
 
   <licenses>
@@ -17,6 +17,48 @@
   <build>
     <sourceDirectory>src/main/java</sourceDirectory>
     <plugins>
+    	
+    	
+    	
+    	<plugin>
+    <groupId>org.codehaus.mojo</groupId>
+    <artifactId>keytool-maven-plugin</artifactId>
+    <version>1.5</version>
+    <configuration>
+        <keystore>${project.basedir}/src/main/resources/jetty-ssl.keystore</keystore>
+        <dname>cn=localhost</dname>
+        <!--Both `keypass` and `storepass` must be at least 6 characters long. -->
+        <keypass>jetty8</keypass>
+        <storepass>jetty8</storepass>
+        <alias>jetty8</alias>
+        <keyalg>RSA</keyalg>
+        <validity>99999</validity>
+    </configuration>
+</plugin>
+ 
+<plugin>
+    <groupId>org.mortbay.jetty</groupId>
+    <artifactId>jetty-maven-plugin</artifactId>
+    <version>8.1.14.v20131031</version>
+    <configuration>
+        <connectors>
+            <connector implementation="org.eclipse.jetty.server.bio.SocketConnector">
+                <port>7777</port>
+            </connector>
+            <connector implementation="org.eclipse.jetty.server.ssl.SslSocketConnector">
+                <port>7443</port>
+                <keystore>${project.basedir}/src/main/resources/jetty-ssl.keystore</keystore>
+                <keyPassword>jetty8</keyPassword>
+                <password>jetty8</password>
+            </connector>
+        </connectors>
+    </configuration>
+</plugin>
+    	
+    	
+    	
+    	
+    <!-- Enable HTTPs -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>
@@ -149,6 +191,12 @@
       <artifactId>migbase64</artifactId>
       <version>2.2</version>
     </dependency>
+    
+    <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-ext-jdk15</artifactId>
+                <version>1.45</version>
+	</dependency>
 
   
     <!-- Bean Validation API support -->
@@ -158,7 +206,43 @@
         <version>1.1.0.Final</version>
     <!--    <scope>provided</scope> -->
     </dependency>
+     
+	<dependency>
+		<groupId>org.apache.accumulo</groupId>
+		<artifactId>accumulo-core</artifactId>
+		<version>1.8.1</version>
+	</dependency>
 
+	<dependency>
+	<groupId>org.apache.commons</groupId>
+		<artifactId>commons-lang3</artifactId>
+		<version>3.1</version>
+	</dependency>
+	<!-- https://mvnrepository.com/artifact/org.apache.ws.commons.util/ws-commons-util -->
+	<dependency>
+	    <groupId>org.apache.ws.commons.util</groupId>
+	    <artifactId>ws-commons-util</artifactId>
+	    <version>1.0.2</version>
+	</dependency>
+
+	<dependency>
+		<groupId>log4j</groupId>
+		<artifactId>log4j</artifactId>
+		<version>1.2.17</version>
+	</dependency>
+	
+	<dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+			<version>2.6</version>
+	</dependency>
+	
+	<dependency>
+    <groupId>org.codehaus.jettison</groupId>
+	    <artifactId>jettison</artifactId>
+	    <version>1.3.8</version>
+	</dependency>
+	
   </dependencies>
   <repositories>
     <repository>
