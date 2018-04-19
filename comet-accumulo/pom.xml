@@ -9,7 +9,7 @@
         <java.version>1.7</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
-        <springfox-version>2.7.0</springfox-version>
+        <springfox-version>2.5.0</springfox-version>
     </properties>
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -33,27 +33,52 @@
         </plugins>
     </build>
     <dependencies>
-	    <dependency>
-	        <groupId>org.apache.ws.commons.util</groupId>
-	        <artifactId>ws-commons-util</artifactId>
-	        <version>1.0.2</version>
-	    </dependency>
-	    <dependency>
-	    <groupId>org.codehaus.jettison</groupId>
-	        <artifactId>jettison</artifactId>
-	        <version>1.3.8</version>
-	    </dependency>
-	    <dependency>
-	        <groupId>org.apache.accumulo</groupId>
-	        <artifactId>accumulo-core</artifactId>
-	        <version>1.8.1</version>
-	    </dependency>
-    
-	    <dependency>
-	                <groupId>org.bouncycastle</groupId>
-	                <artifactId>bcprov-ext-jdk15</artifactId>
-	                <version>1.45</version>
-	    </dependency>
+        <dependency>
+                    <groupId>org.bouncycastle</groupId>
+                    <artifactId>bcprov-ext-jdk15</artifactId>
+                    <version>1.45</version>
+        </dependency>
+        
+        <dependency>
+          <groupId>ch.qos.logback</groupId>
+          <artifactId>logback-classic</artifactId>
+          <scope>compile</scope>
+        </dependency>
+        <dependency>
+          <groupId>ch.qos.logback</groupId>
+          <artifactId>logback-core</artifactId>
+          <scope>compile</scope>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.apache.accumulo</groupId>
+            <artifactId>accumulo-core</artifactId>
+            <version>1.8.1</version>
+            <!-- Exclude servlet because we are using Spring, disable Guava because Spring needs higher version -->
+            <exclusions>
+                <exclusion>
+                    <artifactId>*</artifactId>
+                    <groupId>javax.servlet</groupId>
+                </exclusion>
+                <exclusion>
+                	<groupId>com.google.guava</groupId>
+                	<artifactId>guava</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+		
+        
+        <dependency>
+        <groupId>org.codehaus.jettison</groupId>
+            <artifactId>jettison</artifactId>
+            <version>1.3.8</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.apache.ws.commons.util</groupId>
+            <artifactId>ws-commons-util</artifactId>
+            <version>1.0.2</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -68,6 +93,8 @@
             <groupId>io.springfox</groupId>
             <artifactId>springfox-swagger2</artifactId>
             <version>${springfox-version}</version>
+
+            
         </dependency>
         <dependency>
             <groupId>io.springfox</groupId>
@@ -88,4 +115,13 @@
         <scope>provided</scope>
     </dependency>
     </dependencies>
+    <dependencyManagement>
+    	<dependencies>
+    		<dependency>
+    			<groupId>com.google.guava</groupId>
+    			<artifactId>guava</artifactId>
+    			<version>16.0.1</version>
+    		</dependency>
+    	</dependencies>
+    </dependencyManagement>
 </project>
