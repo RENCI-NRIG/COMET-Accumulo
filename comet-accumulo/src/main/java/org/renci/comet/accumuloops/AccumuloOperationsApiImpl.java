@@ -125,13 +125,14 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
 	 */    
     public JSONObject addAccumuloRow(Connector conn, String tableName, Text rowID, Text colFam, Text colQual, Value value, Text visibility) throws TableNotFoundException, MutationsRejectedException {
     		JSONObject output = new JSONObject();
+    		ColumnVisibility colVis = new ColumnVisibility(visibility);
     		@SuppressWarnings("deprecation")
 		BatchWriter bw = conn.createBatchWriter(tableName,1000000, 60000, 2);
     		Mutation mutation = new Mutation(rowID);
-    		mutation.put(colFam, colQual, value);
+    		mutation.put(colFam, colQual, colVis, value);
     		bw.addMutation(mutation);
     		try {
-			output.put(SUCCESS, "success, deleted table: " + tableName);
+			output.put(SUCCESS, "success, added table: " + tableName);
 		} catch (JSONException e1) {
 			log.error("JSON Exception: " + e1.getMessage());
 		}
@@ -147,7 +148,7 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
 	 * @return 
      * @throws TableNotFoundException 
 	 */        
-    public JSONObject deleteAccumuloRow(Connector conn, Scanner scanner, String tableName, Text family, Text colFam, Text colQual, Text visibility) throws TableNotFoundException {
+    public JSONObject deleteAccumuloRow(Connector conn, Scanner scanner, String tableName, Text colFam, Text colQual, Text visibility) throws TableNotFoundException {
     		Mutation deleter = null;
 		for (Entry<Key, Value> entry : scanner) {
 			if (deleter == null) {
@@ -155,7 +156,7 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
 
 			}
 			if (visibility != null) {
-				deleter.putDelete(new Text(family), new Text(colFam), new ColumnVisibility(visibility));
+				deleter.putDelete(new Text(colFam), new Text(colFam), new ColumnVisibility(visibility));
 			} else {
 				deleter.putDelete(entry.getKey().getColumnFamily(), entry.getKey().getColumnQualifier());
 			}
@@ -238,15 +239,26 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
 	 * @return 
      * @throws TableNotFoundException 
 	 */  
-    public Scanner readRow(Connector conn, String tableName, Text rowID) throws TableNotFoundException {
+    public JSONObject readOneRow(Connector conn, String tableName, Text rowID, String visibility) throws TableNotFoundException {
+    		JSONObject output = new JSONObject();
     		ScannerOpts scanOpts = new ScannerOpts();
     		// Create a scanner
-        Scanner scanner = conn.createScanner(tableName, Authorizations.EMPTY);
+        Scanner scanner = conn.createScanner(tableName, new Authorizations(visibility));
         scanner.setBatchSize(scanOpts.scanBatchSize);
         // Say start key is the one with key of row
         // and end key is the one that immediately follows the row
         scanner.setRange(new Range(rowID));
-        return scanner;
+        for (Map.Entry<Key, Value> entry : scanner) {
+        		Key key = entry.getKey();
+			Value value = entry.getValue();
+            	try {
+				output.put(key.toString(), value);
+			} catch (JSONException e) {
+				log.error("JSON Exception: " + e.getMessage());
+			}
+        		System.out.printf("Key : %-50s  Value : %s\n", entry.getKey(), entry.getValue());
+        }
+        return output;
     }
 
 }

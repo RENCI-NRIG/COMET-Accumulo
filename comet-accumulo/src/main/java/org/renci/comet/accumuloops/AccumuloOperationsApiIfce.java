@@ -1,6 +1,7 @@
 package org.renci.comet.accumuloops;
 
 import org.apache.accumulo.core.client.BatchScanner;
+import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
@@ -20,7 +21,7 @@ import org.apache.hadoop.io.Text;
 import org.codehaus.jettison.json.JSONObject;
 
 
-interface AccumuloOperationsApiIfce {
+public interface AccumuloOperationsApiIfce {
 /*	*//**
 	 * Create new Zookeeper instance. 
 	 * @param instanceName
@@ -45,17 +46,17 @@ interface AccumuloOperationsApiIfce {
      * @throws AccumuloSecurityException 
      * @throws AccumuloException 
 	 */    
-    JSONObject createAccumuloTable(Connector conn, String tableName) throws AccumuloException, AccumuloSecurityException, TableExistsException;
+    public JSONObject createAccumuloTable(Connector conn, String tableName) throws AccumuloException, AccumuloSecurityException, TableExistsException;
     
     /**
 	 * Delete Accumulo table.
 	 * @param userName
 	 * @return 
 	 */       
-    JSONObject deleteAccumuloTable(Connector conn, String tableName) throws TableNotFoundException, AccumuloException, AccumuloSecurityException;
+    public JSONObject deleteAccumuloTable(Connector conn, String tableName) throws TableNotFoundException, AccumuloException, AccumuloSecurityException;
     
     /**
-	 * Create new Accumulo table.
+	 * Create new Accumulo row.
 	 * @param tableName
 	 * @param colFam
 	 * @param colQual
@@ -63,17 +64,17 @@ interface AccumuloOperationsApiIfce {
 	 * @param visibility
 	 * @return 
 	 */    
-    JSONObject addAccumuloRow(Connector conn, String tableName, Text rowID, Text colFam, Text colQual, Value value, Text visibility) throws TableNotFoundException, MutationsRejectedException;
+    public JSONObject addAccumuloRow(Connector conn, String tableName, Text rowID, Text colFam, Text colQual, Value value, Text visibility) throws TableNotFoundException, MutationsRejectedException;
 
     /**
-	 * Create new Accumulo table.
+	 * Delete Accumulo row.
 	 * @param tableName
 	 * @param colFam
 	 * @param colQual
 	 * @param visibility
 	 * @return 
 	 */        
-    JSONObject deleteAccumuloRow(Connector conn, Scanner scanner, String tableName, Text family, Text colFam, Text colQual, Text visibility) throws TableNotFoundException;    
+   public JSONObject deleteAccumuloRow(Connector conn, Scanner scanner, String tableName, Text colFam, Text colQual, Text visibility) throws TableNotFoundException;    
     
     /**
 	 * Enumerate table to get all rows with specific visibility.
@@ -83,7 +84,7 @@ interface AccumuloOperationsApiIfce {
 	 * @return 
 	 * @throws TableNotFoundException 
 	 */       
-    JSONObject enumerateTable(Connector conn, String tableName, String visibility, String numberOfThreads) throws TableNotFoundException;
+   public JSONObject enumerateTable(Connector conn, String tableName, String visibility, String numberOfThreads) throws TableNotFoundException;
 
     /**
 	 * Enumerate table to get all rows with specific visibility.
@@ -93,5 +94,5 @@ interface AccumuloOperationsApiIfce {
 	 * @param visibility
 	 * @return 
 	 */  
-     Scanner readRow(Connector conn, String tableName, Text rowID) throws TableNotFoundException;
+   public JSONObject readOneRow(Connector conn, String tableName, Text rowID, String visibility) throws TableNotFoundException;
 }

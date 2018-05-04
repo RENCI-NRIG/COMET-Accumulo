@@ -3,6 +3,8 @@ package org.renci.comet.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.*;
 
+import org.codehaus.jettison.json.JSONObject;
+import org.renci.comet.CometOps;
 import org.renci.comet.model.CometResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +22,7 @@ import javax.validation.constraints.*;
 import javax.validation.Valid;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.security.cert.X509Certificate;
 import java.util.List;
 @javax.annotation.Generated(value = "org.renci.comet.codegen.languages.SpringCodegen", date = "2018-04-18T14:21:33.714Z")
 
@@ -31,6 +34,8 @@ public class DeleteScopeApiController implements DeleteScopeApi {
     private final ObjectMapper objectMapper;
 
     private final HttpServletRequest request;
+    
+    private boolean certValid = false;
 
     @org.springframework.beans.factory.annotation.Autowired
     public DeleteScopeApiController(ObjectMapper objectMapper, HttpServletRequest request) {
@@ -40,16 +45,45 @@ public class DeleteScopeApiController implements DeleteScopeApi {
 
     public ResponseEntity<CometResponse> deleteScopeDelete(@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "contextID", required = true) String contextID,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "family", required = true) String family,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "Key", required = true) String key,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "readToken", required = true) String readToken,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "writeToken", required = true) String writeToken) {
         String accept = request.getHeader("Accept");
-        if (accept != null && accept.contains("application/json")) {
-            try {
-                return new ResponseEntity<CometResponse>(objectMapper.readValue("{  \"message\" : \"message\",  \"value\" : \"{}\",  \"version\" : \"version\",  \"status\" : \"status\"}", CometResponse.class), HttpStatus.NOT_IMPLEMENTED);
-            } catch (IOException e) {
-                log.error("Couldn't serialize response for content type application/json", e);
-                return new ResponseEntity<CometResponse>(HttpStatus.INTERNAL_SERVER_ERROR);
-            }
+        X509Certificate[] certs = (X509Certificate[])request.getAttribute("javax.servlet.request.X509Certificate");
+		if (certs == null) {
+			System.out.print("ReadScope, Cert is NULL!!!\n");
+		} else {
+			for (X509Certificate x : certs) {
+				System.out.println(x);
+			}
+		}
+		
+		if (certs != null) {
+			try {
+                for (int i = 0; i < certs.length; i++)
+                    certs[i].checkValidity();
+                	certValid = true;
+            } catch (Exception e) {
+				System.out.println("____________________________\n____________________________");
+    				System.out.println("Unable to validate certificate!");
+    				System.out.println("____________________________\n____________________________");
+			}
+		}
+		
+		if (accept != null && accept.contains("application/json")) {
+        		if (certValid) {
+            		try {
+            			CometOps cometOps = new CometOps();
+            			JSONObject output = cometOps.deleteScope(contextID, family, key, readToken, writeToken);
+            			return new ResponseEntity<CometResponse>(objectMapper.readValue("{  \"message\" : \"message\",  \"value\" : \"{}\",  \"version\" : \"version\",  \"status\" : \"status\"}", CometResponse.class), HttpStatus.OK);
+            		} catch (IOException ioe) {
+                        log.error("Couldn't serialize response for content type application/json", ioe);
+                        return new ResponseEntity<CometResponse>(HttpStatus.INTERNAL_SERVER_ERROR);
+                 } catch (Exception e) {
+            			log.error("Accumulo internal error", e);
+                    return new ResponseEntity<CometResponse>(HttpStatus.INTERNAL_SERVER_ERROR);
+            		} 
+        		}
         }
-
-        return new ResponseEntity<CometResponse>(HttpStatus.NOT_IMPLEMENTED);
+		
+        ResponseEntity<CometResponse> cr = new ResponseEntity<CometResponse>(HttpStatus.BAD_REQUEST);
+        return cr;
     }
 
 }
