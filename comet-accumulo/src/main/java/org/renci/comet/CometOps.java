@@ -32,6 +32,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -40,13 +41,14 @@ import org.renci.comet.accumuloops.AccumuloOperationsApiImpl;
 
 public class CometOps implements CometOpsIfce {
 	String instanceName = "docker-development";
-    String zooServers = "172.16.100.5,172.16.100.4,172.16.100.1"; // Provide list of zookeeper server here. For example, localhost:2181
+    String zooServers = "172.25.0.2,172.25.0.3"; // Provide list of zookeeper server here. For example, localhost:2181
     String userName = "root"; // Provide username
     String password = "secret"; // Provide password
     public static String ERROR = "error";
 	public static String SUCCESS = "Success";
     private static final Logger log = Logger.getLogger(AccumuloOperationsApiImpl.class);
-    public String tableName="accu-test";
+    //public String tableName="accu-test";
+    public String tableName="trace";
     
 	public static byte[] serialize(Object obj) throws IOException {
 	    ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -83,9 +85,9 @@ public class CometOps implements CometOpsIfce {
 		
 		org.apache.accumulo.core.data.Value accumuloValue = new org.apache.accumulo.core.data.Value(serializedByteArray);
 		
-		JSONObject output = accu.addAccumuloRow(conn, tableName, rowID, colFam, colQual, accumuloValue, vis);
+		JSONObject jsonOutput = accu.addAccumuloRow(conn, tableName, rowID, colFam, colQual, accumuloValue, vis);
 	    
-	    return output;
+	    return jsonOutput;
 	}
     
     public JSONObject deleteScope(String contextID, String family, String key, String readToken, String writeToken) throws AccumuloException, AccumuloSecurityException {
@@ -93,7 +95,7 @@ public class CometOps implements CometOpsIfce {
 
 		Connector conn = inst.getConnector(userName, password);
 		AccumuloOperationsApiImpl accu = new AccumuloOperationsApiImpl();
-		JSONObject output = new JSONObject();
+		JSONObject jsonOutput = new JSONObject();
 		Authorizations auth = null;
 
 		Text rowID = new Text(contextID);
@@ -110,13 +112,53 @@ public class CometOps implements CometOpsIfce {
 			Scanner scan = conn.createScanner(tableName, auth);
 			scan.setRange(new Range(contextID, contextID));
 			Text vis = new Text(readToken);
-			//public JSONObject deleteAccumuloRow(Connector conn, Scanner scanner, String tableName, Text colFam, Text colQual, Text visibility)
-			output = accu.deleteAccumuloRow(conn,  scan, tableName, colFam, colQual, vis);
+			
+			Map<String, Value> mapOutput = accu.readOneRow(conn, readToken, rowID, colFam, colQual, vis.toString());
+			int mapSize = mapOutput.size();
+			if (mapSize == 0) {
+				jsonOutput.put(ERROR, "Failed to delete scope: no such entry");
+				return jsonOutput;
+			} 
+			
+			if (mapSize != 1) {
+				jsonOutput.put(ERROR, "Failed to delete scope: conflict in Accumulo record, please clean up");
+				return jsonOutput;
+			}
+			
+			for (Map.Entry<String, Value> entry : mapOutput.entrySet()) {
+		    		Value v = entry.getValue();
+		    		String[] deserialized = null;
+				try {
+					deserialized = (String[]) deserialize(v.get());
+				} catch (ClassNotFoundException | IOException e1) {
+					log.error("deserialization failed: " + e1);
+					jsonOutput.put(ERROR, "Failed to delete scope: deserialization failed");
+				}
+		    		if (deserialized != null && deserialized.length == 3) {
+		    			deserialized[0] = "true";
+		    			byte[] serializedByteArray = null;
+		    			try {
+		    				serializedByteArray = serialize(deserialized);
+		    				org.apache.accumulo.core.data.Value accumuloValue = new org.apache.accumulo.core.data.Value(serializedByteArray);
+			    			
+			    			JSONObject output = accu.addAccumuloRow(conn, tableName, rowID, colFam, colQual, accumuloValue, vis);
 
+			    			try {
+							jsonOutput.put(SUCCESS, "Scope deleted");
+						} catch (JSONException e) {
+							log.error("JSON Exception: " + e.getMessage());
+						}
+		    				
+		    			} catch (IOException e) {
+		    				log.error("IO Exception: " + e.getMessage());
+		    			}
+		    		}
+		    }
+			
 		} catch (TableNotFoundException e) {
 			log.error("DeleteEntry failed due to: " + e.getMessage());
 			try {
-				return output.put(ERROR, "Failed to delete entry due to " + e.getMessage());
+				return jsonOutput.put(ERROR, "Failed to delete entry due to " + e.getMessage());
 			} catch (JSONException e1) {
 				log.error("JSON Exception: " + e1.getMessage());
 			}
@@ -124,31 +166,33 @@ public class CometOps implements CometOpsIfce {
 		} catch (Exception e) {
 			log.error("DeleteEntry failed due to: " + e.getMessage());
 			try {
-				return output.put(ERROR, "Failed to delete entry due to " + e.getMessage());
+				return jsonOutput.put(ERROR, "Failed to delete entry due to " + e.getMessage());
 			} catch (JSONException e1) {
 				log.error("JSON Exception: " + e1.getMessage());
 			}
 
 		}
 
-		return output;
+		return jsonOutput;
 	}
     
     public JSONObject readScope (String contextID, String family, String key, String readToken) throws AccumuloException, AccumuloSecurityException,TableNotFoundException, TableExistsException {
 	    
     		Instance inst = new ZooKeeperInstance(instanceName,zooServers);
-
+    		System.out.println("read scope: instance initiated");
+    		
 		Connector conn = inst.getConnector(userName, password);
+		System.out.println("read scope: got connection");
 		
 		AccumuloOperationsApiImpl accu = new AccumuloOperationsApiImpl();
 		
 		Text rowID = new Text(contextID);
 		Text colFam = new Text(family);
 		Text colQual = new Text(key);
-		Authorizations auths = new Authorizations(readToken);
 		String scopeValue = null;
-		JSONObject output = new JSONObject();
+		Map<String, Value> output = new HashMap<String, Value>();
 		
+		JSONObject jsonOutput = new JSONObject();
 		/*try {
 			Scanner scan = conn.createScanner(contextID, auths);
 			scan.setRange(new Range(contextID, contextID));
@@ -175,17 +219,33 @@ public class CometOps implements CometOpsIfce {
 			}
 		}*/
 		
-		//public Scanner readOneRow(Connector conn, String tableName, String rowID, String visibility)
-	    output = accu.readOneRow(conn, tableName, rowID, readToken);
-	    
-	    return output;
+		//public JSONObject readOneRow(Connector conn, String tableName, Text rowID, Text colFam, Text colQual, String visibility)
+	    output = accu.readOneRow(conn, tableName, rowID, colFam, colQual, readToken);
+	    for (Map.Entry<String, Value> entry : output.entrySet()) {
+	    		Value v = entry.getValue();
+	    		String[] deserialized = null;
+				try {
+					deserialized = (String[]) deserialize(v.get());
+				} catch (ClassNotFoundException | IOException e1) {
+					log.error("deserialization failed: " + e1);
+				}
+	    		if (deserialized != null && deserialized.length == 3) {
+	    			try {
+					jsonOutput.put(entry.getKey(), deserialized[2]);
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+	    		}
+	    }
+	    return jsonOutput;
 	}
     
     public JSONObject enumerateScopes(String contextID, String family, String readToken) throws AccumuloException, AccumuloSecurityException {
     		Instance inst = new ZooKeeperInstance(instanceName,zooServers);
     		Connector conn = inst.getConnector(userName, password);
 		//Scan method in accumulo with proper auuthorization labels
-		JSONObject output = new JSONObject();
+    		Map<String, Value> output = new HashMap<String, Value>();
+		JSONObject jsonOutput = new JSONObject();
 		Authorizations auth = null;
 
 		if (readToken != null) {
@@ -194,36 +254,30 @@ public class CometOps implements CometOpsIfce {
 		} else {
 			auth = new Authorizations();
 		}
-
+		
+		AccumuloOperationsApiImpl accu = new AccumuloOperationsApiImpl();
 		try {
-			Scanner scanner = conn.createScanner(tableName, auth);
-			scanner.setRange(new Range(contextID,contextID)); //constructor empty implies the whole table (startKey=-neg, endKey=-pos)
-
-			for (Entry<Key, Value> entry : scanner) {
-				if(entry.getKey().compareColumnFamily(new Text(contextID))==0) {
-					Value v = entry.getValue();
-					Text valueText = new Text(v.get());
-					Key k = entry.getKey();
-					Text scopeName = k.getColumnQualifier();
-					output.put(scopeName.toString(), valueText.toString());
-				}
-			}
-		} catch (TableNotFoundException e) {
-			log.error("DeleteEntry failed due to: " + e.getMessage());
-			try {
-				return output.put(ERROR, "Failed to delete entry due to " + e.getMessage());
-			} catch (JSONException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-		} catch (Exception e) {
-			log.error("DeleteEntry failed due to: " + e.getMessage());
-			try {
-				return output.put(ERROR, "Failed to delete entry due to " + e.getMessage());
-			} catch (JSONException e1) {
-				log.error("Json Exception: "  + e1.getMessage());
-			}
+			output = accu.enumerateRows(conn, contextID, contextID, readToken);
+		} catch (TableNotFoundException e2) {
+			log.error("Table not found: " + e2);
 		}
-		return output;
+		
+		for (Map.Entry<String, Value> entry : output.entrySet()) {
+	    		Value v = entry.getValue();
+	    		String[] deserialized = null;
+				try {
+					deserialized = (String[]) deserialize(v.get());
+				} catch (ClassNotFoundException | IOException e1) {
+					log.error("deserialization failed: " + e1);
+				}
+	    		if (deserialized != null && deserialized.length == 3) {
+	    			try {
+					jsonOutput.put(entry.getKey(), deserialized[2]);
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+	    		}
+	    }
+	    return jsonOutput;
     }
 }

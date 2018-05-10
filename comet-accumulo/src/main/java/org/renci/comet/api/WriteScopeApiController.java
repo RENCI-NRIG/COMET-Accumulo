@@ -1,5 +1,7 @@
 package org.renci.comet.api;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.*;
 
@@ -53,6 +55,7 @@ public class WriteScopeApiController implements WriteScopeApi {
         String accept = request.getHeader("Accept");
         
         X509Certificate[] certs = (X509Certificate[])request.getAttribute("javax.servlet.request.X509Certificate");
+        System.out.println("got request");
 		if (certs == null) {
 			System.out.print("ReadScope, Cert is NULL!!!\n");
 		} else {
@@ -73,14 +76,30 @@ public class WriteScopeApiController implements WriteScopeApi {
 			}
 		}
 		
-		if (accept != null && accept.contains("application/json")) {
+		if (contextID == null || family == null || key == null || value == null || readToken == null || writeToken == null) {
+			try {
+				return new ResponseEntity<CometResponse>(objectMapper.readValue("{  \"message\" : \"Invalid arguments\",  \"value\" : \"{}\",  \"version\" : \"version\",  \"status\" : \"status\"}", CometResponse.class), HttpStatus.BAD_REQUEST);
+			} catch (JsonParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (JsonMappingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		/*if (accept != null && accept.contains("application/json")) {
         		if (certValid) {
+        			System.out.println("cert is valid");
             		try {
             			CometOps cometOps = new CometOps();
             			org.apache.accumulo.core.data.Value val = new org.apache.accumulo.core.data.Value((CharSequence) value);
             			//public JSONObject writeScope (String contextID, String family, String key, Value value, String readToken, String writeToken)
             			JSONObject output = cometOps.writeScope(contextID, family, key, val.toString(), readToken, writeToken);
-            			return new ResponseEntity<CometResponse>(objectMapper.readValue("{  \"message\" : \"message\",  \"value\" : \"{}\",  \"version\" : \"version\",  \"status\" : \"status\"}", CometResponse.class), HttpStatus.OK);
+            			return new ResponseEntity<CometResponse>(objectMapper.readValue("{  \"message\" : \"Write successful\",  \"value\" : \"{Write scope success}\",  \"version\" : \"version\",  \"status\" : \"status\"}", CometResponse.class), HttpStatus.OK);
             		} catch (IOException ioe) {
                         log.error("Couldn't serialize response for content type application/json", ioe);
                         return new ResponseEntity<CometResponse>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -88,8 +107,41 @@ public class WriteScopeApiController implements WriteScopeApi {
             			log.error("Accumulo internal error", e);
                     return new ResponseEntity<CometResponse>(HttpStatus.INTERNAL_SERVER_ERROR);
             		} 
+        		} else {
+        			try {
+						return new ResponseEntity<CometResponse>(objectMapper.readValue("{  \"message\" : \"Invalid certificate: Unauthorized client\",  \"value\" : \"{Unauthorized client}\",  \"version\" : \"version\",  \"status\" : \"status\"}", CometResponse.class), HttpStatus.BAD_REQUEST);
+					} catch (JsonParseException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (JsonMappingException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
         		}
-        }
+        }*/
+		
+		//Test code below, without cert checking
+		if (accept != null && accept.contains("application/json")) {
+
+    			System.out.println("cert is valid");
+        		try {
+        			CometOps cometOps = new CometOps();
+        			org.apache.accumulo.core.data.Value val = new org.apache.accumulo.core.data.Value((CharSequence) value);
+        			//public JSONObject writeScope (String contextID, String family, String key, Value value, String readToken, String writeToken)
+        			JSONObject output = cometOps.writeScope(contextID, family, key, val.toString(), readToken, writeToken);
+        			return new ResponseEntity<CometResponse>(objectMapper.readValue("{  \"message\" : \"Write successful\",  \"value\" : \"{Write scope success}\",  \"version\" : \"version\",  \"status\" : \"status\"}", CometResponse.class), HttpStatus.OK);
+        		} catch (IOException ioe) {
+                    log.error("Couldn't serialize response for content type application/json", ioe);
+                    return new ResponseEntity<CometResponse>(HttpStatus.INTERNAL_SERVER_ERROR);
+             } catch (Exception e) {
+        			log.error("Accumulo internal error", e);
+                return new ResponseEntity<CometResponse>(HttpStatus.INTERNAL_SERVER_ERROR);
+        		} 
+	    		
+	    }
 		
         return new ResponseEntity<CometResponse>(HttpStatus.BAD_REQUEST);
     }

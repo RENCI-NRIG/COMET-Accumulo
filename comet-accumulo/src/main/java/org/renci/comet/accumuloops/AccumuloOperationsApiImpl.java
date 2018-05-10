@@ -4,7 +4,9 @@ import org.apache.accumulo.core.cli.ScannerOpts;
 import org.apache.accumulo.core.client.AccumuloException;
 
 import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.accumulo.core.client.BatchDeleter;
 import org.apache.accumulo.core.client.BatchWriter;
+import org.apache.accumulo.core.client.BatchWriterConfig;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Instance;
 import org.apache.accumulo.core.client.MutationsRejectedException;
@@ -28,9 +30,13 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 
 
 public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
@@ -132,11 +138,67 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
     		mutation.put(colFam, colQual, colVis, value);
     		bw.addMutation(mutation);
     		try {
-			output.put(SUCCESS, "success, added table: " + tableName);
+			output.put(SUCCESS, "success, added Accumulo row: " + rowID + " to table: " + tableName);
 		} catch (JSONException e1) {
 			log.error("JSON Exception: " + e1.getMessage());
 		}
     		return output;
+    }
+    
+    public static JSONObject modifyRow(Connector conn, String tableName, Text rowID, Text colFam, Text colQual, Value value, Text visibility) {
+		JSONObject output=new JSONObject();
+		BatchWriter bw = null;
+		Mutation mut1 = new Mutation(rowID);
+		//Text colFam2 = new Text(colFam);
+		//Text ColFam2ColQual1 = new Text(colQual);
+		if(visibility!=null) {
+			mut1.put(colFam, colQual, new ColumnVisibility(visibility), value);	
+		} else {
+			mut1.put(colFam, colQual, value);
+		}
+		try {
+			bw = createBatchWriter(conn, tableName);
+			bw.addMutation(mut1);
+			bw.close(); // flushes and release ---no need for bw.flush()
+		} catch (MutationsRejectedException e) {
+			System.out.println("Failed mutation in updating  entry (" + rowID + ")");
+			e.printStackTrace();
+			try {
+				return output.put("error", "Failed to modify scope");
+			} catch (JSONException e1) {
+				System.out.println("JSON Exception: " + e1.getMessage());
+			}
+
+		} catch (Exception e) {
+			System.out.println("Failed mutation in updating  entry (" + rowID + ")");
+			
+		}
+
+		try {
+			output.put("contextID", rowID);
+			output.put(colQual.toString(), value);
+		} catch (JSONException e) {
+			System.out.println("JSON Exception: " + e.getMessage());
+		}		
+		return output;
+    }
+    
+    private static BatchWriter createBatchWriter(Connector conn, String table) {
+		BatchWriter bw = null; 
+
+		BatchWriterConfig bwConfig = new BatchWriterConfig();
+		// bwConfig.setMaxMemory(memBuffer);
+		bwConfig.setTimeout(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+		// bwConfig.setMaxWriteThreads(numberOfThreads);
+		try {
+			bw = conn.createBatchWriter(table, bwConfig);
+		} catch (TableNotFoundException e) {
+			System.out.println("Unable to find table " + table
+					+ " to create batchWriter.");
+
+		}
+
+		return bw;
     }
 
     /**
@@ -147,9 +209,25 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
 	 * @param visibility
 	 * @return 
      * @throws TableNotFoundException 
+     * @throws MutationsRejectedException 
 	 */        
-    public JSONObject deleteAccumuloRow(Connector conn, Scanner scanner, String tableName, Text colFam, Text colQual, Text visibility) throws TableNotFoundException {
-    		Mutation deleter = null;
+    public Map<String, Value> deleteAccumuloRow(Connector conn, Scanner scanner, String tableName, Text rowID, Text colFam, Text colQual, Text visibility) throws TableNotFoundException, MutationsRejectedException {
+    		Map<String, Value> output = new HashMap<>();
+    		Authorizations auths = new Authorizations(visibility.toString());
+		BatchDeleter deleter= conn.createBatchDeleter(tableName, auths, 1, new BatchWriterConfig());
+		Collection<Range> ranges = new ArrayList<Range>();
+		Scanner tableScannerRange= conn.createScanner(tableName, auths);
+		tableScannerRange.setRange(Range.exact(rowID));
+		for (Entry<Key, Value> entry : tableScannerRange) {
+            ranges.add(new Range(entry.getKey().getRow()));
+            output.put(entry.getKey().toString(), entry.getValue());
+		}
+		deleter.setRanges(ranges);
+		deleter.delete();
+		deleter.close();
+    		
+    	
+    		/*Mutation deleter = null;
 		for (Entry<Key, Value> entry : scanner) {
 			if (deleter == null) {
 				deleter = new Mutation(entry.getKey().getRow());
@@ -175,22 +253,41 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
 
 		if (deleter != null) {
 			return createJSONObject(ERROR, "ContextID: " + deleter.getRow().toString() + '\n');
-		}
-		return createJSONObject(ERROR, "Error: No scope to delete. \n");
+		}*/
+		return output;
     }
     
 
     
-    /**
+    public Map<String, Value> enumerateRows(Connector conn, String tableName, String rowID, String visibility) throws TableNotFoundException, AccumuloException, AccumuloSecurityException {
+    		Map<String, Value> output = new HashMap<String, Value>();
+    		Authorizations auth = null;
+		if (visibility != null) {
+			auth = new Authorizations(visibility);
+		} else {
+			auth = new Authorizations();
+		}
+		conn.securityOperations().changeUserAuthorizations("root", auth);
+    		try (Scanner scan = conn.createScanner(tableName, auth)) {
+			scan.setRange(new Range(rowID));
+			System.out.println("Gotham police department persons of interest: ");
+			for (Map.Entry<Key, Value> entry : scan) {
+				output.put(entry.getKey().toString(), entry.getValue());
+			}
+		}
+    		return output;
+    }
+    
+/*    *//**
 	 * Enumerate table to get all rows with specific visibility.
 	 * @param tableName
 	 * @param visibility
 	 * @param numberOfThreads
 	 * @return 
      * @throws TableNotFoundException 
-	 */       
-    public JSONObject enumerateTable(Connector conn, String tableName, String visibility, String numberOfThreads) throws TableNotFoundException {
-    		JSONObject output = new JSONObject();
+	 *//*       
+    public Map<String, Value> enumerateTable(Connector conn, String tableName, String visibility, String numberOfThreads) throws TableNotFoundException {
+    		Map<String, Value> output = new HashMap<String, Value>();
     		
     		Authorizations auth = null;
     		if (visibility != null) {
@@ -213,51 +310,46 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
     			//   output.append(key2.toString(), value);
     			//  System.out.println(key2 + " ==> " + value);
     			}
+    			scan.close();
     		} catch (TableNotFoundException e) {
     			log.error("enumerateTable failed due to: " + e.getMessage());
-    			try {
-    				return output.put(ERROR, "Failed to delete entry due to " + e.getMessage());
-    			} catch (JSONException e1) {
-    				log.error("JSON Exception: " + e1.getMessage());
-    			}
     		} catch (Exception e) {
     			log.error("enumerateTable failed due to: " + e.getMessage());
-    			try {
-    				return output.put(ERROR, "Failed to delete entry due to " + e.getMessage());
-    			} catch (JSONException e1) {
-    				log.error("JSON Exception: " + e1.getMessage());
-    			}
     		}
+    		
     		return output;
-    }
+    }*/
 
     /**
-	 * Enumerate table to get all rows with specific visibility.
+	 * Read single row with specific visibility.
 	 * @param conn
 	 * @param tableName
 	 * @param rowID
 	 * @return 
      * @throws TableNotFoundException 
+     * @throws AccumuloException 
+     * @throws AccumuloSecurityException 
 	 */  
-    public JSONObject readOneRow(Connector conn, String tableName, Text rowID, String visibility) throws TableNotFoundException {
-    		JSONObject output = new JSONObject();
-    		ScannerOpts scanOpts = new ScannerOpts();
+    public Map<String, Value> readOneRow(Connector conn, String tableName, Text rowID, Text colFam, Text colQual, String visibility) throws TableNotFoundException, AccumuloException, AccumuloSecurityException {
+    		Map<String, Value> output = new HashMap<>();
+    		//ScannerOpts scanOpts = new ScannerOpts();
     		// Create a scanner
-        Scanner scanner = conn.createScanner(tableName, new Authorizations(visibility));
-        scanner.setBatchSize(scanOpts.scanBatchSize);
+    		Authorizations auths = new Authorizations(visibility);
+    		conn.securityOperations().changeUserAuthorizations("root", auths);
+        Scanner scanner = conn.createScanner(tableName, auths);
+        //scanner.setBatchSize(scanOpts.scanBatchSize);
         // Say start key is the one with key of row
         // and end key is the one that immediately follows the row
         scanner.setRange(new Range(rowID));
+        scanner.fetchColumn(colFam, colQual);
         for (Map.Entry<Key, Value> entry : scanner) {
         		Key key = entry.getKey();
 			Value value = entry.getValue();
-            	try {
-				output.put(key.toString(), value);
-			} catch (JSONException e) {
-				log.error("JSON Exception: " + e.getMessage());
-			}
+			output.put(key.toString(), value);
+
         		System.out.printf("Key : %-50s  Value : %s\n", entry.getKey(), entry.getValue());
         }
+        scanner.close();
         return output;
     }
 

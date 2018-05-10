@@ -2,6 +2,9 @@ package org.renci.comet.accumuloops;
 
 import org.apache.accumulo.core.client.BatchScanner;
 import org.apache.accumulo.core.security.Authorizations;
+
+import java.util.Map;
+
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
@@ -74,17 +77,18 @@ public interface AccumuloOperationsApiIfce {
 	 * @param visibility
 	 * @return 
 	 */        
-   public JSONObject deleteAccumuloRow(Connector conn, Scanner scanner, String tableName, Text colFam, Text colQual, Text visibility) throws TableNotFoundException;    
+   public Map<String, Value> deleteAccumuloRow(Connector conn, Scanner scanner, String tableName, Text rowID, Text colFam, Text colQual, Text visibility) throws MutationsRejectedException, TableNotFoundException;    
     
-    /**
-	 * Enumerate table to get all rows with specific visibility.
+   /**
+	 * Delete Accumulo row.
+	 * @param conn
 	 * @param tableName
+	 * @param rowID
 	 * @param visibility
-	 * @param numberOfThreads
+	 * @throws TableNotFoundException
 	 * @return 
-	 * @throws TableNotFoundException 
-	 */       
-   public JSONObject enumerateTable(Connector conn, String tableName, String visibility, String numberOfThreads) throws TableNotFoundException;
+	 */ 
+   public Map<String, Value> enumerateRows(Connector conn, String tableName, String rowID, String visibility) throws TableNotFoundException, AccumuloException, AccumuloSecurityException;
 
     /**
 	 * Enumerate table to get all rows with specific visibility.
@@ -93,6 +97,8 @@ public interface AccumuloOperationsApiIfce {
 	 * @param colQual
 	 * @param visibility
 	 * @return 
+     * @throws AccumuloSecurityException 
+     * @throws AccumuloException 
 	 */  
-   public JSONObject readOneRow(Connector conn, String tableName, Text rowID, String visibility) throws TableNotFoundException;
+   public Map<String, Value> readOneRow(Connector conn, String tableName, Text rowID, Text colFam, Text colQual, String visibility) throws TableNotFoundException, AccumuloException, AccumuloSecurityException;
 }
