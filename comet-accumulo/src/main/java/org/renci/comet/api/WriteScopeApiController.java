@@ -42,7 +42,7 @@ public class WriteScopeApiController implements WriteScopeApi {
     private final ObjectMapper objectMapper;
 
     private final HttpServletRequest request;
-    
+
     private boolean certValid = false;
 
     @org.springframework.beans.factory.annotation.Autowired
@@ -51,9 +51,9 @@ public class WriteScopeApiController implements WriteScopeApi {
         this.request = request;
     }
 
-    public ResponseEntity<CometResponse> writeScopePost(@ApiParam(value = "" ,required=true )  @Valid @RequestBody Value value,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "contextID", required = true) String contextID,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "family", required = true) String family,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "Key", required = true) String key,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "readToken", required = true) String readToken,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "writeToken", required = true) String writeToken) {
+    public ResponseEntity<CometResponse> writeScopePost(@ApiParam(value = "" ,required=true )  @Valid @RequestBody String value,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "contextID", required = true) String contextID,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "family", required = true) String family,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "Key", required = true) String key,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "readToken", required = true) String readToken,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "writeToken", required = true) String writeToken) {
         String accept = request.getHeader("Accept");
-        
+
         X509Certificate[] certs = (X509Certificate[])request.getAttribute("javax.servlet.request.X509Certificate");
         System.out.println("got request");
 		if (certs == null) {
@@ -63,7 +63,7 @@ public class WriteScopeApiController implements WriteScopeApi {
 				System.out.println(x);
 			}
 		}
-		
+
 		if (certs != null) {
 			try {
                 for (int i = 0; i < certs.length; i++)
@@ -75,7 +75,8 @@ public class WriteScopeApiController implements WriteScopeApi {
     				System.out.println("____________________________\n____________________________");
 			}
 		}
-		
+
+        System.out.println("contextID: " + contextID + "\n family: " + family + "\n key: " + key + "\n value: " + value + "\n readToken: " + readToken + "\n writeToken: " + writeToken);
 		if (contextID == null || family == null || key == null || value == null || readToken == null || writeToken == null) {
 			try {
 				return new ResponseEntity<CometResponse>(objectMapper.readValue("{  \"message\" : \"Invalid arguments\",  \"value\" : \"{}\",  \"version\" : \"version\",  \"status\" : \"status\"}", CometResponse.class), HttpStatus.BAD_REQUEST);
@@ -90,7 +91,7 @@ public class WriteScopeApiController implements WriteScopeApi {
 				e.printStackTrace();
 			}
 		}
-		
+
 		/*if (accept != null && accept.contains("application/json")) {
         		if (certValid) {
         			System.out.println("cert is valid");
@@ -106,7 +107,7 @@ public class WriteScopeApiController implements WriteScopeApi {
                  } catch (Exception e) {
             			log.error("Accumulo internal error", e);
                     return new ResponseEntity<CometResponse>(HttpStatus.INTERNAL_SERVER_ERROR);
-            		} 
+            		}
         		} else {
         			try {
 						return new ResponseEntity<CometResponse>(objectMapper.readValue("{  \"message\" : \"Invalid certificate: Unauthorized client\",  \"value\" : \"{Unauthorized client}\",  \"version\" : \"version\",  \"status\" : \"status\"}", CometResponse.class), HttpStatus.BAD_REQUEST);
@@ -122,27 +123,29 @@ public class WriteScopeApiController implements WriteScopeApi {
 					}
         		}
         }*/
-		
+
 		//Test code below, without cert checking
 		if (accept != null && accept.contains("application/json")) {
 
     			System.out.println("cert is valid");
         		try {
-        			CometOps cometOps = new CometOps();
-        			org.apache.accumulo.core.data.Value val = new org.apache.accumulo.core.data.Value((CharSequence) value);
+                    CometOps cometOps = new CometOps();
+        			//String accuValue = value.toString();
+        			//org.apache.accumulo.core.data.Value val = new org.apache.accumulo.core.data.Value((CharSequence) value);
         			//public JSONObject writeScope (String contextID, String family, String key, Value value, String readToken, String writeToken)
-        			JSONObject output = cometOps.writeScope(contextID, family, key, val.toString(), readToken, writeToken);
-        			return new ResponseEntity<CometResponse>(objectMapper.readValue("{  \"message\" : \"Write successful\",  \"value\" : \"{Write scope success}\",  \"version\" : \"version\",  \"status\" : \"status\"}", CometResponse.class), HttpStatus.OK);
+        			//JSONObject test = cometOps.writeScope("id0001", "hero", "name", "bruce wayne", "secretId", "secretWriteId");
+        			JSONObject output = cometOps.writeScope(contextID, family, key, value, readToken, writeToken);
+        			return new ResponseEntity<CometResponse>(objectMapper.readValue(output.toString(), CometResponse.class), HttpStatus.OK);
         		} catch (IOException ioe) {
                     log.error("Couldn't serialize response for content type application/json", ioe);
                     return new ResponseEntity<CometResponse>(HttpStatus.INTERNAL_SERVER_ERROR);
              } catch (Exception e) {
         			log.error("Accumulo internal error", e);
                 return new ResponseEntity<CometResponse>(HttpStatus.INTERNAL_SERVER_ERROR);
-        		} 
-	    		
+        		}
+
 	    }
-		
+
         return new ResponseEntity<CometResponse>(HttpStatus.BAD_REQUEST);
     }
 

@@ -31,7 +31,7 @@ public interface WriteScopeApi {
     @ApiOperation(value = "Create or modify a named scope for slice/sliver within a context, with visibility label (user_key | comet_admin): ", nickname = "writeScopePost", notes = "Create or modify a named scope for slice/sliver within a context, with visibility label (user_key | comet_admin): - Operation requires write access - Substitute existing value with new value ", response = CometResponse.class, authorizations = {
         @Authorization(value = "basicAuth")
     }, tags={  })
-    @ApiResponses(value = { 
+    @ApiResponses(value = {
         @ApiResponse(code = 200, message = "OK", response = CometResponse.class),
         @ApiResponse(code = 400, message = "Bad Request", response = CometResponse.class),
         @ApiResponse(code = 403, message = "Forbidden", response = CometResponse.class),
@@ -39,8 +39,8 @@ public interface WriteScopeApi {
         @ApiResponse(code = 500, message = "Internal Server Error", response = CometResponse.class),
         @ApiResponse(code = 200, message = "Unexpected Error", response = CometResponse.class) })
     @RequestMapping(value = "/writeScope",
-        produces = { "application/json" }, 
+        produces = { "application/json" },
         method = RequestMethod.POST)
-    ResponseEntity<CometResponse> writeScopePost(@ApiParam(value = "" ,required=true )  @Valid @RequestBody Value value,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "contextID", required = true) String contextID,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "family", required = true) String family,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "Key", required = true) String key,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "readToken", required = true) String readToken,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "writeToken", required = true) String writeToken);
+    ResponseEntity<CometResponse> writeScopePost(@ApiParam(value = "" ,required=true )  @Valid @RequestBody String value,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "contextID", required = true) String contextID,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "family", required = true) String family,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "Key", required = true) String key,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "readToken", required = true) String readToken,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "writeToken", required = true) String writeToken);
 
 }

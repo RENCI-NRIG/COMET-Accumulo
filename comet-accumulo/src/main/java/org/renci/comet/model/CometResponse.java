@@ -132,8 +132,8 @@ public class CometResponse   {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("class CometResponse {\n");
-    
+    sb.append("{\n");
+
     sb.append("    status: ").append(toIndentedString(status)).append("\n");
     sb.append("    message: ").append(toIndentedString(message)).append("\n");
     sb.append("    value: ").append(toIndentedString(value)).append("\n");
@@ -153,4 +153,3 @@ public class CometResponse   {
     return o.toString().replace("\n", "\n    ");
   }
 }
-

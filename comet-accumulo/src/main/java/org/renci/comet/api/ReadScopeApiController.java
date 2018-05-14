@@ -49,23 +49,23 @@ public class ReadScopeApiController implements ReadScopeApi {
     private final ObjectMapper objectMapper;
 
     private final HttpServletRequest request;
-    
+
     private boolean certValid = false;
-    
+
     @org.springframework.beans.factory.annotation.Autowired
     public ReadScopeApiController(ObjectMapper objectMapper, HttpServletRequest request) {
         this.objectMapper = objectMapper;
         this.request = request;
     }
- 
+
 
     public ResponseEntity<CometResponse> readScopeGet(@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "contextID", required = true) String contextID,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "family", required = true) String family,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "Key", required = true) String key,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "readToken", required = true) String readToken) {
         String accept = request.getHeader("Accept");
-        
+
         X509Certificate[] certs = (X509Certificate[])request.getAttribute("javax.servlet.request.X509Certificate");
-		
+
         System.out.println("Read scope: request accepted");
-        
+
         if (certs == null) {
 			System.out.print("ReadScope, Cert is NULL!!!\n");
 		} else {
@@ -73,7 +73,7 @@ public class ReadScopeApiController implements ReadScopeApi {
 				System.out.println(x);
 			}
 		}
-		
+
 		if (certs != null) {
 			try {
                 for (int i = 0; i < certs.length; i++)
@@ -85,7 +85,7 @@ public class ReadScopeApiController implements ReadScopeApi {
     				System.out.println("____________________________\n____________________________");
 			}
 		}
-		
+
 		if (contextID == null || family == null || key == null || readToken == null) {
 			try {
 				return new ResponseEntity<CometResponse>(objectMapper.readValue("{  \"message\" : \"Invalid arguments\",  \"value\" : \"{}\",  \"version\" : \"version\",  \"status\" : \"status\"}", CometResponse.class), HttpStatus.BAD_REQUEST);
@@ -100,21 +100,35 @@ public class ReadScopeApiController implements ReadScopeApi {
 				e.printStackTrace();
 			}
 		}
-		
+
+        System.out.println("contextID: " + contextID + "\n family: " + family + "\n key: " + key + "\n readToken: " + readToken);
+
 		if (accept != null && accept.contains("application/json")) {
         		try {
-        			CometOps cometOps = new CometOps();
+                    CometOps cometOps = new CometOps();
+        			//JSONObject test = cometOps.readScope("id0001", "hero", "name", "secretId");
+        			//System.out.println(test);
         			JSONObject output = cometOps.readScope(contextID, family, key, readToken);
-        			return new ResponseEntity<CometResponse>(objectMapper.readValue("{  \"message\" : \"message\",  \"value\" : \"{}\",  \"version\" : \"version\",  \"status\" : \"status\"}", CometResponse.class), HttpStatus.OK);
+        			ObjectMapper objectMapper = new ObjectMapper();
+        			CometResponse comet = new CometResponse();
+        			comet.setValue(output.toString());
+        			comet.setStatus("OK");
+        			comet.setMessage("message");
+        			comet.setVersion("0.1");
+        			System.out.println(comet.toString());
+        			String crTemp = "{  \"message\" : \"success\",  \"value\" : " + output.toString() + ",  \"version\" : \"0.1\",  \"status\" : \"OK\"}";
+                    System.out.println(crTemp);
+        			//return new ResponseEntity<CometResponse>(objectMapper.readValue("{  \"message\" : \"message\",  \"value\" : \"{}\",  \"version\" : \"version\",  \"status\" : \"status\"}", CometResponse.class), HttpStatus.OK);
+        			return new ResponseEntity<CometResponse>(objectMapper.readValue(crTemp, CometResponse.class), HttpStatus.OK);
         		} catch (IOException ioe) {
                     log.error("Couldn't serialize response for content type application/json", ioe);
                     return new ResponseEntity<CometResponse>(HttpStatus.INTERNAL_SERVER_ERROR);
              } catch (Exception e) {
         			log.error("Accumulo internal error", e);
                 return new ResponseEntity<CometResponse>(HttpStatus.INTERNAL_SERVER_ERROR);
-        		} 
+        		}
         }
-		
+
         ResponseEntity<CometResponse> cr = new ResponseEntity<CometResponse>(HttpStatus.BAD_REQUEST);
         return cr;
     }
