@@ -135,7 +135,14 @@ public class WriteScopeApiController implements WriteScopeApi {
         			//public JSONObject writeScope (String contextID, String family, String key, Value value, String readToken, String writeToken)
         			//JSONObject test = cometOps.writeScope("id0001", "hero", "name", "bruce wayne", "secretId", "secretWriteId");
         			JSONObject output = cometOps.writeScope(contextID, family, key, value, readToken, writeToken);
-        			return new ResponseEntity<CometResponse>(objectMapper.readValue(output.toString(), CometResponse.class), HttpStatus.OK);
+                    CometResponse comet = new CometResponse();
+                    comet.setValue(output.toString());
+                    comet.setStatus("OK");
+                    comet.setMessage("message");
+                    comet.setVersion("0.1");
+                    System.out.println(comet.toString());
+                    String crTemp = "{  \"message\" : \"success\",  \"value\" : " + output.toString() + ",  \"version\" : \"0.1\",  \"status\" : \"OK\"}";
+                    return new ResponseEntity<CometResponse>(objectMapper.readValue(crTemp, CometResponse.class), HttpStatus.OK);
         		} catch (IOException ioe) {
                     log.error("Couldn't serialize response for content type application/json", ioe);
                     return new ResponseEntity<CometResponse>(HttpStatus.INTERNAL_SERVER_ERROR);

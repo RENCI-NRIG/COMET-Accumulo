@@ -96,91 +96,84 @@ public class CometOps implements CometOpsIfce {
 	    return jsonOutput;
 	}
 
-    public JSONObject deleteScope(String contextID, String family, String key, String readToken, String writeToken) throws AccumuloException, AccumuloSecurityException {
-    		Instance inst = new ZooKeeperInstance(instanceName,zooServers);
+	public JSONObject deleteScope (String contextID, String family, String key, String readToken, String writeToken) throws AccumuloException, AccumuloSecurityException, TableNotFoundException, JSONException {
+
+		//public JSONObject readOneRow(Connector conn, String tableName, Text rowID, Text colFam, Text colQual, String visibility)
+
+		Instance inst = new ZooKeeperInstance(instanceName,zooServers);
+		System.out.println("read scope: instance initiated");
 
 		Connector conn = inst.getConnector(userName, password);
+		System.out.println("read scope: got connection");
 		AccumuloOperationsApiImpl accu = new AccumuloOperationsApiImpl();
 		JSONObject jsonOutput = new JSONObject();
-		Authorizations auth = null;
 
 		Text rowID = new Text(contextID);
 		Text colFam = new Text(family);
 		Text colQual = new Text(key);
+		Text vis = new Text(readToken);
+		Map<String, Value> mapOutput = new HashMap<String, Value>();
+		System.out.println("Starting accu.readOneRow(conn, readToken, rowID, colFam, colQual, vis.toString())");
+		mapOutput = accu.readOneRow(conn, tableName, rowID, colFam, colQual, readToken);
+		System.out.println("Ended accu.readOneRow(conn, readToken, rowID, colFam, colQual, vis.toString())");
 
-		if (readToken != null) {
-			auth = new Authorizations(readToken);
-		} else {
-			auth = new Authorizations();
+
+		int mapSize = mapOutput.size();
+		if (mapSize == 0) {
+			jsonOutput.put(ERROR, "Failed to delete scope: no such entry");
+			return jsonOutput;
 		}
 
-		try {
-			Scanner scan = conn.createScanner(tableName, auth);
-			scan.setRange(new Range(contextID, contextID));
-			Text vis = new Text(readToken);
+		if (mapSize != 1) {
+			jsonOutput.put(ERROR, "Failed to delete scope: conflict in Accumulo record, please clean up");
+			return jsonOutput;
+		}
 
-			Map<String, Value> mapOutput = accu.readOneRow(conn, readToken, rowID, colFam, colQual, vis.toString());
-			int mapSize = mapOutput.size();
-			if (mapSize == 0) {
-				jsonOutput.put(ERROR, "Failed to delete scope: no such entry");
-				return jsonOutput;
+		for (Map.Entry<String, Value> entry : mapOutput.entrySet()) {
+	    		Value v = entry.getValue();
+	    		String[] deserialized = null;
+				System.out.println("Enumerate scope key values: ");
+	    		System.out.printf("Key: %-60s Value: %s\n", entry.getKey(), entry.getValue());
+			try {
+				deserialized = (String[]) deserialize(v.get());
+			} catch (ClassNotFoundException | IOException e1) {
+				log.error("deserialization failed: " + e1);
+				jsonOutput.put(ERROR, "Failed to delete scope: deserialization failed");
 			}
+	    		if (deserialized != null && deserialized.length == 3) {
+	    			if (!writeToken.equals(deserialized[1])) {
+	    				try {
+						jsonOutput.put(ERROR, "Cannot delete scope: incorrect write token");
+					} catch (JSONException e) {
+						log.error("JSON Exception: " + e.getMessage());
+					}
+	    				System.out.println("Cannot delete scope: incorrect write token");
+	    				return jsonOutput;
+	    			}
 
-			if (mapSize != 1) {
-				jsonOutput.put(ERROR, "Failed to delete scope: conflict in Accumulo record, please clean up");
-				return jsonOutput;
-			}
+	    			deserialized[0] = "true";
+	    			byte[] serializedByteArray = null;
+	    			try {
+	    				serializedByteArray = serialize(deserialized);
+	    				org.apache.accumulo.core.data.Value accumuloValue = new org.apache.accumulo.core.data.Value(serializedByteArray);
 
-			for (Map.Entry<String, Value> entry : mapOutput.entrySet()) {
-		    		Value v = entry.getValue();
-		    		String[] deserialized = null;
-				try {
-					deserialized = (String[]) deserialize(v.get());
-				} catch (ClassNotFoundException | IOException e1) {
-					log.error("deserialization failed: " + e1);
-					jsonOutput.put(ERROR, "Failed to delete scope: deserialization failed");
-				}
-		    		if (deserialized != null && deserialized.length == 3) {
-		    			deserialized[0] = "true";
-		    			byte[] serializedByteArray = null;
+		    			JSONObject output = accu.addAccumuloRow(conn, tableName, rowID, colFam, colQual, accumuloValue, vis);
+
 		    			try {
-		    				serializedByteArray = serialize(deserialized);
-		    				org.apache.accumulo.core.data.Value accumuloValue = new org.apache.accumulo.core.data.Value(serializedByteArray);
-
-			    			JSONObject output = accu.addAccumuloRow(conn, tableName, rowID, colFam, colQual, accumuloValue, vis);
-
-			    			try {
-							jsonOutput.put(SUCCESS, "Scope deleted");
+						jsonOutput.put(SUCCESS, "Scope deleted");
 						} catch (JSONException e) {
 							log.error("JSON Exception: " + e.getMessage());
 						}
 
-		    			} catch (IOException e) {
-		    				log.error("IO Exception: " + e.getMessage());
-		    			}
-		    		}
-		    }
-
-		} catch (TableNotFoundException e) {
-			log.error("DeleteEntry failed due to: " + e.getMessage());
-			try {
-				return jsonOutput.put(ERROR, "Failed to delete entry due to " + e.getMessage());
-			} catch (JSONException e1) {
-				log.error("JSON Exception: " + e1.getMessage());
-			}
-
-		} catch (Exception e) {
-			log.error("DeleteEntry failed due to: " + e.getMessage());
-			try {
-				return jsonOutput.put(ERROR, "Failed to delete entry due to " + e.getMessage());
-			} catch (JSONException e1) {
-				log.error("JSON Exception: " + e1.getMessage());
-			}
-
+	    			} catch (IOException e) {
+	    				log.error("IO Exception: " + e.getMessage());
+	    			}
+	    		}
 		}
 
 		return jsonOutput;
 	}
+
 
     public JSONObject readScope (String contextID, String family, String key, String readToken) throws AccumuloException, AccumuloSecurityException,TableNotFoundException, TableExistsException {
 
@@ -236,39 +229,52 @@ public class CometOps implements CometOpsIfce {
 					log.error("deserialization failed: " + e1);
 				}
 	    		if (deserialized != null && deserialized.length == 3) {
-	    			try {
-					jsonOutput.put(entry.getKey(), deserialized[2]);
-				} catch (JSONException e) {
-					e.printStackTrace();
-				}
+	    			System.out.println("deserialized values:");
+	    			for (String s : deserialized)
+	    				System.out.println(s);
+	    			System.out.println("deserialized values done.");
+	    			if (deserialized[0].equals("false")) {
+		    			try {
+						jsonOutput.put(entry.getKey(), deserialized[2]);
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+	    			}
 	    		}
 	    }
 	    return jsonOutput;
 	}
 
-    public JSONObject enumerateScopes(String contextID, String family, String readToken) throws AccumuloException, AccumuloSecurityException {
-    		Instance inst = new ZooKeeperInstance(instanceName,zooServers);
-    		Connector conn = inst.getConnector(userName, password);
-		//Scan method in accumulo with proper auuthorization labels
-    		Map<String, Value> output = new HashMap<String, Value>();
-		JSONObject jsonOutput = new JSONObject();
-		Authorizations auth = null;
+	public JSONObject enumerateScopes(String contextID, String family, String readToken) throws AccumuloException, AccumuloSecurityException {
 
-		if (readToken != null) {
-			auth = new Authorizations(readToken);
+	    	Instance inst = new ZooKeeperInstance(instanceName,zooServers);
+			System.out.println("read scope: instance initiated");
 
-		} else {
-			auth = new Authorizations();
-		}
+		Connector conn = inst.getConnector(userName, password);
+		System.out.println("read scope: got connection");
 
 		AccumuloOperationsApiImpl accu = new AccumuloOperationsApiImpl();
+
+		Text rowID = new Text(contextID);
+		Text colFam = new Text(family);
+		String scopeValue = null;
+		Map<String, Value> output = new HashMap<String, Value>();
+
+		JSONObject jsonOutput = new JSONObject();
+
 		try {
-			output = accu.enumerateRows(conn, contextID, contextID, readToken);
+			System.out.println("Starting accu.enumerateRows(conn, contextID, contextID, readToken)");
+			output = accu.enumerateRows(conn, tableName, rowID, readToken);
+			System.out.println("Ended accu.enumerateRows(conn, contextID, contextID, readToken)");
 		} catch (TableNotFoundException e2) {
+			// TODO Auto-generated catch block
 			log.error("Table not found: " + e2);
 		}
 
+
 		for (Map.Entry<String, Value> entry : output.entrySet()) {
+			System.out.println("Enumerate scope key values: ");
+    			System.out.printf("Key: %-60s Value: %s\n", entry.getKey(), entry.getValue());
 	    		Value v = entry.getValue();
 	    		String[] deserialized = null;
 				try {
@@ -277,11 +283,17 @@ public class CometOps implements CometOpsIfce {
 					log.error("deserialization failed: " + e1);
 				}
 	    		if (deserialized != null && deserialized.length == 3) {
-	    			try {
-					jsonOutput.put(entry.getKey(), deserialized[2]);
-				} catch (JSONException e) {
-					e.printStackTrace();
-				}
+	    			System.out.println("deserialized values:");
+	    			for (String s : deserialized)
+	    				System.out.println(s);
+	    			System.out.println("deserialized values done.");
+	    			if (deserialized[0].equals("false")) {
+		    			try {
+						jsonOutput.put(entry.getKey(), deserialized[2]);
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+	    			}
 	    		}
 	    }
 	    return jsonOutput;
