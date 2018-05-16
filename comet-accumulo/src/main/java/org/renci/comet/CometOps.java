@@ -70,11 +70,11 @@ public class CometOps implements CometOpsIfce {
 	 * @param expression
 	 * @return
 	 */
-	public static boolean isStrong(String expression) {
-		if (expression != null) {
-			return expression.matches("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,}$");
-		}
-		return false;
+	public static boolean isTokenStrong(String expression) {
+	    if (expression != null) {
+	        return expression.matches("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,}$");
+	    }
+	    return false;
 	}
 
 	public static byte[] serialize(Object obj) throws IOException {

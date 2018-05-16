@@ -7,6 +7,7 @@ import io.swagger.annotations.*;
 
 import org.renci.comet.model.CometResponse;
 import org.renci.comet.model.Value;
+import org.renci.comet.CometInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -141,7 +142,7 @@ public class WriteScopeApiController implements WriteScopeApi {
                     comet.setMessage("message");
                     comet.setVersion("0.1");
                     System.out.println(comet.toString());
-                    String crTemp = "{  \"message\" : \"success\",  \"value\" : " + output.toString() + ",  \"version\" : \"0.1\",  \"status\" : \"OK\"}";
+                    String crTemp = "{  \"message\" : \"success\",  \"value\" : " + output.toString() + ",  \"version\" : \"" + CometInitializer.COMET_VERSION + "\",  \"status\" : \"OK\"}";
                     return new ResponseEntity<CometResponse>(objectMapper.readValue(crTemp, CometResponse.class), HttpStatus.OK);
         		} catch (IOException ioe) {
                     log.error("Couldn't serialize response for content type application/json", ioe);

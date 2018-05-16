@@ -5,9 +5,8 @@
  */
 package org.renci.comet.api;
 
-import io.swagger.annotations.*;
-
 import org.renci.comet.model.CometResponse;
+import io.swagger.annotations.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,14 +21,12 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.validation.Valid;
 import javax.validation.constraints.*;
 import java.util.List;
-@javax.annotation.Generated(value = "org.renci.comet.codegen.languages.SpringCodegen", date = "2018-04-18T14:21:33.714Z")
+@javax.annotation.Generated(value = "org.renci.comet.codegen.languages.SpringCodegen", date = "2018-05-16T16:05:56.629Z")
 
-@Api(value = "enumerateScope", description = "the enumerateScope API")
-public interface EnumerateScopeApi {
+@Api(value = "getVersion", description = "the getVersion API")
+public interface GetVersionApi {
 
-    @ApiOperation(value = "Retrieve a list of existing scopes within a given context.   ", nickname = "enumerateScopeGet", notes = "Retrieve a list of existing scopes within a given context.   - Operation requires read access - Returns list of  [ {family, key} ] ", response = CometResponse.class, authorizations = {
-        @Authorization(value = "basicAuth")
-    }, tags={  })
+    @ApiOperation(value = "Retrieve the current Comet version and Comet API version. ", nickname = "getVersionGet", notes = "Retrieve the current Comet version and Comet API version. ", response = CometResponse.class, tags={  })
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "OK", response = CometResponse.class),
         @ApiResponse(code = 400, message = "Bad Request", response = CometResponse.class),
@@ -37,9 +34,9 @@ public interface EnumerateScopeApi {
         @ApiResponse(code = 404, message = "Not Found", response = CometResponse.class),
         @ApiResponse(code = 500, message = "Internal Server Error", response = CometResponse.class),
         @ApiResponse(code = 200, message = "Unexpected Error", response = CometResponse.class) })
-    @RequestMapping(value = "/enumerateScope",
+    @RequestMapping(value = "/getVersion",
         produces = { "application/json" },
         method = RequestMethod.GET)
-    ResponseEntity<CometResponse> enumerateScopeGet(@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "contextID", required = true) String contextID,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "readToken", required = true) String readToken,@ApiParam(value = "") @Valid @RequestParam(value = "family", required = false) String family);
+    ResponseEntity<CometResponse> getVersionGet();
 
 }

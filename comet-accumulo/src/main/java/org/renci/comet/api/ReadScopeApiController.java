@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
+import org.renci.comet.CometInitializer;
 import org.renci.comet.CometOps;
 
 @javax.annotation.Generated(value = "org.renci.comet.codegen.languages.SpringCodegen", date = "2018-04-18T14:21:33.714Z")
@@ -116,7 +117,7 @@ public class ReadScopeApiController implements ReadScopeApi {
         			comet.setMessage("message");
         			comet.setVersion("0.1");
         			System.out.println(comet.toString());
-        			String crTemp = "{  \"message\" : \"success\",  \"value\" : " + output.toString() + ",  \"version\" : \"0.1\",  \"status\" : \"OK\"}";
+        			String crTemp = "{  \"message\" : \"success\",  \"value\" : " + output.toString() + ",  \"version\" : \"" + CometInitializer.COMET_VERSION + "\",  \"status\" : \"OK\"}";
                     System.out.println(crTemp);
         			//return new ResponseEntity<CometResponse>(objectMapper.readValue("{  \"message\" : \"message\",  \"value\" : \"{}\",  \"version\" : \"version\",  \"status\" : \"status\"}", CometResponse.class), HttpStatus.OK);
         			return new ResponseEntity<CometResponse>(objectMapper.readValue(crTemp, CometResponse.class), HttpStatus.OK);
