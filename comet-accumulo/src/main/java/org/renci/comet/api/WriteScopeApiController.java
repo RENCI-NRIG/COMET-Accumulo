@@ -78,9 +78,10 @@ public class WriteScopeApiController implements WriteScopeApi {
 		}
 
         System.out.println("contextID: " + contextID + "\n family: " + family + "\n key: " + key + "\n value: " + value + "\n readToken: " + readToken + "\n writeToken: " + writeToken);
-		if (contextID == null || family == null || key == null || value == null || readToken == null || writeToken == null) {
+
+		if (!certValid) {
 			try {
-				return new ResponseEntity<CometResponse>(objectMapper.readValue("{  \"message\" : \"Invalid arguments\",  \"value\" : \"{}\",  \"version\" : \"version\",  \"status\" : \"status\"}", CometResponse.class), HttpStatus.BAD_REQUEST);
+				return new ResponseEntity<CometResponse>(objectMapper.readValue("{  \"message\" : \"Invalid certificate: Unauthorized client\",  \"value\" : \"{Unauthorized client}\",  \"version\" : \"" + CometInitializer.COMET_VERSION + "\",  \"status\" : \"status\"}", CometResponse.class), HttpStatus.BAD_REQUEST);
 			} catch (JsonParseException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -93,57 +94,70 @@ public class WriteScopeApiController implements WriteScopeApi {
 			}
 		}
 
-		/*if (accept != null && accept.contains("application/json")) {
-        		if (certValid) {
-        			System.out.println("cert is valid");
-            		try {
-            			CometOps cometOps = new CometOps();
-            			org.apache.accumulo.core.data.Value val = new org.apache.accumulo.core.data.Value((CharSequence) value);
-            			//public JSONObject writeScope (String contextID, String family, String key, Value value, String readToken, String writeToken)
-            			JSONObject output = cometOps.writeScope(contextID, family, key, val.toString(), readToken, writeToken);
-            			return new ResponseEntity<CometResponse>(objectMapper.readValue("{  \"message\" : \"Write successful\",  \"value\" : \"{Write scope success}\",  \"version\" : \"version\",  \"status\" : \"status\"}", CometResponse.class), HttpStatus.OK);
-            		} catch (IOException ioe) {
-                        log.error("Couldn't serialize response for content type application/json", ioe);
-                        return new ResponseEntity<CometResponse>(HttpStatus.INTERNAL_SERVER_ERROR);
-                 } catch (Exception e) {
-            			log.error("Accumulo internal error", e);
-                    return new ResponseEntity<CometResponse>(HttpStatus.INTERNAL_SERVER_ERROR);
-            		}
-        		} else {
-        			try {
-						return new ResponseEntity<CometResponse>(objectMapper.readValue("{  \"message\" : \"Invalid certificate: Unauthorized client\",  \"value\" : \"{Unauthorized client}\",  \"version\" : \"version\",  \"status\" : \"status\"}", CometResponse.class), HttpStatus.BAD_REQUEST);
-					} catch (JsonParseException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (JsonMappingException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-        		}
-        }*/
+		if (readToken.equals(writeToken)) {
+			try {
+				return new ResponseEntity<CometResponse>(objectMapper.readValue("{  \"message\" : \"Invalid tokens: read and write token cannot be the same\",  \"value\" : \"invalid tokens\",  \"" + CometInitializer.COMET_VERSION + "\" : \"version\",  \"status\" : \"status\"}", CometResponse.class), HttpStatus.BAD_REQUEST);
+			} catch (JsonParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (JsonMappingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+		if (!CometOps.isTokenStrong(readToken)) {
+			try {
+				return new ResponseEntity<CometResponse>(objectMapper.readValue("{  \"message\" : \"Read token not strong enough\",  \"value\" : \"weak read token\",  \"" + CometInitializer.COMET_VERSION + "\" : \"version\",  \"status\" : \"status\"}", CometResponse.class), HttpStatus.BAD_REQUEST);
+			} catch (JsonParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (JsonMappingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+		if (!CometOps.isTokenStrong(writeToken)) {
+			try {
+				return new ResponseEntity<CometResponse>(objectMapper.readValue("{  \"message\" : \"Write token not strong enough\",  \"value\" : \"weak write token\",  \"" + CometInitializer.COMET_VERSION + "\" : \"version\",  \"status\" : \"status\"}", CometResponse.class), HttpStatus.BAD_REQUEST);
+			} catch (JsonParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (JsonMappingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 
 		//Test code below, without cert checking
 		if (accept != null && accept.contains("application/json")) {
 
     			System.out.println("cert is valid");
         		try {
-                    CometOps cometOps = new CometOps();
+                CometOps cometOps = new CometOps();
         			//String accuValue = value.toString();
         			//org.apache.accumulo.core.data.Value val = new org.apache.accumulo.core.data.Value((CharSequence) value);
         			//public JSONObject writeScope (String contextID, String family, String key, Value value, String readToken, String writeToken)
         			//JSONObject test = cometOps.writeScope("id0001", "hero", "name", "bruce wayne", "secretId", "secretWriteId");
         			JSONObject output = cometOps.writeScope(contextID, family, key, value, readToken, writeToken);
-                    CometResponse comet = new CometResponse();
-                    comet.setValue(output.toString());
-                    comet.setStatus("OK");
-                    comet.setMessage("message");
-                    comet.setVersion("0.1");
-                    System.out.println(comet.toString());
-                    String crTemp = "{  \"message\" : \"success\",  \"value\" : " + output.toString() + ",  \"version\" : \"" + CometInitializer.COMET_VERSION + "\",  \"status\" : \"OK\"}";
-                    return new ResponseEntity<CometResponse>(objectMapper.readValue(crTemp, CometResponse.class), HttpStatus.OK);
+                CometResponse comet = new CometResponse();
+                comet.setValue(output.toString());
+                comet.setStatus("OK");
+                comet.setMessage("message");
+                comet.setVersion("0.1");
+                System.out.println(comet.toString());
+                String crTemp = "{  \"message\" : \"success\",  \"value\" : " + output.toString() + ",  \"version\" : \"" + CometInitializer.COMET_VERSION + "\",  \"status\" : \"OK\"}";
+                return new ResponseEntity<CometResponse>(objectMapper.readValue(crTemp, CometResponse.class), HttpStatus.OK);
         		} catch (IOException ioe) {
                     log.error("Couldn't serialize response for content type application/json", ioe);
                     return new ResponseEntity<CometResponse>(HttpStatus.INTERNAL_SERVER_ERROR);

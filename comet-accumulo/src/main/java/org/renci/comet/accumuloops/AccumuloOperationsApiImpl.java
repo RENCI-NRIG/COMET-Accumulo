@@ -272,9 +272,9 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
 	    scanner.setRange(new Range(rowID));
 	    //scanner.fetchColumn(new Text("fam1"), new Text("k1"));
 	    for (Map.Entry<Key, Value> entry : scanner) {
-	    		Key key = entry.getKey();
+	    		String key =  entry.getKey().getRow() + " " + entry.getKey().getColumnFamily() + ":" + entry.getKey().getColumnQualifier();
 			Value value = entry.getValue();
-			output.put(key.toString(), value);
+			output.put(key, value);
 
 	    		System.out.printf("Key : %-50s  Value : %s\n", entry.getKey(), entry.getValue());
 	    }
@@ -347,9 +347,9 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
         scanner.setRange(new Range(rowID));
         scanner.fetchColumn(colFam, colQual);
         for (Map.Entry<Key, Value> entry : scanner) {
-        		Key key = entry.getKey();
+        		String key =  entry.getKey().getRow() + " " + entry.getKey().getColumnFamily() + ":" + entry.getKey().getColumnQualifier();
 			Value value = entry.getValue();
-			output.put(key.toString(), value);
+			output.put(key, value);
 
         		System.out.printf("Key : %-50s  Value : %s\n", entry.getKey(), entry.getValue());
         }
