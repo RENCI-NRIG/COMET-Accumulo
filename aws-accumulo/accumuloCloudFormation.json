@@ -1,0 +1,817 @@
+{
+   "AWSTemplateFormatVersion" : "2010-09-09",
+
+   "Description" : "AWS CloudFormation to Launch Comet Accumulo.",
+
+   "Parameters" : {
+
+     "KeyName": {
+       "Description" : "Name of an existing EC2 KeyPair to enable SSH access to the instances",
+       "Type": "AWS::EC2::KeyPair::KeyName",
+       "ConstraintDescription" : "must be the name of an existing EC2 KeyPair."
+     },
+     "InstanceType" : {
+       "Description" : "EC2 instance type",
+       "Type" : "String",
+       "Default" : "t2.small",
+       "AllowedValues" : [ "t1.micro", "t2.nano", "t2.micro", "t2.small", "t2.medium", "t2.large", "m1.small", "m1.medium", "m1.large", "m1.xlarge", "m2.xlarge", "m2.       2xlarge", "m2.4xlarge", "m3.medium", "m3.large", "m3.xlarge", "m3.2xlarge", "m4.large", "m4.xlarge", "m4.2xlarge", "m4.4xlarge", "m4.10xlarge", "c1.medium", "c1.xlarge",   "c3.large", "c3.xlarge", "c3.2xlarge", "c3.4xlarge", "c3.8xlarge", "c4.large", "c4.xlarge", "c4.2xlarge", "c4.4xlarge", "c4.8xlarge", "g2.2xlarge", "g2.8xlarge", "r3.      large", "r3.xlarge", "r3.2xlarge", "r3.4xlarge", "r3.8xlarge", "i2.xlarge", "i2.2xlarge", "i2.4xlarge", "i2.8xlarge", "d2.xlarge", "d2.2xlarge", "d2.4xlarge", "d2.         8xlarge", "hi1.4xlarge", "hs1.8xlarge", "cr1.8xlarge", "cc2.8xlarge", "cg1.4xlarge"]
+ ,
+       "ConstraintDescription" : "must be a valid EC2 instance type."
+     },
+
+     "SSHLocation": {
+       "Description": "The IP address range that can be used to SSH to the EC2 instances",
+       "Type": "String",
+       "MinLength": "9",
+       "MaxLength": "18",
+       "Default": "0.0.0.0/0",
+       "AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+       "ConstraintDescription": "must be a valid IP CIDR range of the form x.x.x.x/x."
+     },
+     "AccumuloVersion" : {
+       "Default": "1.9.1",
+       "Description" : "The Accumulo version",
+       "Type": "String",
+       "MinLength": "1",
+       "MaxLength": "64",
+       "AllowedPattern" : "[0-9].[0-9].[0-9]*",
+       "ConstraintDescription" : "must begin with x.x.x and contain only numeric characters."
+     },
+     "HadoopVersion" : {
+       "Default": "2.9.0",
+       "Description" : "The Hadoop version",
+       "Type": "String",
+       "MinLength": "1",
+       "MaxLength": "64",
+       "AllowedPattern" : "[0-9].[0-9].[0-9]*",
+       "ConstraintDescription" : "must begin with x.x.x and contain only numeric characters."
+     },
+     "ZooKeeperVersion" : {
+       "Default": "3.4.12",
+       "Description" : "The ZooKeeper version",
+       "Type": "String",
+       "MinLength": "1",
+       "MaxLength": "64",
+       "AllowedPattern" : "[0-9].[0-9].[0-9]*",
+       "ConstraintDescription" : "must begin with x.x.x and contain only numeric characters."
+     }
+   },
+   "Mappings" : {
+     "AWSInstanceType2Arch" : {
+       "t1.micro"    : { "Arch" : "PV64"   },
+       "t2.nano"     : { "Arch" : "HVM64"  },
+       "t2.micro"    : { "Arch" : "HVM64"  },
+       "t2.small"    : { "Arch" : "HVM64"  },
+       "t2.medium"   : { "Arch" : "HVM64"  },
+       "t2.large"    : { "Arch" : "HVM64"  },
+       "m1.small"    : { "Arch" : "PV64"   },
+       "m1.medium"   : { "Arch" : "PV64"   },
+       "m1.large"    : { "Arch" : "PV64"   },
+       "m1.xlarge"   : { "Arch" : "PV64"   },
+       "m2.xlarge"   : { "Arch" : "PV64"   },
+       "m2.2xlarge"  : { "Arch" : "PV64"   },
+       "m2.4xlarge"  : { "Arch" : "PV64"   },
+       "m3.medium"   : { "Arch" : "HVM64"  },
+       "m3.large"    : { "Arch" : "HVM64"  },
+       "m3.xlarge"   : { "Arch" : "HVM64"  },
+       "m3.2xlarge"  : { "Arch" : "HVM64"  },
+       "m4.large"    : { "Arch" : "HVM64"  },
+       "m4.xlarge"   : { "Arch" : "HVM64"  },
+       "m4.2xlarge"  : { "Arch" : "HVM64"  },
+       "m4.4xlarge"  : { "Arch" : "HVM64"  },
+       "m4.10xlarge" : { "Arch" : "HVM64"  },
+       "c1.medium"   : { "Arch" : "PV64"   },
+       "c1.xlarge"   : { "Arch" : "PV64"   },
+       "c3.large"    : { "Arch" : "HVM64"  },
+       "c3.xlarge"   : { "Arch" : "HVM64"  },
+       "c3.2xlarge"  : { "Arch" : "HVM64"  },
+       "c3.4xlarge"  : { "Arch" : "HVM64"  },
+       "c3.8xlarge"  : { "Arch" : "HVM64"  },
+       "c4.large"    : { "Arch" : "HVM64"  },
+       "c4.xlarge"   : { "Arch" : "HVM64"  },
+       "c4.2xlarge"  : { "Arch" : "HVM64"  },
+       "c4.4xlarge"  : { "Arch" : "HVM64"  },
+       "c4.8xlarge"  : { "Arch" : "HVM64"  },
+       "g2.2xlarge"  : { "Arch" : "HVMG2"  },
+       "g2.8xlarge"  : { "Arch" : "HVMG2"  },
+       "r3.large"    : { "Arch" : "HVM64"  },
+       "r3.xlarge"   : { "Arch" : "HVM64"  },
+       "r3.2xlarge"  : { "Arch" : "HVM64"  },
+       "r3.4xlarge"  : { "Arch" : "HVM64"  },
+       "r3.8xlarge"  : { "Arch" : "HVM64"  },
+       "i2.xlarge"   : { "Arch" : "HVM64"  },
+       "i2.2xlarge"  : { "Arch" : "HVM64"  },
+       "i2.4xlarge"  : { "Arch" : "HVM64"  },
+       "i2.8xlarge"  : { "Arch" : "HVM64"  },
+       "d2.xlarge"   : { "Arch" : "HVM64"  },
+       "d2.2xlarge"  : { "Arch" : "HVM64"  },
+       "d2.4xlarge"  : { "Arch" : "HVM64"  },
+       "d2.8xlarge"  : { "Arch" : "HVM64"  },
+       "hi1.4xlarge" : { "Arch" : "HVM64"  },
+       "hs1.8xlarge" : { "Arch" : "HVM64"  },
+       "cr1.8xlarge" : { "Arch" : "HVM64"  },
+       "cc2.8xlarge" : { "Arch" : "HVM64"  }
+     },
+     "AWSInstanceType2NATArch" : {
+       "t1.micro"    : { "Arch" : "NATPV64"   },
+       "t2.nano"     : { "Arch" : "NATHVM64"  },
+       "t2.micro"    : { "Arch" : "NATHVM64"  },
+       "t2.small"    : { "Arch" : "NATHVM64"  },
+       "t2.medium"   : { "Arch" : "NATHVM64"  },
+       "t2.large"    : { "Arch" : "NATHVM64"  },
+       "m1.small"    : { "Arch" : "NATPV64"   },
+       "m1.medium"   : { "Arch" : "NATPV64"   },
+       "m1.large"    : { "Arch" : "NATPV64"   },
+       "m1.xlarge"   : { "Arch" : "NATPV64"   },
+       "m2.xlarge"   : { "Arch" : "NATPV64"   },
+       "m2.2xlarge"  : { "Arch" : "NATPV64"   },
+       "m2.4xlarge"  : { "Arch" : "NATPV64"   },
+       "m3.medium"   : { "Arch" : "NATHVM64"  },
+       "m3.large"    : { "Arch" : "NATHVM64"  },
+       "m3.xlarge"   : { "Arch" : "NATHVM64"  },
+       "m3.2xlarge"  : { "Arch" : "NATHVM64"  },
+       "m4.large"    : { "Arch" : "NATHVM64"  },
+       "m4.xlarge"   : { "Arch" : "NATHVM64"  },
+       "m4.2xlarge"  : { "Arch" : "NATHVM64"  },
+       "m4.4xlarge"  : { "Arch" : "NATHVM64"  },
+       "m4.10xlarge" : { "Arch" : "NATHVM64"  },
+       "c1.medium"   : { "Arch" : "NATPV64"   },
+       "c1.xlarge"   : { "Arch" : "NATPV64"   },
+       "c3.large"    : { "Arch" : "NATHVM64"  },
+       "c3.xlarge"   : { "Arch" : "NATHVM64"  },
+       "c3.2xlarge"  : { "Arch" : "NATHVM64"  },
+       "c3.4xlarge"  : { "Arch" : "NATHVM64"  },
+       "c3.8xlarge"  : { "Arch" : "NATHVM64"  },
+       "c4.large"    : { "Arch" : "NATHVM64"  },
+       "c4.xlarge"   : { "Arch" : "NATHVM64"  },
+       "c4.2xlarge"  : { "Arch" : "NATHVM64"  },
+       "c4.4xlarge"  : { "Arch" : "NATHVM64"  },
+       "c4.8xlarge"  : { "Arch" : "NATHVM64"  },
+       "g2.2xlarge"  : { "Arch" : "NATHVMG2"  },
+       "g2.8xlarge"  : { "Arch" : "NATHVMG2"  },
+       "r3.large"    : { "Arch" : "NATHVM64"  },
+       "r3.xlarge"   : { "Arch" : "NATHVM64"  },
+       "r3.2xlarge"  : { "Arch" : "NATHVM64"  },
+       "r3.4xlarge"  : { "Arch" : "NATHVM64"  },
+       "r3.8xlarge"  : { "Arch" : "NATHVM64"  },
+       "i2.xlarge"   : { "Arch" : "NATHVM64"  },
+       "i2.2xlarge"  : { "Arch" : "NATHVM64"  },
+       "i2.4xlarge"  : { "Arch" : "NATHVM64"  },
+       "i2.8xlarge"  : { "Arch" : "NATHVM64"  },
+       "d2.xlarge"   : { "Arch" : "NATHVM64"  },
+       "d2.2xlarge"  : { "Arch" : "NATHVM64"  },
+       "d2.4xlarge"  : { "Arch" : "NATHVM64"  },
+       "d2.8xlarge"  : { "Arch" : "NATHVM64"  },
+       "hi1.4xlarge" : { "Arch" : "NATHVM64"  },
+       "hs1.8xlarge" : { "Arch" : "NATHVM64"  },
+       "cr1.8xlarge" : { "Arch" : "NATHVM64"  },
+       "cc2.8xlarge" : { "Arch" : "NATHVM64"  }
+     },
+
+     "AWSRegionArch2AMI" : {
+       "us-east-1"        : {"PV64" : "ami-2a69aa47", "HVM64" : "ami-97785bed", "HVMG2" : "ami-0a6e3770"},
+       "us-west-2"        : {"PV64" : "ami-7f77b31f", "HVM64" : "ami-f2d3638a", "HVMG2" : "ami-ee15a196"},
+       "us-west-1"        : {"PV64" : "ami-a2490dc2", "HVM64" : "ami-824c4ee2", "HVMG2" : "ami-0da4a46d"},
+       "eu-west-1"        : {"PV64" : "ami-4cdd453f", "HVM64" : "ami-d834aba1", "HVMG2" : "ami-af8013d6"},
+       "eu-west-2"        : {"PV64" : "NOT_SUPPORTED", "HVM64" : "ami-403e2524", "HVMG2" : "NOT_SUPPORTED"},
+       "eu-west-3"        : {"PV64" : "NOT_SUPPORTED", "HVM64" : "ami-8ee056f3", "HVMG2" : "NOT_SUPPORTED"},
+       "eu-central-1"     : {"PV64" : "ami-6527cf0a", "HVM64" : "ami-5652ce39", "HVMG2" : "ami-1d58ca72"},
+       "ap-northeast-1"   : {"PV64" : "ami-3e42b65f", "HVM64" : "ami-ceafcba8", "HVMG2" : "ami-edfd658b"},
+       "ap-northeast-2"   : {"PV64" : "NOT_SUPPORTED", "HVM64" : "ami-863090e8", "HVMG2" : "NOT_SUPPORTED"},
+       "ap-northeast-3"   : {"PV64" : "NOT_SUPPORTED", "HVM64" : "ami-83444afe", "HVMG2" : "NOT_SUPPORTED"},
+       "ap-southeast-1"   : {"PV64" : "ami-df9e4cbc", "HVM64" : "ami-68097514", "HVMG2" : "ami-c06013bc"},
+       "ap-southeast-2"   : {"PV64" : "ami-63351d00", "HVM64" : "ami-942dd1f6", "HVMG2" : "ami-85ef12e7"},
+       "ap-south-1"       : {"PV64" : "NOT_SUPPORTED", "HVM64" : "ami-531a4c3c", "HVMG2" : "ami-411e492e"},
+       "us-east-2"        : {"PV64" : "NOT_SUPPORTED", "HVM64" : "ami-f63b1193", "HVMG2" : "NOT_SUPPORTED"},
+       "ca-central-1"     : {"PV64" : "NOT_SUPPORTED", "HVM64" : "ami-a954d1cd", "HVMG2" : "NOT_SUPPORTED"},
+       "sa-east-1"        : {"PV64" : "ami-1ad34676", "HVM64" : "ami-84175ae8", "HVMG2" : "NOT_SUPPORTED"},
+       "cn-north-1"       : {"PV64" : "ami-77559f1a", "HVM64" : "ami-cb19c4a6", "HVMG2" : "NOT_SUPPORTED"},
+       "cn-northwest-1"   : {"PV64" : "ami-80707be2", "HVM64" : "ami-3e60745c", "HVMG2" : "NOT_SUPPORTED"}
+     }
+
+   },
+
+   "Resources" : {
+     "S3Bucket" : {
+        "Type" : "AWS::S3::Bucket",
+        "Properties" : {
+          "BucketName": "cometbucket"
+        }
+     },
+     "RunCmdInstanceProfile": {
+       "Type": "AWS::IAM::InstanceProfile",
+       "Properties": {
+         "Path": "/",
+         "Roles": [ { "Ref": "RunCmdRole" } ]
+       }
+     },
+     "RunCmdRole": {
+       "Type": "AWS::IAM::Role",
+       "Properties": {
+           "AssumeRolePolicyDocument": {
+               "Version": "2012-10-17",
+               "Statement": [
+                   {
+                       "Sid": "",
+                       "Effect": "Allow",
+                       "Principal": { "Service": "ec2.amazonaws.com" },
+                       "Action": "sts:AssumeRole"
+                   }
+               ]
+           },
+           "Path": "/"
+       }
+     },
+     "RunCmdPolicies": {
+       "Type": "AWS::IAM::Policy",
+       "Properties": {
+           "PolicyName": "runcmd",
+           "Roles": [ { "Ref": "RunCmdRole" } ],
+           "PolicyDocument": {
+               "Version": "2012-10-17",
+               "Statement": [
+                   {
+                       "Effect": "Allow",
+                       "Action": [
+                           "s3:PutObject",
+                           "s3:GetObject",
+                           "s3:ListBucket",
+                           "s3:DeleteObject"
+                       ],
+                       "Resource": "*"
+                   }
+               ]
+           }
+       }
+     },
+     "ServerSecurityGroup" : {
+       "Type" : "AWS::EC2::SecurityGroup",
+       "Properties" : {
+         "GroupDescription" : "Enable required ports for running haddoop, zookeeper and accumulo + SSH access",
+         "SecurityGroupIngress" : [
+           {"IpProtocol" : "tcp", "FromPort" : "80", "ToPort" : "80", "CidrIp" : "0.0.0.0/0"},
+           {"IpProtocol" : "tcp", "FromPort" : "8080", "ToPort" : "8080", "CidrIp" : "0.0.0.0/0"},
+           {"IpProtocol" : "tcp", "FromPort" : "8030", "ToPort" : "8030", "CidrIp" : "0.0.0.0/0"},
+           {"IpProtocol" : "tcp", "FromPort" : "8031", "ToPort" : "8031", "CidrIp" : "0.0.0.0/0"},
+           {"IpProtocol" : "tcp", "FromPort" : "8032", "ToPort" : "8032", "CidrIp" : "0.0.0.0/0"},
+           {"IpProtocol" : "tcp", "FromPort" : "8033", "ToPort" : "8033", "CidrIp" : "0.0.0.0/0"},
+           {"IpProtocol" : "tcp", "FromPort" : "2888", "ToPort" : "2888", "CidrIp" : "0.0.0.0/0"},
+           {"IpProtocol" : "tcp", "FromPort" : "2181", "ToPort" : "2181", "CidrIp" : "0.0.0.0/0"},
+           {"IpProtocol" : "tcp", "FromPort" : "3888", "ToPort" : "3888", "CidrIp" : "0.0.0.0/0"},
+           {"IpProtocol" : "tcp", "FromPort" : "50070", "ToPort" : "50070", "CidrIp" : "0.0.0.0/0"},
+           {"IpProtocol" : "tcp", "FromPort" : "50075", "ToPort" : "50075", "CidrIp" : "0.0.0.0/0"},
+           {"IpProtocol" : "tcp", "FromPort" : "50010", "ToPort" : "50010", "CidrIp" : "0.0.0.0/0"},
+           {"IpProtocol" : "tcp", "FromPort" : "50020", "ToPort" : "50020", "CidrIp" : "0.0.0.0/0"},
+           {"IpProtocol" : "tcp", "FromPort" : "8088", "ToPort" : "8088", "CidrIp" : "0.0.0.0/0"},
+           {"IpProtocol" : "tcp", "FromPort" : "9995", "ToPort" : "9995", "CidrIp" : "0.0.0.0/0"},
+           {"IpProtocol" : "tcp", "FromPort" : "9996", "ToPort" : "9996", "CidrIp" : "0.0.0.0/0"},
+           {"IpProtocol" : "tcp", "FromPort" : "9997", "ToPort" : "9997", "CidrIp" : "0.0.0.0/0"},
+           {"IpProtocol" : "tcp", "FromPort" : "9998", "ToPort" : "9998", "CidrIp" : "0.0.0.0/0"},
+           {"IpProtocol" : "tcp", "FromPort" : "9999", "ToPort" : "9999", "CidrIp" : "0.0.0.0/0"},
+           {"IpProtocol" : "tcp", "FromPort" : "10001", "ToPort" : "10001", "CidrIp" : "0.0.0.0/0"},
+           {"IpProtocol" : "tcp", "FromPort" : "10001", "ToPort" : "10002", "CidrIp" : "0.0.0.0/0"},
+           {"IpProtocol" : "tcp", "FromPort" : "4560", "ToPort" : "4560", "CidrIp" : "0.0.0.0/0"},
+           {"IpProtocol" : "tcp", "FromPort" : "43335", "ToPort" : "43835", "CidrIp" : "0.0.0.0/0"},
+           {"IpProtocol" : "tcp", "FromPort" : "43335", "ToPort" : "43335", "CidrIp" : "0.0.0.0/0"},
+           {"IpProtocol" : "tcp", "FromPort" : "44743", "ToPort" : "44743", "CidrIp" : "0.0.0.0/0"},
+           {"IpProtocol" : "tcp", "FromPort" : "9000", "ToPort" : "9000", "CidrIp" : "0.0.0.0/0"},
+           {"IpProtocol" : "tcp", "FromPort" : "22", "ToPort" : "22", "CidrIp" : { "Ref" : "SSHLocation"}}
+         ]
+       }
+     },     
+     "Namenode": {
+       "Type" : "AWS::EC2::Instance",
+       "Metadata" : {
+         "AWS::CloudFormation::Init" : {
+           "configSets" : {
+             "namenode_install" : ["install_cfn", "install_accumulo" ]
+           },
+           "install_cfn" : {
+             "files": {
+               "/etc/cfn/cfn-hup.conf": {
+                 "content": { "Fn::Join": [ "", [
+                   "[main]\n",
+                   "stack=", { "Ref": "AWS::StackId" }, "\n",
+                   "region=", { "Ref": "AWS::Region" }, "\n"
+                 ]]},
+                 "mode"  : "000400",
+                 "owner" : "root",
+                 "group" : "root"
+               },
+               "/etc/cfn/hooks.d/cfn-auto-reloader.conf": {
+                 "content": { "Fn::Join": [ "", [
+                   "[cfn-auto-reloader-hook]\n",
+                   "triggers=post.update\n",
+                   "path=Resources.Namenode.Metadata.AWS::CloudFormation::Init\n",
+                   "action=/opt/aws/bin/cfn-init -v ",
+                           "         --stack ", { "Ref" : "AWS::StackName" },
+                           "         --resource Namenode ",
+                           "         --configsets namenode_install ",
+                           "         --region ", { "Ref" : "AWS::Region" }, "\n"
+                 ]]},
+                 "mode"  : "000400",
+                 "owner" : "root",
+                 "group" : "root"
+               },     
+               "/root/install.sh": {
+                 "content": { "Fn::Join": [ "", [
+                           "git clone https://github.com/RENCI-NRIG/COMET-Accumulo.git\n",
+                           "mv /root/COMET-Accumulo/aws-accumulo/config/* /root/\n",
+                           "rm -rf /root/COMET-Accumulo\n",
+                           "/root/setupzookeeper.sh ",{"Ref" : "ZooKeeperVersion"}," > /var/log/setupzookeeper.log 2>&1\n",
+                           "/root/setuphadoop.sh ", {"Ref" : "HadoopVersion"} ," > /var/log/setuphadoop.log 2>&1\n",
+                           "/root/setupaccumulo.sh ", {"Ref" : "AccumuloVersion"} ," > /var/log/setupaccumulo.log 2>&1\n",
+                           "/root/ipAndKeys.sh namenode cometbucket 'namenode resourcemanager worker1 worker2 accumulomaster' true > /var/log/ipAndKeys.log 2>&1\n",
+                           "/root/configure.sh accumulomaster false false false true false false false 'worker1 worker2' 'namenode resourcemanager worker1 worker2 accumulomaster' > /var/log/configure.log 2>&1"
+                 ]]},
+                 "mode"  : "000700",
+                 "owner" : "root",
+                 "group" : "root"
+               }     
+             },
+             "services" : {
+               "sysvinit" : {
+                 "cfn-hup" : { "enabled" : "true", "ensureRunning" : "true",
+                               "files" : ["/etc/cfn/cfn-hup.conf", "/etc/cfn/hooks.d/cfn-auto-reloader.conf"] }
+               }
+             }
+           },               
+           "install_accumulo" : {
+             "packages" : {
+               "yum" : {
+                   "java-1.8.0-openjdk"  : [],
+                   "git"  : []
+               }
+             },
+             "commands" : {
+               "01_install" : {
+                 "command" : "/bin/sh /root/install.sh"
+               }
+             },
+             "services" : {
+               "sysvinit" : {
+               }
+             }
+           }
+         }
+       },
+       "Properties": {
+         "ImageId" : { "Fn::FindInMap" : [ "AWSRegionArch2AMI", { "Ref" : "AWS::Region" },
+                           { "Fn::FindInMap" : [ "AWSInstanceType2Arch", { "Ref" : "InstanceType" }, "Arch" ] } ] },
+         "InstanceType"   : { "Ref" : "InstanceType" },
+         "SecurityGroups" : [ {"Ref" : "ServerSecurityGroup"} ],
+         "KeyName"        : { "Ref" : "KeyName" },
+         "Tags"           : [ {"Key" : "Name", "Value" : "namenode"}],
+         "IamInstanceProfile": { "Ref": "RunCmdInstanceProfile" },
+     	 "UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
+                        "#!/bin/bash -xe\n",
+                        "yum update -y aws-cfn-bootstrap\n",
+
+                        "/opt/aws/bin/cfn-init -v ",
+                        "         --stack ", { "Ref" : "AWS::StackName" },
+                        "         --resource Namenode ",
+                        "         --configsets namenode_install ",
+                        "         --region ", { "Ref" : "AWS::Region" }, "\n",
+
+                        "/opt/aws/bin/cfn-signal -e $? ",
+                        "         --stack ", { "Ref" : "AWS::StackName" },
+                        "         --resource Namenode ",
+                        "         --region ", { "Ref" : "AWS::Region" }, "\n"
+         ]]}}
+       },
+       "CreationPolicy" : {
+         "ResourceSignal" : {
+           "Timeout" : "PT15M"
+         }
+       }
+     },
+     "Resourcemanager": {
+       "Type" : "AWS::EC2::Instance",
+       "Metadata" : {
+         "AWS::CloudFormation::Init" : {
+           "configSets" : {
+             "resourcemanager_install" : ["install_cfn", "install_accumulo" ]
+           },
+           "install_cfn" : {
+             "files": {
+               "/etc/cfn/cfn-hup.conf": {
+                 "content": { "Fn::Join": [ "", [
+                   "[main]\n",
+                   "stack=", { "Ref": "AWS::StackId" }, "\n",
+                   "region=", { "Ref": "AWS::Region" }, "\n"
+                 ]]},
+                 "mode"  : "000400",
+                 "owner" : "root",
+                 "group" : "root"
+               },
+               "/etc/cfn/hooks.d/cfn-auto-reloader.conf": {
+                 "content": { "Fn::Join": [ "", [
+                   "[cfn-auto-reloader-hook]\n",
+                   "triggers=post.update\n",
+                   "path=Resources.Resourcemanager.Metadata.AWS::CloudFormation::Init\n",
+                   "action=/opt/aws/bin/cfn-init -v ",
+                           "         --stack ", { "Ref" : "AWS::StackName" },
+                           "         --resource Resourcemanager ",
+                           "         --configsets resourcemanager_install ",
+                           "         --region ", { "Ref" : "AWS::Region" }, "\n"
+                 ]]},
+                 "mode"  : "000400",
+                 "owner" : "root",
+                 "group" : "root"
+               },
+               "/root/install.sh": {
+                 "content": { "Fn::Join": [ "", [
+                           "git clone https://github.com/RENCI-NRIG/COMET-Accumulo.git\n",
+                           "mv /root/COMET-Accumulo/aws-accumulo/config/* /root/\n",
+                           "rm -rf /root/COMET-Accumulo\n",                     
+                           "/root/setupzookeeper.sh ",{"Ref" : "ZooKeeperVersion"}," > /var/log/setupzookeeper.log 2>&1\n",
+                           "/root/setuphadoop.sh ", {"Ref" : "HadoopVersion"} ," > /var/log/setuphadoop.log 2>&1\n",
+                           "/root/setupaccumulo.sh ", {"Ref" : "AccumuloVersion"} ," > /var/log/setupaccumulo.log 2>&1\n",
+                           "/root/ipAndKeys.sh resourcemanager cometbucket 'namenode resourcemanager worker1 worker2 accumulomaster' false > /var/log/ipAndKeys.log 2>&1\n",
+                           "/root/configure.sh accumulomaster false false false false false false true 'worker1 worker2' 'namenode resourcemanager worker1 worker2 accumulomaster' > /var/log/configure.log 2>&1"			   
+                 ]]},
+                 "mode"  : "000700",
+                 "owner" : "root",
+                 "group" : "root"
+               }     
+             },
+             "services" : {
+               "sysvinit" : {
+                 "cfn-hup" : { "enabled" : "true", "ensureRunning" : "true",
+                               "files" : ["/etc/cfn/cfn-hup.conf", "/etc/cfn/hooks.d/cfn-auto-reloader.conf"] }
+               }
+             }
+           },               
+           "install_accumulo" : {
+             "packages" : {
+               "yum" : {
+                   "java-1.8.0-openjdk"  : [],
+                   "git"  : []
+               }
+             },
+             "commands" : {
+               "01_install" : {
+                 "command" : "/bin/sh /root/install.sh"
+               }
+             },
+             "services" : {
+               "sysvinit" : {
+               }
+             }
+           }
+         }
+       },
+       "Properties": {
+         "ImageId" : { "Fn::FindInMap" : [ "AWSRegionArch2AMI", { "Ref" : "AWS::Region" },
+                           { "Fn::FindInMap" : [ "AWSInstanceType2Arch", { "Ref" : "InstanceType" }, "Arch" ] } ] },
+         "InstanceType"   : { "Ref" : "InstanceType" },
+         "SecurityGroups" : [ {"Ref" : "ServerSecurityGroup"} ],
+         "KeyName"        : { "Ref" : "KeyName" },
+         "Tags"           : [ {"Key" : "Name", "Value" : "resourcemanager"}],
+         "IamInstanceProfile": { "Ref": "RunCmdInstanceProfile" },
+         "UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
+                        "#!/bin/bash -xe\n",
+                        "yum update -y aws-cfn-bootstrap\n",
+
+                        "/opt/aws/bin/cfn-init -v ",
+                        "         --stack ", { "Ref" : "AWS::StackName" },
+                        "         --resource Resourcemanager ",
+                        "         --configsets resourcemanager_install ",
+                        "         --region ", { "Ref" : "AWS::Region" }, "\n",
+
+                        "/opt/aws/bin/cfn-signal -e $? ",
+                        "         --stack ", { "Ref" : "AWS::StackName" },
+                        "         --resource Resourcemanager ",
+                        "         --region ", { "Ref" : "AWS::Region" }, "\n"
+         ]]}}
+       },
+       "CreationPolicy" : {
+         "ResourceSignal" : {
+           "Timeout" : "PT15M"
+         }
+       }
+     },
+     "worker1": {
+       "Type" : "AWS::EC2::Instance",
+       "Metadata" : {
+         "AWS::CloudFormation::Init" : {
+           "configSets" : {
+             "worker1_install" : ["install_cfn", "install_accumulo" ]
+           },
+           "install_cfn" : {
+             "files": {
+               "/etc/cfn/cfn-hup.conf": {
+                 "content": { "Fn::Join": [ "", [
+                   "[main]\n",
+                   "stack=", { "Ref": "AWS::StackId" }, "\n",
+                   "region=", { "Ref": "AWS::Region" }, "\n"
+                 ]]},
+                 "mode"  : "000400",
+                 "owner" : "root",
+                 "group" : "root"
+               },
+               "/etc/cfn/hooks.d/cfn-auto-reloader.conf": {
+                 "content": { "Fn::Join": [ "", [
+                   "[cfn-auto-reloader-hook]\n",
+                   "triggers=post.update\n",
+                   "path=Resources.worker1.Metadata.AWS::CloudFormation::Init\n",
+                   "action=/opt/aws/bin/cfn-init -v ",
+                           "         --stack ", { "Ref" : "AWS::StackName" },
+                           "         --resource worker1 ",
+                           "         --configsets worker1_install ",
+                           "         --region ", { "Ref" : "AWS::Region" }, "\n"
+                 ]]},
+                 "mode"  : "000400",
+                 "owner" : "root",
+                 "group" : "root"
+               },
+               "/root/install.sh": {
+                 "content": { "Fn::Join": [ "", [
+                           "git clone https://github.com/RENCI-NRIG/COMET-Accumulo.git\n",
+                           "mv /root/COMET-Accumulo/aws-accumulo/config/* /root/\n",
+                           "rm -rf /root/COMET-Accumulo\n",                     
+                           "/root/setupzookeeper.sh ",{"Ref" : "ZooKeeperVersion"}," > /var/log/setupzookeeper.log 2>&1\n",
+                           "/root/setuphadoop.sh ", {"Ref" : "HadoopVersion"} ," > /var/log/setuphadoop.log 2>&1\n",
+                           "/root/setupaccumulo.sh ", {"Ref" : "AccumuloVersion"} ," > /var/log/setupaccumulo.log 2>&1\n",
+                           "/root/ipAndKeys.sh worker1 cometbucket 'namenode resourcemanager worker1 worker2 accumulomaster' false > /var/log/ipAndKeys.log 2>&1\n",
+                           "/root/configure.sh accumulomaster false true false false false true false 'worker1 worker2' 'namenode resourcemanager worker1 worker2 accumulomaster' > /var/log/configure.log 2>&1"			   
+                 ]]},
+                 "mode"  : "000700",
+                 "owner" : "root",
+                 "group" : "root"
+               }     
+             },
+             "services" : {
+               "sysvinit" : {
+                 "cfn-hup" : { "enabled" : "true", "ensureRunning" : "true",
+                               "files" : ["/etc/cfn/cfn-hup.conf", "/etc/cfn/hooks.d/cfn-auto-reloader.conf"] }
+               }
+             }
+           },               
+           "install_accumulo" : {
+             "packages" : {
+               "yum" : {
+                   "java-1.8.0-openjdk"  : [],
+                   "git"  : []
+               }
+             },
+             "commands" : {
+               "01_install" : {
+                 "command" : "/bin/sh /root/install.sh"
+               }
+             },
+             "services" : {
+               "sysvinit" : {
+               }
+             }
+           }
+         }
+       },
+       "Properties": {
+         "ImageId" : { "Fn::FindInMap" : [ "AWSRegionArch2AMI", { "Ref" : "AWS::Region" },
+                           { "Fn::FindInMap" : [ "AWSInstanceType2Arch", { "Ref" : "InstanceType" }, "Arch" ] } ] },
+         "InstanceType"   : { "Ref" : "InstanceType" },
+         "SecurityGroups" : [ {"Ref" : "ServerSecurityGroup"} ],
+         "KeyName"        : { "Ref" : "KeyName" },
+         "Tags"           : [ {"Key" : "Name", "Value" : "worker1"}],
+         "IamInstanceProfile": { "Ref": "RunCmdInstanceProfile" },
+         "UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
+                        "#!/bin/bash -xe\n",
+                        "yum update -y aws-cfn-bootstrap\n",
+
+                        "/opt/aws/bin/cfn-init -v ",
+                        "         --stack ", { "Ref" : "AWS::StackName" },
+                        "         --resource worker1 ",
+                        "         --configsets worker1_install ",
+                        "         --region ", { "Ref" : "AWS::Region" }, "\n",
+
+                        "/opt/aws/bin/cfn-signal -e $? ",
+                        "         --stack ", { "Ref" : "AWS::StackName" },
+                        "         --resource worker1 ",
+                        "         --region ", { "Ref" : "AWS::Region" }, "\n"
+         ]]}}
+       },
+       "CreationPolicy" : {
+         "ResourceSignal" : {
+           "Timeout" : "PT15M"
+         }
+       }
+     },
+     "worker2": {
+       "Type" : "AWS::EC2::Instance",
+       "Metadata" : {
+         "AWS::CloudFormation::Init" : {
+           "configSets" : {
+             "worker2_install" : ["install_cfn", "install_accumulo" ]
+           },
+           "install_cfn" : {
+             "files": {
+               "/etc/cfn/cfn-hup.conf": {
+                 "content": { "Fn::Join": [ "", [
+                   "[main]\n",
+                   "stack=", { "Ref": "AWS::StackId" }, "\n",
+                   "region=", { "Ref": "AWS::Region" }, "\n"
+                 ]]},
+                 "mode"  : "000400",
+                 "owner" : "root",
+                 "group" : "root"
+               },
+               "/etc/cfn/hooks.d/cfn-auto-reloader.conf": {
+                 "content": { "Fn::Join": [ "", [
+                   "[cfn-auto-reloader-hook]\n",
+                   "triggers=post.update\n",
+                   "path=Resources.worker2.Metadata.AWS::CloudFormation::Init\n",
+                   "action=/opt/aws/bin/cfn-init -v ",
+                           "         --stack ", { "Ref" : "AWS::StackName" },
+                           "         --resource worker2 ",
+                           "         --configsets worker2_install ",
+                           "         --region ", { "Ref" : "AWS::Region" }, "\n"
+                 ]]},
+                 "mode"  : "000400",
+                 "owner" : "root",
+                 "group" : "root"
+               },
+               "/root/install.sh": {
+                 "content": { "Fn::Join": [ "", [
+                           "git clone https://github.com/RENCI-NRIG/COMET-Accumulo.git\n",
+                           "mv /root/COMET-Accumulo/aws-accumulo/config/* /root/\n",
+                           "rm -rf /root/COMET-Accumulo\n",                     
+                           "/root/setupzookeeper.sh ",{"Ref" : "ZooKeeperVersion"}," > /var/log/setupzookeeper.log 2>&1\n",
+                           "/root/setuphadoop.sh ", {"Ref" : "HadoopVersion"} ," > /var/log/setuphadoop.log 2>&1\n",
+                           "/root/setupaccumulo.sh ", {"Ref" : "AccumuloVersion"} ," > /var/log/setupaccumulo.log 2>&1\n",
+                           "/root/ipAndKeys.sh worker2 cometbucket 'namenode resourcemanager worker1 worker2 accumulomaster' false > /var/log/ipAndKeys.log 2>&1\n",
+                           "/root/configure.sh accumulomaster false true false false false true false 'worker1 worker2' 'namenode resourcemanager worker1 worker2 accumulomaster' > /var/log/configure.log 2>&1"			   
+                 ]]},
+                 "mode"  : "000700",
+                 "owner" : "root",
+                 "group" : "root"
+               }     
+             },
+             "services" : {
+               "sysvinit" : {
+                 "cfn-hup" : { "enabled" : "true", "ensureRunning" : "true",
+                               "files" : ["/etc/cfn/cfn-hup.conf", "/etc/cfn/hooks.d/cfn-auto-reloader.conf"] }
+               }
+             }
+           },               
+           "install_accumulo" : {
+             "packages" : {
+               "yum" : {
+                   "java-1.8.0-openjdk"  : [],
+                   "git"  : []
+               }
+             },
+             "commands" : {
+               "01_install" : {
+                 "command" : "/bin/sh /root/install.sh"
+               }
+             },
+             "services" : {
+               "sysvinit" : {
+               }
+             }
+           }
+         }
+       },
+       "Properties": {
+         "ImageId" : { "Fn::FindInMap" : [ "AWSRegionArch2AMI", { "Ref" : "AWS::Region" },
+                           { "Fn::FindInMap" : [ "AWSInstanceType2Arch", { "Ref" : "InstanceType" }, "Arch" ] } ] },
+         "InstanceType"   : { "Ref" : "InstanceType" },
+         "SecurityGroups" : [ {"Ref" : "ServerSecurityGroup"} ],
+         "KeyName"        : { "Ref" : "KeyName" },
+         "Tags"           : [ {"Key" : "Name", "Value" : "worker2"}],
+         "IamInstanceProfile": { "Ref": "RunCmdInstanceProfile" },
+         "UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
+                        "#!/bin/bash -xe\n",
+                        "yum update -y aws-cfn-bootstrap\n",
+
+                        "/opt/aws/bin/cfn-init -v ",
+                        "         --stack ", { "Ref" : "AWS::StackName" },
+                        "         --resource worker2 ",
+                        "         --configsets worker2_install ",
+                        "         --region ", { "Ref" : "AWS::Region" }, "\n",
+
+                        "/opt/aws/bin/cfn-signal -e $? ",
+                        "         --stack ", { "Ref" : "AWS::StackName" },
+                        "         --resource worker2 ",
+                        "         --region ", { "Ref" : "AWS::Region" }, "\n"
+         ]]}}
+       },
+       "CreationPolicy" : {
+         "ResourceSignal" : {
+           "Timeout" : "PT15M"
+         }
+       }
+     },
+     "accumulomaster": {
+       "Type" : "AWS::EC2::Instance",
+       "Metadata" : {
+         "AWS::CloudFormation::Init" : {
+           "configSets" : {
+             "accumulomaster_install" : ["install_cfn", "install_accumulo" ]
+           },
+           "install_cfn" : {
+             "files": {
+               "/etc/cfn/cfn-hup.conf": {
+                 "content": { "Fn::Join": [ "", [
+                   "[main]\n",
+                   "stack=", { "Ref": "AWS::StackId" }, "\n",
+                   "region=", { "Ref": "AWS::Region" }, "\n"
+                 ]]},
+                 "mode"  : "000400",
+                 "owner" : "root",
+                 "group" : "root"
+               },
+               "/etc/cfn/hooks.d/cfn-auto-reloader.conf": {
+                 "content": { "Fn::Join": [ "", [
+                   "[cfn-auto-reloader-hook]\n",
+                   "triggers=post.update\n",
+                   "path=Resources.accumulomaster.Metadata.AWS::CloudFormation::Init\n",
+                   "action=/opt/aws/bin/cfn-init -v ",
+                           "         --stack ", { "Ref" : "AWS::StackName" },
+                           "         --resource accumulomaster ",
+                           "         --configsets accumulomaster_install ",
+                           "         --region ", { "Ref" : "AWS::Region" }, "\n"
+                 ]]},
+                 "mode"  : "000400",
+                 "owner" : "root",
+                 "group" : "root"
+               },
+               "/root/install.sh": {
+                 "content": { "Fn::Join": [ "", [
+                           "git clone https://github.com/RENCI-NRIG/COMET-Accumulo.git\n",
+                           "mv /root/COMET-Accumulo/aws-accumulo/config/* /root/\n",
+                           "rm -rf /root/COMET-Accumulo\n",                     
+                           "/root/setupzookeeper.sh ",{"Ref" : "ZooKeeperVersion"}," > /var/log/setupzookeeper.log 2>&1\n",
+                           "/root/setuphadoop.sh ", {"Ref" : "HadoopVersion"} ," > /var/log/setuphadoop.log 2>&1\n",
+                           "/root/setupaccumulo.sh ", {"Ref" : "AccumuloVersion"} ," > /var/log/setupaccumulo.log 2>&1\n",
+                           "/root/ipAndKeys.sh accumulomaster cometbucket 'namenode resourcemanager worker1 worker2 accumulomaster' false > /var/log/ipAndKeys.log 2>&1\n",
+                           "/root/configure.sh accumulomaster true false false false false false false 'worker1 worker2' 'namenode resourcemanager worker1 worker2 accumulomaster' > /var/log/configure.log 2>&1"			   
+                 ]]},
+                 "mode"  : "000700",
+                 "owner" : "root",
+                 "group" : "root"
+               }     
+             },
+             "services" : {
+               "sysvinit" : {
+                 "cfn-hup" : { "enabled" : "true", "ensureRunning" : "true",
+                               "files" : ["/etc/cfn/cfn-hup.conf", "/etc/cfn/hooks.d/cfn-auto-reloader.conf"] }
+               }
+             }
+           },               
+           "install_accumulo" : {
+             "packages" : {
+               "yum" : {
+                   "java-1.8.0-openjdk"  : [],
+                   "git"  : []
+               }
+             },
+             "commands" : {
+               "01_install" : {
+                 "command" : "/bin/sh /root/install.sh"
+               }
+             },
+             "services" : {
+               "sysvinit" : {
+               }
+             }
+           }
+         }
+       },
+       "Properties": {
+         "ImageId" : { "Fn::FindInMap" : [ "AWSRegionArch2AMI", { "Ref" : "AWS::Region" },
+                           { "Fn::FindInMap" : [ "AWSInstanceType2Arch", { "Ref" : "InstanceType" }, "Arch" ] } ] },
+         "InstanceType"   : { "Ref" : "InstanceType" },
+         "SecurityGroups" : [ {"Ref" : "ServerSecurityGroup"} ],
+         "KeyName"        : { "Ref" : "KeyName" },
+         "Tags"           : [ {"Key" : "Name", "Value" : "accumulomaster"}],
+         "IamInstanceProfile": { "Ref": "RunCmdInstanceProfile" },
+         "UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
+                        "#!/bin/bash -xe\n",
+                        "yum update -y aws-cfn-bootstrap\n",
+
+                        "/opt/aws/bin/cfn-init -v ",
+                        "         --stack ", { "Ref" : "AWS::StackName" },
+                        "         --resource accumulomaster ",
+                        "         --configsets accumulomaster_install ",
+                        "         --region ", { "Ref" : "AWS::Region" }, "\n",
+
+                        "/opt/aws/bin/cfn-signal -e $? ",
+                        "         --stack ", { "Ref" : "AWS::StackName" },
+                        "         --resource accumulomaster ",
+                        "         --region ", { "Ref" : "AWS::Region" }, "\n"
+         ]]}}
+       },
+       "CreationPolicy" : {
+         "ResourceSignal" : {
+           "Timeout" : "PT15M"
+         }
+       }
+     }
+   },
+
+   "Outputs" : {
+   }
+}
+
