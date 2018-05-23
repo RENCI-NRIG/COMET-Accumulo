@@ -19,7 +19,7 @@ public interface CometOpsIfce {
     public JSONObject readScope (String contextID, String family, String key, String readToken)
     		throws AccumuloException, AccumuloSecurityException,TableNotFoundException, TableExistsException;
 
-    public JSONObject enumerateScopes(String contextID, String family, String readToken)
+    public JSONObject enumerateScopes(String contextID, String readToken)
     		throws AccumuloException, AccumuloSecurityException;
 
 }
