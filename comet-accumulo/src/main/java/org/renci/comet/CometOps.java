@@ -32,6 +32,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -101,7 +102,8 @@ public class CometOps implements CometOpsIfce {
 		Text colFam = new Text(family);
 		Text colQual = new Text(key);
 		Text vis = new Text(readToken);
-		String[] value = {"false", writeToken, scopeValue};
+		//Accumulo value field format: {ifDeleted, writeToken, scopeValue, Comet_version, deletionTimeStamp}
+		String[] value = {"false", writeToken, scopeValue, CometInitializer.COMET_VERSION, ""};
 		System.out.println("contextID: " + contextID + "\n family: " + family + "\n key: " + key + "\n readToken: " + readToken);
 		for (String s : value)
 			System.out.println(s);
@@ -179,6 +181,12 @@ public class CometOps implements CometOpsIfce {
 	    			}
 
 	    			deserialized[0] = "true";
+	    			
+	    			long unixTimestamp = Instant.now().getEpochSecond();
+	    			String strLong = Long.toString(unixTimestamp);
+	    	        //System.out.println(strLong);
+	    			deserialized[4] = strLong;
+	    	        
 	    			byte[] serializedByteArray = null;
 	    			try {
 	    				serializedByteArray = serialize(deserialized);
@@ -272,7 +280,7 @@ public class CometOps implements CometOpsIfce {
 	    return jsonOutput;
 	}
 
-	public JSONObject enumerateScopes(String contextID, String family, String readToken) throws AccumuloException, AccumuloSecurityException {
+	public JSONObject enumerateScopes(String contextID, String readToken) throws AccumuloException, AccumuloSecurityException {
 
 	    	Instance inst = new ZooKeeperInstance(instanceName,zooServers);
 			System.out.println("read scope: instance initiated");
@@ -283,7 +291,6 @@ public class CometOps implements CometOpsIfce {
 		AccumuloOperationsApiImpl accu = new AccumuloOperationsApiImpl();
 
 		Text rowID = new Text(contextID);
-		Text colFam = new Text(family);
 		String scopeValue = null;
 		Map<String, Value> output = new HashMap<String, Value>();
 
