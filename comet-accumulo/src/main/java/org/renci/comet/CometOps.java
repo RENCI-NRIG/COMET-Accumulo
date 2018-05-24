@@ -41,15 +41,17 @@ import org.renci.comet.accumuloops.AccumuloOperationsApiIfce;
 import org.renci.comet.accumuloops.AccumuloOperationsApiImpl;
 
 public class CometOps implements CometOpsIfce {
-	String instanceName = "exogeni";
-    String zooServers = "172.16.100.4,172.16.100.5,172.16.100.1"; // Provide list of zookeeper server here. For example, localhost:2181
+	String instanceName = "aws-development";
+    String zooServers = "zoo1,zoo2,zoo3"; // Provide list of zookeeper server here. For example, localhost:2181
     String userName = "root"; // Provide username
     String password = "secret"; // Provide password
     public static String ERROR = "error";
 	public static String SUCCESS = "Success";
+	public static final int NUM_OF_SERIALIZED_PARAMETERS = 5;
     private static final Logger log = Logger.getLogger(AccumuloOperationsApiImpl.class);
     //public String tableName="accu-test";
     public String tableName="trace";
+    public static final boolean CHECK_TOKEN_STRENGTH = false;
 
 	/**
 	 * Check if password contains:
@@ -72,6 +74,8 @@ public class CometOps implements CometOpsIfce {
 	 * @return
 	 */
 	public static boolean isTokenStrong(String expression) {
+		if (CometOps.CHECK_TOKEN_STRENGTH == false)
+			return true;
 	    if (expression != null) {
 	        return expression.matches("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,}$");
 	    }
@@ -169,7 +173,7 @@ public class CometOps implements CometOpsIfce {
 				log.error("deserialization failed: " + e1);
 				jsonOutput.put(ERROR, "Failed to delete scope: deserialization failed");
 			}
-	    		if (deserialized != null && deserialized.length == 3) {
+	    		if (deserialized != null && deserialized.length == CometOps.NUM_OF_SERIALIZED_PARAMETERS) {
 	    			if (!writeToken.equals(deserialized[1])) {
 	    				try {
 						jsonOutput.put(ERROR, "Cannot delete scope: incorrect write token");
@@ -257,13 +261,14 @@ public class CometOps implements CometOpsIfce {
 	    output = accu.readOneRow(conn, tableName, rowID, colFam, colQual, readToken);
 	    for (Map.Entry<String, Value> entry : output.entrySet()) {
 	    		Value v = entry.getValue();
+	    		System.out.println("Comet readscope: got Value: " + v);
 	    		String[] deserialized = null;
 				try {
 					deserialized = (String[]) deserialize(v.get());
 				} catch (ClassNotFoundException | IOException e1) {
 					log.error("deserialization failed: " + e1);
 				}
-	    		if (deserialized != null && deserialized.length == 3) {
+	    		if (deserialized != null && deserialized.length == CometOps.NUM_OF_SERIALIZED_PARAMETERS) {
 	    			System.out.println("deserialized values:");
 	    			for (String s : deserialized)
 	    				System.out.println(s);
@@ -316,7 +321,7 @@ public class CometOps implements CometOpsIfce {
 				} catch (ClassNotFoundException | IOException e1) {
 					log.error("deserialization failed: " + e1);
 				}
-	    		if (deserialized != null && deserialized.length == 3) {
+	    		if (deserialized != null && deserialized.length == CometOps.NUM_OF_SERIALIZED_PARAMETERS) {
 	    			System.out.println("deserialized values:");
 	    			for (String s : deserialized)
 	    				System.out.println(s);
