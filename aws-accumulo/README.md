@@ -66,10 +66,10 @@ This script should be executed on accumulomaster console as root user.
 
 ## Accumulo stack hacks
 ### Launch Accumulo with one worker
-1. Edit ![accumuloCloudFormation.json](.../master/accumuloCloudFormation.json] and remove the section for worker2 line 600-705
-2. Replace worker2 with empty string in ![accumuloCloudFormation.json](.../master/accumuloCloudFormation.json]
+1. Edit ![accumuloCloudFormation.json](https://github.com/RENCI-NRIG/COMET-Accumulo/blob/brAwsAccumulo/aws-accumulo/accumuloCloudFormation.json) and remove the section for worker2 line 600-705
+2. Replace worker2 with empty string in ![accumuloCloudFormation.json](https://github.com/RENCI-NRIG/COMET-Accumulo/blob/brAwsAccumulo/aws-accumulo/accumuloCloudFormation.json)
 ### Launch Multiple Accumulo stacks
-1. Make copy of ![accumuloCloudFormation.json](.../master/accumuloCloudFormation.json]
-2. Replace bucket name i.e. cometbucket in ![accumuloCloudFormation.json](.../master/accumuloCloudFormation.json] to a different name in one of the files
+1. Make copy of ![accumuloCloudFormation.json](https://github.com/RENCI-NRIG/COMET-Accumulo/blob/brAwsAccumulo/aws-accumulo/accumuloCloudFormation.json)
+2. Replace bucket name i.e. cometbucket in ![accumuloCloudFormation.json](https://github.com/RENCI-NRIG/COMET-Accumulo/blob/brAwsAccumulo/aws-accumulo/accumuloCloudFormation.json) to a different name in one of the files
 
 
