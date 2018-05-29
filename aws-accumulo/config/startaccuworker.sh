@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -e
 
+if [ $# -ne 11 ]; then
+     echo "Required arguments [s3bucket] not provided"
+     exit 1
+fi
+
 source /etc/profile.d/accumulo.sh
 
 # start the Accumulo Woker (tserver) nodes
@@ -9,4 +14,4 @@ do
     sleep 1
 done
 runuser -l hadoop -c $'${ACCUMULO_HOME}/bin/start-here.sh'
-/usr/bin/aws s3 rm s3://cometbucket/ --recursive
+/usr/bin/aws s3 rm s3://$1/ --recursive

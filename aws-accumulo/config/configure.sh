@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
-if [ $# -ne 10 ]; then
-    echo "Required arguments [accumulo master] [IS_ACCUMULO_MASTER] [IS_ACCUMULO_WORKER] [IS_NODE_MANAGER] [IS_NAME_NODE] [IS_SECONDARY_NAME_NODE] [IS_DATA_NODE] [IS_RESOURCE_MANAGER] [ACCUMULOWORKERS] [CLUSTER_NODES] not provided"
+if [ $# -ne 11 ]; then
+    echo "Required arguments [accumulo master] [IS_ACCUMULO_MASTER] [IS_ACCUMULO_WORKER] [IS_NODE_MANAGER] [IS_NAME_NODE] [IS_SECONDARY_NAME_NODE] [IS_DATA_NODE] [IS_RESOURCE_MANAGER] [ACCUMULOWORKERS] [CLUSTER_NODES] [s3bucket] not provided"
     exit 1
 fi
 
@@ -16,6 +16,7 @@ IS_DATA_NODE=$7
 IS_RESOURCE_MANAGER=$8
 ACCUMULOWORKERS=${9}
 CLUSTERNODES=${10}
+S3BUCKET=${11}
 
 source /etc/profile.d/zookeeper.sh
 source /etc/profile.d/hadoop.sh
@@ -327,6 +328,6 @@ if $IS_ACCUMULO_WORKER; then
     sleep 1
   done
   runuser -l hadoop -c $'${ACCUMULO_HOME}/bin/start-here.sh'
-  /usr/bin/aws s3 rm s3://cometbucket --recursive
+  /usr/bin/aws s3 rm s3://$S3BUCKET --recursive
 fi
 echo "Finished executing configure"
