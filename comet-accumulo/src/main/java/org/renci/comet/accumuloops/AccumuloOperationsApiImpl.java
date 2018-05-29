@@ -8,6 +8,7 @@ import org.apache.accumulo.core.client.BatchDeleter;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.BatchWriterConfig;
 import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.Durability;
 import org.apache.accumulo.core.client.Instance;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.Scanner;
@@ -132,11 +133,16 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
     public JSONObject addAccumuloRow(Connector conn, String tableName, Text rowID, Text colFam, Text colQual, Value value, Text visibility) throws TableNotFoundException, MutationsRejectedException {
     		JSONObject output = new JSONObject();
     		ColumnVisibility colVis = new ColumnVisibility(visibility);
-    		@SuppressWarnings("deprecation")
-		BatchWriter bw = conn.createBatchWriter(tableName,1000000, 60000, 2);
+		//BatchWriter bw = conn.createBatchWriter(tableName,1000000, 60000, 2);
+    		BatchWriterConfig cfg = new BatchWriterConfig();
+    		cfg.setMaxMemory(10000000L);
+    		cfg.setDurability(Durability.NONE);
+    		BatchWriter bw = conn.createBatchWriter(tableName, cfg);
     		Mutation mutation = new Mutation(rowID);
     		mutation.put(colFam, colQual, colVis, value);
     		bw.addMutation(mutation);
+    		bw.flush();
+    		bw.close();
     		try {
 			output.put(SUCCESS, "success, added Accumulo row: " + rowID + " to table: " + tableName);
 		} catch (JSONException e1) {
@@ -147,7 +153,7 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
 
     public static JSONObject modifyRow(Connector conn, String tableName, Text rowID, Text colFam, Text colQual, Value value, Text visibility) {
 		JSONObject output=new JSONObject();
-		BatchWriter bw = null;
+		//BatchWriter bw = null;
 		Mutation mut1 = new Mutation(rowID);
 		//Text colFam2 = new Text(colFam);
 		//Text ColFam2ColQual1 = new Text(colQual);
@@ -157,19 +163,18 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
 			mut1.put(colFam, colQual, value);
 		}
 		try {
-			bw = createBatchWriter(conn, tableName);
+			BatchWriterConfig cfg = new BatchWriterConfig();
+	    		cfg.setMaxMemory(10000000L);
+	    		cfg.setDurability(Durability.NONE);
+	    		BatchWriter bw = conn.createBatchWriter(tableName, cfg);
+	    		bw.addMutation(mut1);
+			bw.flush();
+    			bw.close();
+			/*bw = createBatchWriter(conn, tableName);
 			bw.addMutation(mut1);
-			bw.close(); // flushes and release ---no need for bw.flush()
-		} catch (MutationsRejectedException e) {
-			System.out.println("Failed mutation in updating  entry (" + rowID + ")");
-			e.printStackTrace();
-			try {
-				return output.put("error", "Failed to modify scope");
-			} catch (JSONException e1) {
-				System.out.println("JSON Exception: " + e1.getMessage());
-			}
-
-		} catch (Exception e) {
+			bw.flush();
+    			bw.close(); // flushes and release ---no need for bw.flush()
+*/		} catch (Exception e) {
 			System.out.println("Failed mutation in updating  entry (" + rowID + ")");
 
 		}
