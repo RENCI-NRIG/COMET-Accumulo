@@ -64,5 +64,12 @@ A script named [usertable-example.sh](https://github.com/RENCI-NRIG/COMET-Accumu
 
 This script should be executed on accumulomaster console as root user.
 
+## Accumulo stack hacks
+### Launch Accumulo with one worker
+1. Edit ![accumuloCloudFormation.json](.../master/accumuloCloudFormation.json] and remove the section for worker2 line 600-705
+2. Replace worker2 with empty string in ![accumuloCloudFormation.json](.../master/accumuloCloudFormation.json]
+### Launch Multiple Accumulo stacks
+1. Make copy of ![accumuloCloudFormation.json](.../master/accumuloCloudFormation.json]
+2. Replace bucket name i.e. cometbucket in ![accumuloCloudFormation.json](.../master/accumuloCloudFormation.json] to a different name in one of the files
 
 
