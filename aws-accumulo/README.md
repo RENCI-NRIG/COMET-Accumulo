@@ -13,6 +13,7 @@ See official documentation for more information.
 ### Pre-requisites
 1. User must have AWS account with privilges to create/delete IAMRole, IAMPolicy and IAMProfile
 2. Key pair has been created
+3. Update ACCUMULO_PASSWORD in ![setupaccumulo.sh](https://github.com/RENCI-NRIG/COMET-Accumulo/blob/brAwsAccumulo/aws-accumulo/config/setupaccumulo.sh). Default value for ACCUMULO_PASSWORD is secret.
 ### Accumulo Cluster created 
 ![Cluster](https://github.com/RENCI-NRIG/COMET-Accumulo/blob/brAwsAccumulo/aws-accumulo/images/cluster.png)
 ### Create a Accumulo Stack
