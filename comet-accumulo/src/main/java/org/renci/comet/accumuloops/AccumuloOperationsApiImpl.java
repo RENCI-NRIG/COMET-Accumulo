@@ -135,8 +135,8 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
     		ColumnVisibility colVis = new ColumnVisibility(visibility);
 		//BatchWriter bw = conn.createBatchWriter(tableName,1000000, 60000, 2);
     		BatchWriterConfig cfg = new BatchWriterConfig();
-    		cfg.setMaxMemory(10000000L);
-    		cfg.setDurability(Durability.NONE);
+    		//cfg.setMaxMemory(10000000L);
+    		//cfg.setDurability(Durability.NONE);
     		BatchWriter bw = conn.createBatchWriter(tableName, cfg);
     		Mutation mutation = new Mutation(rowID);
     		mutation.put(colFam, colQual, colVis, value);
@@ -164,8 +164,8 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
 		}
 		try {
 			BatchWriterConfig cfg = new BatchWriterConfig();
-	    		cfg.setMaxMemory(10000000L);
-	    		cfg.setDurability(Durability.NONE);
+	    		//cfg.setMaxMemory(10000000L);
+	    		//cfg.setDurability(Durability.NONE);
 	    		BatchWriter bw = conn.createBatchWriter(tableName, cfg);
 	    		bw.addMutation(mut1);
 			bw.flush();
