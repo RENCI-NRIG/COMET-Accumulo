@@ -204,7 +204,7 @@
      "S3Bucket" : {
         "Type" : "AWS::S3::Bucket",
         "Properties" : {
-          "BucketName": "cometbucket"
+          "BucketName": "cometbucket2"
         }
      },
      "RunCmdInstanceProfile": {
@@ -325,14 +325,14 @@
                },     
                "/root/install.sh": {
                  "content": { "Fn::Join": [ "", [
-                           "git clone https://github.com/RENCI-NRIG/COMET-Accumulo.git\n",
+                           "git clone https://github.com/RENCI-NRIG/COMET-Accumulo.git /root/COMET-Accumulo\n",
                            "mv /root/COMET-Accumulo/aws-accumulo/config/* /root/\n",
                            "rm -rf /root/COMET-Accumulo\n",
                            "/root/setupzookeeper.sh ",{"Ref" : "ZooKeeperVersion"}," > /var/log/setupzookeeper.log 2>&1\n",
                            "/root/setuphadoop.sh ", {"Ref" : "HadoopVersion"} ," > /var/log/setuphadoop.log 2>&1\n",
                            "/root/setupaccumulo.sh ", {"Ref" : "AccumuloVersion"} ," > /var/log/setupaccumulo.log 2>&1\n",
-                           "/root/ipAndKeys.sh namenode cometbucket 'namenode resourcemanager worker1 worker2 accumulomaster' true > /var/log/ipAndKeys.log 2>&1\n",
-                           "/root/configure.sh accumulomaster false false false true false false false 'worker1 worker2' 'namenode resourcemanager worker1 worker2 accumulomaster' cometbucket > /var/log/configure.log 2>&1"
+                           "/root/ipAndKeys.sh namenode cometbucket2 'namenode resourcemanager worker1 worker2 accumulomaster' true > /var/log/ipAndKeys.log 2>&1\n",
+                           "/root/configure.sh accumulomaster false false false true false false false 'worker1 worker2' 'namenode resourcemanager worker1 worker2 accumulomaster' cometbucket2 > /var/log/configure.log 2>&1"
                  ]]},
                  "mode"  : "000700",
                  "owner" : "root",
@@ -371,7 +371,7 @@
          "InstanceType"   : { "Ref" : "InstanceType" },
          "SecurityGroups" : [ {"Ref" : "ServerSecurityGroup"} ],
          "KeyName"        : { "Ref" : "KeyName" },
-         "Tags"           : [ {"Key" : "Name", "Value" : "namenode"}],
+         "Tags"           : [ {"Key" : "Name", "Value" : {"Fn::Join" : [ "", [ { "Ref" : "AWS::StackName" }, "namenode" ] ] }}],
          "IamInstanceProfile": { "Ref": "RunCmdInstanceProfile" },
      	 "UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
                         "#!/bin/bash -xe\n",
@@ -431,14 +431,14 @@
                },
                "/root/install.sh": {
                  "content": { "Fn::Join": [ "", [
-                           "git clone https://github.com/RENCI-NRIG/COMET-Accumulo.git\n",
+                           "git clone https://github.com/RENCI-NRIG/COMET-Accumulo.git /root/COMET-Accumulo\n",
                            "mv /root/COMET-Accumulo/aws-accumulo/config/* /root/\n",
                            "rm -rf /root/COMET-Accumulo\n",                     
                            "/root/setupzookeeper.sh ",{"Ref" : "ZooKeeperVersion"}," > /var/log/setupzookeeper.log 2>&1\n",
                            "/root/setuphadoop.sh ", {"Ref" : "HadoopVersion"} ," > /var/log/setuphadoop.log 2>&1\n",
                            "/root/setupaccumulo.sh ", {"Ref" : "AccumuloVersion"} ," > /var/log/setupaccumulo.log 2>&1\n",
-                           "/root/ipAndKeys.sh resourcemanager cometbucket 'namenode resourcemanager worker1 worker2 accumulomaster' false > /var/log/ipAndKeys.log 2>&1\n",
-                           "/root/configure.sh accumulomaster false false false false false false true 'worker1 worker2' 'namenode resourcemanager worker1 worker2 accumulomaster' cometbucket > /var/log/configure.log 2>&1"			   
+                           "/root/ipAndKeys.sh resourcemanager cometbucket2 'namenode resourcemanager worker1 worker2 accumulomaster' false > /var/log/ipAndKeys.log 2>&1\n",
+                           "/root/configure.sh accumulomaster false false false false false false true 'worker1 worker2' 'namenode resourcemanager worker1 worker2 accumulomaster' cometbucket2 > /var/log/configure.log 2>&1"			   
                  ]]},
                  "mode"  : "000700",
                  "owner" : "root",
@@ -477,7 +477,7 @@
          "InstanceType"   : { "Ref" : "InstanceType" },
          "SecurityGroups" : [ {"Ref" : "ServerSecurityGroup"} ],
          "KeyName"        : { "Ref" : "KeyName" },
-         "Tags"           : [ {"Key" : "Name", "Value" : "resourcemanager"}],
+         "Tags"           : [ {"Key" : "Name", "Value" : {"Fn::Join" : [ "", [ { "Ref" : "AWS::StackName" }, "resourcemanager" ] ] }}],
          "IamInstanceProfile": { "Ref": "RunCmdInstanceProfile" },
          "UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
                         "#!/bin/bash -xe\n",
@@ -537,14 +537,14 @@
                },
                "/root/install.sh": {
                  "content": { "Fn::Join": [ "", [
-                           "git clone https://github.com/RENCI-NRIG/COMET-Accumulo.git\n",
+                           "git clone https://github.com/RENCI-NRIG/COMET-Accumulo.git /root/COMET-Accumulo\n",
                            "mv /root/COMET-Accumulo/aws-accumulo/config/* /root/\n",
                            "rm -rf /root/COMET-Accumulo\n",                     
                            "/root/setupzookeeper.sh ",{"Ref" : "ZooKeeperVersion"}," > /var/log/setupzookeeper.log 2>&1\n",
                            "/root/setuphadoop.sh ", {"Ref" : "HadoopVersion"} ," > /var/log/setuphadoop.log 2>&1\n",
                            "/root/setupaccumulo.sh ", {"Ref" : "AccumuloVersion"} ," > /var/log/setupaccumulo.log 2>&1\n",
-                           "/root/ipAndKeys.sh worker1 cometbucket 'namenode resourcemanager worker1 worker2 accumulomaster' false > /var/log/ipAndKeys.log 2>&1\n",
-                           "/root/configure.sh accumulomaster false true false false false true false 'worker1 worker2' 'namenode resourcemanager worker1 worker2 accumulomaster' cometbucket > /var/log/configure.log 2>&1"			   
+                           "/root/ipAndKeys.sh worker1 cometbucket2 'namenode resourcemanager worker1 worker2 accumulomaster' false > /var/log/ipAndKeys.log 2>&1\n",
+                           "/root/configure.sh accumulomaster false true false false false true false 'worker1 worker2' 'namenode resourcemanager worker1 worker2 accumulomaster' cometbucket2 > /var/log/configure.log 2>&1"			   
                  ]]},
                  "mode"  : "000700",
                  "owner" : "root",
@@ -583,7 +583,7 @@
          "InstanceType"   : { "Ref" : "InstanceType" },
          "SecurityGroups" : [ {"Ref" : "ServerSecurityGroup"} ],
          "KeyName"        : { "Ref" : "KeyName" },
-         "Tags"           : [ {"Key" : "Name", "Value" : "worker1"}],
+         "Tags"           : [ {"Key" : "Name", "Value" : {"Fn::Join" : [ "", [ { "Ref" : "AWS::StackName" }, "worker1" ] ] }}],
          "IamInstanceProfile": { "Ref": "RunCmdInstanceProfile" },
          "UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
                         "#!/bin/bash -xe\n",
@@ -643,14 +643,14 @@
                },
                "/root/install.sh": {
                  "content": { "Fn::Join": [ "", [
-                           "git clone https://github.com/RENCI-NRIG/COMET-Accumulo.git\n",
+                           "git clone https://github.com/RENCI-NRIG/COMET-Accumulo.git /root/COMET-Accumulo\n",
                            "mv /root/COMET-Accumulo/aws-accumulo/config/* /root/\n",
                            "rm -rf /root/COMET-Accumulo\n",                     
                            "/root/setupzookeeper.sh ",{"Ref" : "ZooKeeperVersion"}," > /var/log/setupzookeeper.log 2>&1\n",
                            "/root/setuphadoop.sh ", {"Ref" : "HadoopVersion"} ," > /var/log/setuphadoop.log 2>&1\n",
                            "/root/setupaccumulo.sh ", {"Ref" : "AccumuloVersion"} ," > /var/log/setupaccumulo.log 2>&1\n",
-                           "/root/ipAndKeys.sh worker2 cometbucket 'namenode resourcemanager worker1 worker2 accumulomaster' false > /var/log/ipAndKeys.log 2>&1\n",
-                           "/root/configure.sh accumulomaster false true false false false true false 'worker1 worker2' 'namenode resourcemanager worker1 worker2 accumulomaster' cometbucket > /var/log/configure.log 2>&1"			   
+                           "/root/ipAndKeys.sh worker2 cometbucket2 'namenode resourcemanager worker1 worker2 accumulomaster' false > /var/log/ipAndKeys.log 2>&1\n",
+                           "/root/configure.sh accumulomaster false true false false false true false 'worker1 worker2' 'namenode resourcemanager worker1 worker2 accumulomaster' cometbucket2 > /var/log/configure.log 2>&1"			   
                  ]]},
                  "mode"  : "000700",
                  "owner" : "root",
@@ -689,7 +689,7 @@
          "InstanceType"   : { "Ref" : "InstanceType" },
          "SecurityGroups" : [ {"Ref" : "ServerSecurityGroup"} ],
          "KeyName"        : { "Ref" : "KeyName" },
-         "Tags"           : [ {"Key" : "Name", "Value" : "worker2"}],
+         "Tags"           : [ {"Key" : "Name", "Value" : {"Fn::Join" : [ "", [ { "Ref" : "AWS::StackName" }, "worker2" ] ] }}],
          "IamInstanceProfile": { "Ref": "RunCmdInstanceProfile" },
          "UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
                         "#!/bin/bash -xe\n",
@@ -749,15 +749,15 @@
                },
                "/root/install.sh": {
                  "content": { "Fn::Join": [ "", [
-                           "git clone https://github.com/RENCI-NRIG/COMET-Accumulo.git\n",
+                           "git clone https://github.com/RENCI-NRIG/COMET-Accumulo.git /root/COMET-Accumulo\n",
                            "mv /root/COMET-Accumulo/aws-accumulo/config/* /root/\n",
                            "rm -rf /root/COMET-Accumulo\n",                     
                            "/root/setupmaven.sh ",{"Ref" : "MavenVersion"}," > /var/log/setupmaven.log 2>&1\n",
                            "/root/setupzookeeper.sh ",{"Ref" : "ZooKeeperVersion"}," > /var/log/setupzookeeper.log 2>&1\n",
                            "/root/setuphadoop.sh ", {"Ref" : "HadoopVersion"} ," > /var/log/setuphadoop.log 2>&1\n",
                            "/root/setupaccumulo.sh ", {"Ref" : "AccumuloVersion"} ," > /var/log/setupaccumulo.log 2>&1\n",
-                           "/root/ipAndKeys.sh accumulomaster cometbucket 'namenode resourcemanager worker1 worker2 accumulomaster' false > /var/log/ipAndKeys.log 2>&1\n",
-                           "/root/configure.sh accumulomaster true false false false false false false 'worker1 worker2' 'namenode resourcemanager worker1 worker2 accumulomaster' cometbucket > /var/log/configure.log 2>&1"			   
+                           "/root/ipAndKeys.sh accumulomaster cometbucket2 'namenode resourcemanager worker1 worker2 accumulomaster' false > /var/log/ipAndKeys.log 2>&1\n",
+                           "/root/configure.sh accumulomaster true false false false false false false 'worker1 worker2' 'namenode resourcemanager worker1 worker2 accumulomaster' cometbucket2 > /var/log/configure.log 2>&1"			   
                  ]]},
                  "mode"  : "000700",
                  "owner" : "root",
@@ -797,7 +797,7 @@
          "InstanceType"   : { "Ref" : "InstanceType" },
          "SecurityGroups" : [ {"Ref" : "ServerSecurityGroup"} ],
          "KeyName"        : { "Ref" : "KeyName" },
-         "Tags"           : [ {"Key" : "Name", "Value" : "accumulomaster"}],
+         "Tags"           : [ {"Key" : "Name", "Value" : {"Fn::Join" : [ "", [ { "Ref" : "AWS::StackName" }, "accumulomaster" ] ] }}],
          "IamInstanceProfile": { "Ref": "RunCmdInstanceProfile" },
          "UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
                         "#!/bin/bash -xe\n",
