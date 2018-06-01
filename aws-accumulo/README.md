@@ -13,7 +13,7 @@ See official documentation for more information.
 ### Pre-requisites
 1. User must have AWS account with privilges to create/delete IAMRole, IAMPolicy and IAMProfile
 2. Key pair has been created
-3. Update ACCUMULO_PASSWORD in ![setupaccumulo.sh](https://github.com/RENCI-NRIG/COMET-Accumulo/blob/brAwsAccumulo/aws-accumulo/config/setupaccumulo.sh). Default value for ACCUMULO_PASSWORD is secret.
+3. Update ACCUMULO_PASSWORD in [setupaccumulo.sh](https://github.com/RENCI-NRIG/COMET-Accumulo/blob/brAwsAccumulo/aws-accumulo/config/setupaccumulo.sh). Default value for ACCUMULO_PASSWORD is secret.
 ### Accumulo Cluster created 
 ![Cluster](https://github.com/RENCI-NRIG/COMET-Accumulo/blob/brAwsAccumulo/aws-accumulo/images/cluster.png)
 ### Create a Accumulo Stack
@@ -66,10 +66,10 @@ This script should be executed on accumulomaster console as root user.
 
 ## Accumulo stack hacks
 ### Launch Accumulo with one worker
-1. Edit ![accumuloCloudFormation.json](https://github.com/RENCI-NRIG/COMET-Accumulo/blob/brAwsAccumulo/aws-accumulo/accumuloCloudFormation.json) and remove the section for worker2 line 600-705
-2. Replace worker2 with empty string in ![accumuloCloudFormation.json](https://github.com/RENCI-NRIG/COMET-Accumulo/blob/brAwsAccumulo/aws-accumulo/accumuloCloudFormation.json)
+1. Edit [accumuloCloudFormation.json](https://github.com/RENCI-NRIG/COMET-Accumulo/blob/brAwsAccumulo/aws-accumulo/accumuloCloudFormation.json) and remove the section for worker2 line 600-705
+2. Replace worker2 with empty string in [accumuloCloudFormation.json](https://github.com/RENCI-NRIG/COMET-Accumulo/blob/brAwsAccumulo/aws-accumulo/accumuloCloudFormation.json)
 ### Launch Multiple Accumulo stacks
-1. Make copy of ![accumuloCloudFormation.json](https://github.com/RENCI-NRIG/COMET-Accumulo/blob/brAwsAccumulo/aws-accumulo/accumuloCloudFormation.json)
-2. Replace bucket name i.e. cometbucket in ![accumuloCloudFormation.json](https://github.com/RENCI-NRIG/COMET-Accumulo/blob/brAwsAccumulo/aws-accumulo/accumuloCloudFormation.json) to a different name in one of the files
+1. Make copy of [accumuloCloudFormation.json](https://github.com/RENCI-NRIG/COMET-Accumulo/blob/brAwsAccumulo/aws-accumulo/accumuloCloudFormation.json)
+2. Replace bucket name i.e. cometbucket in [accumuloCloudFormation.json](https://github.com/RENCI-NRIG/COMET-Accumulo/blob/brAwsAccumulo/aws-accumulo/accumuloCloudFormation.json) to a different name in one of the files
 
 
