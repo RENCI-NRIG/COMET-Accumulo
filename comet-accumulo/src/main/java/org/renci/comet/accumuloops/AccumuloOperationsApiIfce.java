@@ -42,9 +42,10 @@ public interface AccumuloOperationsApiIfce {
     Instance getAccumuloConnector(String userName, String password);*/
 
     /**
-	 * Create new Accumulo table.
+	 * Create new Accumulo table. (Admin only method. No public REST interface.)
+	 * @param conn
 	 * @param tableName
-	 * @return
+	 * @return JSONObject indicating if table creation is successful
      * @throws TableExistsException
      * @throws AccumuloSecurityException
      * @throws AccumuloException
@@ -52,51 +53,66 @@ public interface AccumuloOperationsApiIfce {
     public JSONObject createAccumuloTable(Connector conn, String tableName) throws AccumuloException, AccumuloSecurityException, TableExistsException;
 
     /**
-	 * Delete Accumulo table.
+	 * Delete Accumulo table. (Admin only method. No public REST interface.)
+	 * @param conn
 	 * @param userName
-	 * @return
+	 * @return JSONObject indicating if table deletion is successful
+	 * @throws TableNotFoundException
+     * @throws AccumuloSecurityException
+     * @throws AccumuloException
 	 */
     public JSONObject deleteAccumuloTable(Connector conn, String tableName) throws TableNotFoundException, AccumuloException, AccumuloSecurityException;
 
     /**
 	 * Create new Accumulo row.
+	 * @param conn
 	 * @param tableName
+	 * @param rowID
 	 * @param colFam
 	 * @param colQual
 	 * @param value
 	 * @param visibility
-	 * @return
+	 * @return JSONObject indicating if addition is successful
+	 * @throws TableNotFoundException
+     * @throws MutationsRejectedException
 	 */
     public JSONObject addAccumuloRow(Connector conn, String tableName, Text rowID, Text colFam, Text colQual, Value value, Text visibility) throws TableNotFoundException, MutationsRejectedException;
 
     /**
-	 * Delete Accumulo row.
+	 * Delete Accumulo row. Mark row as deleted.
+	 * @param conn
+	 * @param scanner
 	 * @param tableName
 	 * @param colFam
 	 * @param colQual
 	 * @param visibility
-	 * @return
+	 * @return JSONObject indicating if deletion is successful
+	 * @throws MutationsRejectedException
+	 * @throws TableNotFoundException
 	 */
    public Map<String, Value> deleteAccumuloRow(Connector conn, Scanner scanner, String tableName, Text rowID, Text colFam, Text colQual, Text visibility) throws MutationsRejectedException, TableNotFoundException;
 
    /**
-	 * Delete Accumulo row.
+	 * Enumerate Accumulo row that with the specific rowID and visibility.
 	 * @param conn
 	 * @param tableName
 	 * @param rowID
 	 * @param visibility
+	 * @return map of key-value pairs
+	 * @throws AccumuloException
 	 * @throws TableNotFoundException
-	 * @return
+	 * @throws AccumuloSecurityException
 	 */
    public Map<String, Value> enumerateRows(Connector conn, String tableName, Text rowID, String visibility) throws TableNotFoundException, AccumuloException, AccumuloSecurityException;
 
     /**
-	 * Enumerate table to get all rows with specific visibility.
+	 * Read one row.
 	 * @param tableName
 	 * @param colFam
 	 * @param colQual
 	 * @param visibility
-	 * @return
+	 * @return map of key-value pair
+	 * @throws TableNotFoundException
      * @throws AccumuloSecurityException
      * @throws AccumuloException
 	 */

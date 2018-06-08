@@ -106,9 +106,47 @@ public class CometOps implements CometOpsIfce {
 		Text colFam = new Text(family);
 		Text colQual = new Text(key);
 		Text vis = new Text(readToken);
+		
+		Map<String, Value> mapOutput = new HashMap<String, Value>();
+		//System.out.println("Starting accu.readOneRow(conn, readToken, rowID, colFam, colQual, vis.toString())");
+		mapOutput = accu.readOneRow(conn, tableName, rowID, colFam, colQual, readToken);
+		//System.out.println("Ended accu.readOneRow(conn, readToken, rowID, colFam, colQual, vis.toString())");
+		int mapSize = mapOutput.size();
+		if (mapSize == 0) {
+			log.debug("No scope, creating new one");
+		} else if (mapSize != 1) {
+			log.debug("Conflict in Accumulo record, please clean up");
+		} else {
+			for (Map.Entry<String, Value> entry : mapOutput.entrySet()) {
+		    		Value v = entry.getValue();
+		    		System.out.println("Comet readscope: got Value: " + v);
+		    		String[] deserialized = null;
+				try {
+					deserialized = (String[]) deserialize(v.get());
+				} catch (ClassNotFoundException | IOException e1) {
+					log.error("deserialization failed: " + e1);
+				}
+		    		if (deserialized != null && deserialized.length == CometOps.NUM_OF_SERIALIZED_PARAMETERS) {
+		    			System.out.println("deserialized values:");
+		    			for (String s : deserialized)
+		    				System.out.println(s);
+		    			System.out.println("deserialized values done.");
+		    			if (deserialized[0].equals("true")) {
+			    			try {
+			    				JSONObject output = new JSONObject();
+			    				output.put(ERROR, "Failed to write scope: scope already deleted.");
+			    				return output;
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
+		    			}
+		    		}
+		    }
+		}
+		
 		//Accumulo value field format: {ifDeleted, writeToken, scopeValue, Comet_version, deletionTimeStamp}
 		String[] value = {"false", writeToken, scopeValue, CometInitializer.COMET_VERSION, ""};
-		System.out.println("contextID: " + contextID + "\n family: " + family + "\n key: " + key + "\n readToken: " + readToken);
+		System.out.println("Writing in scope: contextID: " + contextID + "\n family: " + family + "\n key: " + key + "\n readToken: " + readToken);
 		for (String s : value)
 			System.out.println(s);
 
@@ -146,9 +184,9 @@ public class CometOps implements CometOpsIfce {
 		Text colQual = new Text(key);
 		Text vis = new Text(readToken);
 		Map<String, Value> mapOutput = new HashMap<String, Value>();
-		System.out.println("Starting accu.readOneRow(conn, readToken, rowID, colFam, colQual, vis.toString())");
+		//System.out.println("Starting accu.readOneRow(conn, readToken, rowID, colFam, colQual, vis.toString())");
 		mapOutput = accu.readOneRow(conn, tableName, rowID, colFam, colQual, readToken);
-		System.out.println("Ended accu.readOneRow(conn, readToken, rowID, colFam, colQual, vis.toString())");
+		//System.out.println("Ended accu.readOneRow(conn, readToken, rowID, colFam, colQual, vis.toString())");
 
 
 		int mapSize = mapOutput.size();
@@ -263,11 +301,11 @@ public class CometOps implements CometOpsIfce {
 	    		Value v = entry.getValue();
 	    		System.out.println("Comet readscope: got Value: " + v);
 	    		String[] deserialized = null;
-				try {
-					deserialized = (String[]) deserialize(v.get());
-				} catch (ClassNotFoundException | IOException e1) {
-					log.error("deserialization failed: " + e1);
-				}
+			try {
+				deserialized = (String[]) deserialize(v.get());
+			} catch (ClassNotFoundException | IOException e1) {
+				log.error("deserialization failed: " + e1);
+			}
 	    		if (deserialized != null && deserialized.length == CometOps.NUM_OF_SERIALIZED_PARAMETERS) {
 	    			System.out.println("deserialized values:");
 	    			for (String s : deserialized)

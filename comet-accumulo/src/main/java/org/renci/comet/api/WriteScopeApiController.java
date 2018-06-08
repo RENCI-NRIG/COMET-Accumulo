@@ -27,6 +27,10 @@ import java.io.IOException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
+import org.apache.accumulo.core.client.AccumuloException;
+import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.accumulo.core.client.TableExistsException;
+import org.apache.accumulo.core.client.TableNotFoundException;
 import org.codehaus.jettison.json.JSONObject;
 import org.renci.comet.CometOps;
 import org.renci.comet.accumuloops.*;
@@ -64,7 +68,24 @@ public class WriteScopeApiController implements WriteScopeApi {
 				System.out.println(x);
 			}
 		}
-
+		
+		JSONObject output = new JSONObject();
+		CometOps cometOps = new CometOps();
+		
+		// Check if scope exists, if no such scope, create a new scope which does not require valid certificate.
+		try {
+			output = cometOps.readScope(contextID, family, key, readToken);
+			if (output.toString() == null) {
+				log.debug("No such scope: " + contextID + " exists, creating new Accumulo entry.");
+				certValid = true;
+			}
+		} catch (AccumuloException | AccumuloSecurityException | TableNotFoundException | TableExistsException e1) {
+			log.error("Accumulo internal error", e1);
+			return new ResponseEntity<CometResponse>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		
+		
+		
 		if (certs != null) {
 			try {
                 for (int i = 0; i < certs.length; i++)
@@ -144,12 +165,12 @@ public class WriteScopeApiController implements WriteScopeApi {
 
     			System.out.println("cert is valid");
         		try {
-                CometOps cometOps = new CometOps();
+                
         			//String accuValue = value.toString();
         			//org.apache.accumulo.core.data.Value val = new org.apache.accumulo.core.data.Value((CharSequence) value);
         			//public JSONObject writeScope (String contextID, String family, String key, Value value, String readToken, String writeToken)
         			//JSONObject test = cometOps.writeScope("id0001", "hero", "name", "bruce wayne", "secretId", "secretWriteId");
-        			JSONObject output = cometOps.writeScope(contextID, family, key, value, readToken, writeToken);
+        			output = cometOps.writeScope(contextID, family, key, value, readToken, writeToken);
                 CometResponse comet = new CometResponse();
                 comet.setValue(output.toString());
                 comet.setStatus("OK");
