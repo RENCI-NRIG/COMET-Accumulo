@@ -75,7 +75,7 @@ public class WriteScopeApiController implements WriteScopeApi {
 		// Check if scope exists, if no such scope, create a new scope which does not require valid certificate.
 		try {
 			output = cometOps.readScope(contextID, family, key, readToken);
-			if (output.toString() == null) {
+			if (output.length() == 0) {
 				log.debug("No such scope: " + contextID + " exists, creating new Accumulo entry.");
 				certValid = true;
 			}
