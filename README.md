@@ -15,16 +15,16 @@ The [COMET Accumulo Query Layer API](https://app.swaggerhub.com/apis/cwang/Comet
 
 ### Running the server
 
-The server within this repository is based on [Jersey](https://jersey.github.io) and [Java API for RESTful Web Services (JAX-RS)](https://en.wikipedia.org/wiki/Java_API_for_RESTful_Web_Services) and uses [Maven](https://maven.apache.org/what-is-maven.html) to control the build process.
+The server within this repository is based on [Spring Boot](https://spring.io/projects/spring-boot) and [Java API for RESTful Web Services (JAX-RS)](https://en.wikipedia.org/wiki/Java_API_for_RESTful_Web_Services) and uses [Maven](https://maven.apache.org/what-is-maven.html) to control the build process.
 
 ```
 $ cd /PATH_TO/COMET-Accumulo/comet-accumulo/
 $ mvn clean package jetty:run
 ```
 
-Validate that the server is running at: [http://localhost:8080/v1/swagger.json](http://localhost:8080/v1/swagger.json) (Example below)
+Validate that the server is running at: [http://localhost:8080/swagger.json](http://localhost:8080/swagger.json) (Example below)
 
-<img width="80%" alt="http://localhost:8080/v1/swagger.json" src="https://user-images.githubusercontent.com/5332509/34850991-0ff8259c-f6f6-11e7-99b4-72d391615d17.png">
+<img width="80%" alt="http://localhost:8080/swagger.json" src="https://user-images.githubusercontent.com/5332509/34850991-0ff8259c-f6f6-11e7-99b4-72d391615d17.png">
 
 ## Initial Code Generation
 
@@ -35,7 +35,7 @@ Swagger enables the generation of clients and servers in a variety of common pro
 - **Clients** are generated to be fully formed and functional from the generated files including documentation
 - **Servers** are generated as stubbed code, and require the logical operations to be added by the user
 
-The server within this repository is based on [Jersey](https://jersey.github.io) and [Java API for RESTful Web Services (JAX-RS)](https://en.wikipedia.org/wiki/Java_API_for_RESTful_Web_Services)
+The server within this repository is based on [Spring Boot](https://spring.io/projects/spring-boot) and [Java API for RESTful Web Services (JAX-RS)](https://en.wikipedia.org/wiki/Java_API_for_RESTful_Web_Services)
 
 **Generate a new server stub**
 
@@ -86,14 +86,14 @@ cd /PATH_TO/jaxrs-server-generated/
 mvn clean package jetty:run
 ```
 
-Validate that the server is running at: [http://localhost:8080/v1/swagger.json](http://localhost:8080/v1/swagger.json)
+Validate that the server is running at: [http://localhost:8080/swagger.json](http://localhost:8080/swagger.json)
 
 The stubbed server will not have any logic encoded into it, however should return the response `magic` for calls made to valid endpoints.
 
 Example:
 
 ```
-$ curl -i "localhost:8080/v1/readScope"
+$ curl -i "localhost:8080/readScope"
 HTTP/1.1 200 OK
 Date: Wed, 10 Jan 2018 18:56:27 GMT
 Access-Control-Allow-Origin: *
