@@ -1167,6 +1167,10 @@ public class ApiClient {
                 TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
                 trustManagerFactory.init(caKeyStore);
                 trustManagers = trustManagerFactory.getTrustManagers();
+                hostnameVerifier = new HostnameVerifier() {
+                     @Override
+                     public boolean verify(String hostname, SSLSession session) { return true; }
+                 };
             }
 
             if (keyManagers != null || trustManagers != null) {
