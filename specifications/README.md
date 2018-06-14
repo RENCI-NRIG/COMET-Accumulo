@@ -11,7 +11,30 @@ Naming hierarchy for COMET API
 - `Key` (old name ‘Scope name’) - name of the ‘key’
 - `Value` - single value or a map. 
 
-## 2. COMET API operations implementation
+## 2. Authorization principles
+
+Comet relies on a combination of X.509 certificates and tokens to authorize operations. Two types of certificates are allows:
+- Trusted certificates - certificates that can be traced to one of the trust roots in possession of the Comet instance
+- Valid certificates - certificates that cannot be traced to a trust root or self-signed certificates
+
+Two types of tokens are used:
+- Read tokens - allow to perform read operations
+- Write tokens - allow to overwrite/modify values
+
+The following table summarizes the required authorization policies for the API calls that are described in the following section. 
+
+`V = validate`
+`S = specify`
+
+| API Call | Semantics | Trusted Cert | Valid Cert | Read Token | Write Token |
+|---|---|:---:|:---:|:---:|:---:|
+| writeScope | create new scope | V |    |  S  |  S  |
+| writeScope | modify existing scope |    |  V  |  V  |  V  |
+| readScope  | read existing scope |    |  V  |  V   |    |
+| enumerateScope | enumerate scopes in a context |    |  V  |  V  |    |
+| deleteScope | delete existing scope |  V   |    |  V  |  V  |
+
+## 3. COMET API operations implementation
 
 Source [Comet-Accumulo-Query-Layer](https://app.swaggerhub.com/apis/cwang/Comet-Accumulo-Query-Layer/1.0.0) specification on swaggerhub.
 
