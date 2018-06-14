@@ -26,13 +26,13 @@ The following table summarizes the required authorization policies for the API c
 `V = validate`
 `S = specify`
 
-| API Call | Semantics | Trusted Cert | Valid Cert | Read Token | Write Token |
+| API Call | Semantics | Valid Cert | Trusted Cert | Read Token | Write Token |
 |---|---|:---:|:---:|:---:|:---:|
-| writeScope | create new scope | V |    |  S  |  S  |
-| writeScope | modify existing scope |    |  V  |  V  |  V  |
-| readScope  | read existing scope |    |  V  |  V   |    |
-| enumerateScope | enumerate scopes in a context |    |  V  |  V  |    |
-| deleteScope | delete existing scope |  V   |    |  V  |  V  |
+| writeScope | create new scope |   |  V  |  S  |  S  |
+| writeScope | modify existing scope |  V  |     |  V  |  V  |
+| readScope  | read existing scope |  V  |     |  V   |    |
+| enumerateScope | enumerate scopes in a context |  V  |     |  V  |    |
+| deleteScope | delete existing scope |     |  V  |  V  |  V  |
 
 ## 3. COMET API operations implementation
 
