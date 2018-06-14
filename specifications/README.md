@@ -14,8 +14,8 @@ Naming hierarchy for COMET API
 ## 2. Authorization principles
 
 Comet relies on a combination of X.509 certificates and tokens to authorize operations. Two types of certificates are allows:
-- Trusted certificates - certificates that can be traced to one of the trust roots in possession of the Comet instance
-- Valid certificates - certificates that cannot be traced to a trust root or self-signed certificates
+- Valid certificates - certificates that may not be traceable to a trust root or self-signed certificates, but are otherwise valid
+- Trusted certificates - valid certificates that can be traced to one of the trust roots in possession of the Comet instance
 
 Two types of tokens are used:
 - Read tokens - allow to perform read operations
