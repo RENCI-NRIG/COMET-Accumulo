@@ -175,7 +175,7 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
 			bw.flush();
     			bw.close(); // flushes and release ---no need for bw.flush()
 */		} catch (Exception e) {
-			System.out.println("Failed mutation in updating  entry (" + rowID + ")");
+			log.error("Failed mutation in updating  entry (" + rowID + ")");
 
 		}
 
@@ -198,7 +198,7 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
 		try {
 			bw = conn.createBatchWriter(table, bwConfig);
 		} catch (TableNotFoundException e) {
-			System.out.println("Unable to find table " + table
+			log.error("Unable to find table " + table
 					+ " to create batchWriter.");
 
 		}
@@ -281,7 +281,7 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
 			Value value = entry.getValue();
 			output.put(key, value);
 
-	    		System.out.printf("Key : %-50s  Value : %s\n", entry.getKey(), entry.getValue());
+	    		//log.debug("Key : %-50s  Value : %s\n", entry.getKey().toString(), entry.getValue().toString());
 	    }
 	    scanner.close();
 	    return output;
@@ -355,8 +355,7 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
         		String key =  entry.getKey().getRow() + " " + entry.getKey().getColumnFamily() + ":" + entry.getKey().getColumnQualifier();
 			Value value = entry.getValue();
 			output.put(key, value);
-
-        		System.out.printf("Key : %-50s  Value : %s\n", entry.getKey(), entry.getValue());
+        		//System.out.printf("Key : %-50s  Value : %s\n", entry.getKey(), entry.getValue());
         }
         scanner.close();
         return output;

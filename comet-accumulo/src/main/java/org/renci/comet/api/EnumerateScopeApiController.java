@@ -49,10 +49,11 @@ public class EnumerateScopeApiController implements EnumerateScopeApi {
 
         X509Certificate[] certs = (X509Certificate[])request.getAttribute("javax.servlet.request.X509Certificate");
 		if (certs == null) {
-			System.out.print("Enumerate scope, Cert is NULL!!!\n");
+			//System.out.print("Enumerate scope, Cert is NULL!!!\n");
 		} else {
+			log.debug("Got client certificate:");
 			for (X509Certificate x : certs) {
-				System.out.println(x);
+				log.debug(x.toString());
 			}
 		}
 
@@ -62,9 +63,7 @@ public class EnumerateScopeApiController implements EnumerateScopeApi {
                     certs[i].checkValidity();
                 	certValid = true;
             } catch (Exception e) {
-				System.out.println("____________________________\n____________________________");
-    				System.out.println("Unable to validate certificate!");
-    				System.out.println("____________________________\n____________________________");
+    				log.error("Unable to validate certificate!");
 			}
 		}
 
@@ -79,7 +78,7 @@ public class EnumerateScopeApiController implements EnumerateScopeApi {
                     } else{
                         return new ResponseEntity<CometResponse>(objectMapper.readValue("{  \"message\" : \"family should be empty for enumerate scope operation\",  \"value\" : \"family should be empyty \",  \"version\" : \"" + CometInitializer.COMET_VERSION + "\",  \"status\" : \"status\"}", CometResponse.class), HttpStatus.BAD_REQUEST);
                     }
-                    System.out.println("contextID: " + contextID + "readToken: " + readToken);
+                    //System.out.println("contextID: " + contextID + "readToken: " + readToken);
                     JSONObject output = cometOps.enumerateScopes(contextID, readToken);
 
                     CometResponse comet = new CometResponse();
@@ -87,7 +86,7 @@ public class EnumerateScopeApiController implements EnumerateScopeApi {
                     comet.setStatus("OK");
                     comet.setMessage("message");
                     comet.setVersion("0.1");
-                    System.out.println(comet.toString());
+                    //System.out.println(comet.toString());
                     String crTemp = "{  \"message\" : \"success\",  \"value\" : " + output.toString() + ",  \"version\" : \"" + CometInitializer.COMET_VERSION + "\",  \"status\" : \"OK\"}";
                     return new ResponseEntity<CometResponse>(objectMapper.readValue(crTemp, CometResponse.class), HttpStatus.OK);
                 } catch (IOException ioe) {

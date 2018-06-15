@@ -70,8 +70,9 @@ public class ReadScopeApiController implements ReadScopeApi {
         if (certs == null) {
 			System.out.print("ReadScope, Cert is NULL!!!\n");
 		} else {
+			log.debug("Got client certificate:");
 			for (X509Certificate x : certs) {
-				System.out.println(x);
+				log.debug(x.toString());
 			}
 		}
 
@@ -81,9 +82,7 @@ public class ReadScopeApiController implements ReadScopeApi {
                     certs[i].checkValidity();
                 	certValid = true;
             } catch (Exception e) {
-				System.out.println("____________________________\n____________________________");
-    				System.out.println("Unable to validate certificate!");
-    				System.out.println("____________________________\n____________________________");
+            		log.error("Unable to validate certificate!");
 			}
 		}
 
@@ -102,7 +101,7 @@ public class ReadScopeApiController implements ReadScopeApi {
 			}
 		}
 
-        System.out.println("contextID: " + contextID + "\n family: " + family + "\n key: " + key + "\n readToken: " + readToken);
+        System.out.println("ReadScope operation: contextID: " + contextID + "\n family: " + family + "\n key: " + key + "\n readToken: " + readToken);
 
 		if (accept != null && accept.contains("application/json")) {
         		try {

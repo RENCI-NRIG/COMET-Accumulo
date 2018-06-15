@@ -62,10 +62,11 @@ public class WriteScopeApiController implements WriteScopeApi {
         X509Certificate[] certs = (X509Certificate[])request.getAttribute("javax.servlet.request.X509Certificate");
         System.out.println("got request");
 		if (certs == null) {
-			System.out.print("ReadScope, Cert is NULL!!!\n");
+			log.error("Spring: Certificate is null!");
 		} else {
+			log.debug("Got client certificate:");
 			for (X509Certificate x : certs) {
-				System.out.println(x);
+				log.debug(x.toString());
 			}
 		}
 		
@@ -75,9 +76,11 @@ public class WriteScopeApiController implements WriteScopeApi {
 		// Check if scope exists, if no such scope, create a new scope which does not require valid certificate.
 		try {
 			output = cometOps.readScope(contextID, family, key, readToken);
-			if (output.length() == 0) {
-				log.debug("No such scope: " + contextID + " exists, creating new Accumulo entry.");
+			if (output.length() != 0) {
+				log.debug("Scope: " + contextID + " exists, modifying existing Accumulo entry. Valid certificate required");
 				certValid = true;
+			} else {
+				log.debug("Scope: " + contextID + " does not exists, creating new Accumulo entry. Trusted certificate required");
 			}
 		} catch (AccumuloException | AccumuloSecurityException | TableNotFoundException | TableExistsException e1) {
 			log.error("Accumulo internal error", e1);
@@ -92,13 +95,11 @@ public class WriteScopeApiController implements WriteScopeApi {
                     certs[i].checkValidity();
                 	certValid = true;
             } catch (Exception e) {
-				System.out.println("____________________________\n____________________________");
-    				System.out.println("Unable to validate certificate!");
-    				System.out.println("____________________________\n____________________________");
+            		log.error("Unable to validate certificate!");
 			}
 		}
 
-        System.out.println("contextID: " + contextID + "\n family: " + family + "\n key: " + key + "\n value: " + value + "\n readToken: " + readToken + "\n writeToken: " + writeToken);
+		log.debug("WriteScope operation: contextID: " + contextID + "\n family: " + family + "\n key: " + key + "\n value: " + value + "\n readToken: " + readToken + "\n writeToken: " + writeToken);
 
 		if (!certValid) {
 			try {
@@ -161,9 +162,9 @@ public class WriteScopeApiController implements WriteScopeApi {
 		}
 
 		//Test code below, without cert checking
-		if (accept != null && accept.contains("application/json")) {
+		if (certValid == true && accept != null && accept.contains("application/json")) {
 
-    			System.out.println("cert is valid");
+    			log.debug("WriteScope: certificate is valid");
         		try {
                 
         			//String accuValue = value.toString();
@@ -176,7 +177,7 @@ public class WriteScopeApiController implements WriteScopeApi {
                 comet.setStatus("OK");
                 comet.setMessage("message");
                 comet.setVersion("0.1");
-                System.out.println(comet.toString());
+                //System.out.println(comet.toString());
                 String crTemp = "{  \"message\" : \"success\",  \"value\" : " + output.toString() + ",  \"version\" : \"" + CometInitializer.COMET_VERSION + "\",  \"status\" : \"OK\"}";
                 return new ResponseEntity<CometResponse>(objectMapper.readValue(crTemp, CometResponse.class), HttpStatus.OK);
         		} catch (IOException ioe) {

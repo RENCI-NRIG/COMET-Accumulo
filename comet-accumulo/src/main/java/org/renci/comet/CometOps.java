@@ -127,10 +127,10 @@ public class CometOps implements CometOpsIfce {
 					log.error("deserialization failed: " + e1);
 				}
 		    		if (deserialized != null && deserialized.length == CometOps.NUM_OF_SERIALIZED_PARAMETERS) {
-		    			System.out.println("deserialized values:");
+		    			log.debug("deserialized values:");
 		    			for (String s : deserialized)
-		    				System.out.println(s);
-		    			System.out.println("deserialized values done.");
+		    				log.debug(s);
+		    			log.debug("deserialized values done.");
 		    			if (deserialized[0].equals("true")) {
 			    			try {
 			    				JSONObject output = new JSONObject();
@@ -146,21 +146,21 @@ public class CometOps implements CometOpsIfce {
 		
 		//Accumulo value field format: {ifDeleted, writeToken, scopeValue, Comet_version, deletionTimeStamp}
 		String[] value = {"false", writeToken, scopeValue, CometInitializer.COMET_VERSION, ""};
-		System.out.println("Writing in scope: contextID: " + contextID + "\n family: " + family + "\n key: " + key + "\n readToken: " + readToken);
+		log.debug("Writing in scope: contextID: " + contextID + "\n family: " + family + "\n key: " + key + "\n readToken: " + readToken);
 		for (String s : value)
 			System.out.println(s);
 
 		byte[] serializedByteArray = null;
 		try {
 			serializedByteArray = serialize(value);
-			System.out.println("Serialize successful!");
+			log.debug("Serialize successful!");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
 		org.apache.accumulo.core.data.Value accumuloValue = new org.apache.accumulo.core.data.Value(serializedByteArray);
 
-		System.out.println("Wrote to Accumulo!");
+		log.debug("Writing to Accumulo done!");
 
 		JSONObject jsonOutput = accu.addAccumuloRow(conn, tableName, rowID, colFam, colQual, accumuloValue, vis);
 
@@ -172,10 +172,10 @@ public class CometOps implements CometOpsIfce {
 		//public JSONObject readOneRow(Connector conn, String tableName, Text rowID, Text colFam, Text colQual, String visibility)
 
 		Instance inst = new ZooKeeperInstance(instanceName,zooServers);
-		System.out.println("read scope: instance initiated");
+		//System.out.println("ReadScope: instance initiated");
 
 		Connector conn = inst.getConnector(userName, password);
-		System.out.println("read scope: got connection");
+		//System.out.println("read scope: got connection");
 		AccumuloOperationsApiImpl accu = new AccumuloOperationsApiImpl();
 		JSONObject jsonOutput = new JSONObject();
 
@@ -203,8 +203,8 @@ public class CometOps implements CometOpsIfce {
 		for (Map.Entry<String, Value> entry : mapOutput.entrySet()) {
 	    		Value v = entry.getValue();
 	    		String[] deserialized = null;
-				System.out.println("Enumerate scope key values: ");
-	    		System.out.printf("Key: %-60s Value: %s\n", entry.getKey(), entry.getValue());
+			//System.out.println("Enumerate scope key values: ");
+	    		//System.out.printf("Key: %-60s Value: %s\n", entry.getKey(), entry.getValue());
 			try {
 				deserialized = (String[]) deserialize(v.get());
 			} catch (ClassNotFoundException | IOException e1) {
@@ -218,7 +218,7 @@ public class CometOps implements CometOpsIfce {
 					} catch (JSONException e) {
 						log.error("JSON Exception: " + e.getMessage());
 					}
-	    				System.out.println("Cannot delete scope: incorrect write token");
+	    				log.error("Cannot delete scope: incorrect write token");
 	    				return jsonOutput;
 	    			}
 
@@ -255,10 +255,10 @@ public class CometOps implements CometOpsIfce {
     public JSONObject readScope (String contextID, String family, String key, String readToken) throws AccumuloException, AccumuloSecurityException,TableNotFoundException, TableExistsException {
 
     		Instance inst = new ZooKeeperInstance(instanceName,zooServers);
-    		System.out.println("read scope: instance initiated");
+    		//System.out.println("read scope: instance initiated");
 
 		Connector conn = inst.getConnector(userName, password);
-		System.out.println("read scope: got connection");
+		//System.out.println("read scope: got connection");
 
 		AccumuloOperationsApiImpl accu = new AccumuloOperationsApiImpl();
 
@@ -299,7 +299,7 @@ public class CometOps implements CometOpsIfce {
 	    output = accu.readOneRow(conn, tableName, rowID, colFam, colQual, readToken);
 	    for (Map.Entry<String, Value> entry : output.entrySet()) {
 	    		Value v = entry.getValue();
-	    		System.out.println("Comet readscope: got Value: " + v);
+	    		//System.out.println("Comet readscope: got Value: " + v);
 	    		String[] deserialized = null;
 			try {
 				deserialized = (String[]) deserialize(v.get());
@@ -307,10 +307,10 @@ public class CometOps implements CometOpsIfce {
 				log.error("deserialization failed: " + e1);
 			}
 	    		if (deserialized != null && deserialized.length == CometOps.NUM_OF_SERIALIZED_PARAMETERS) {
-	    			System.out.println("deserialized values:");
+	    			log.debug("deserialized values:");
 	    			for (String s : deserialized)
-	    				System.out.println(s);
-	    			System.out.println("deserialized values done.");
+	    				log.debug(s);
+	    			log.debug("deserialized values done.");
 	    			if (deserialized[0].equals("false")) {
 		    			try {
 						jsonOutput.put(entry.getKey(), deserialized[2]);
@@ -326,10 +326,10 @@ public class CometOps implements CometOpsIfce {
 	public JSONObject enumerateScopes(String contextID, String readToken) throws AccumuloException, AccumuloSecurityException {
 
 	    	Instance inst = new ZooKeeperInstance(instanceName,zooServers);
-			System.out.println("read scope: instance initiated");
+			//System.out.println("read scope: instance initiated");
 
 		Connector conn = inst.getConnector(userName, password);
-		System.out.println("read scope: got connection");
+		//System.out.println("read scope: got connection");
 
 		AccumuloOperationsApiImpl accu = new AccumuloOperationsApiImpl();
 
@@ -340,9 +340,9 @@ public class CometOps implements CometOpsIfce {
 		JSONObject jsonOutput = new JSONObject();
 
 		try {
-			System.out.println("Starting accu.enumerateRows(conn, contextID, contextID, readToken)");
+			//System.out.println("Starting accu.enumerateRows(conn, contextID, contextID, readToken)");
 			output = accu.enumerateRows(conn, tableName, rowID, readToken);
-			System.out.println("Ended accu.enumerateRows(conn, contextID, contextID, readToken)");
+			//System.out.println("Ended accu.enumerateRows(conn, contextID, contextID, readToken)");
 		} catch (TableNotFoundException e2) {
 			// TODO Auto-generated catch block
 			log.error("Table not found: " + e2);
@@ -350,8 +350,8 @@ public class CometOps implements CometOpsIfce {
 
 
 		for (Map.Entry<String, Value> entry : output.entrySet()) {
-			System.out.println("Enumerate scope key values: ");
-    			System.out.printf("Key: %-60s Value: %s\n", entry.getKey(), entry.getValue());
+			//System.out.println("Enumerate scope key values: ");
+    			//System.out.printf("Key: %-60s Value: %s\n", entry.getKey(), entry.getValue());
 	    		Value v = entry.getValue();
 	    		String[] deserialized = null;
 				try {
@@ -360,10 +360,10 @@ public class CometOps implements CometOpsIfce {
 					log.error("deserialization failed: " + e1);
 				}
 	    		if (deserialized != null && deserialized.length == CometOps.NUM_OF_SERIALIZED_PARAMETERS) {
-	    			System.out.println("deserialized values:");
+	    			log.debug("deserialized values:");
 	    			for (String s : deserialized)
-	    				System.out.println(s);
-	    			System.out.println("deserialized values done.");
+	    				log.debug(s);
+	    			log.debug("deserialized values done.");
 	    			if (deserialized[0].equals("false")) {
 		    			try {
 						jsonOutput.put(entry.getKey(), deserialized[2]);
