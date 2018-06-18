@@ -27,15 +27,8 @@ public class HomeController {
     @RequestMapping(value = "/", method = RequestMethod.GET)
     public String index(HttpServletRequest request,
             HttpServletResponse response) {
-    		X509Certificate[] certs = (X509Certificate[])request.getAttribute("javax.servlet.request.X509Certificate");
-		if (certs == null) {
-			System.out.print("Cert is NULL!!!\n");
-		} else {
-			for (X509Certificate x : certs) {
-				System.out.println(x);
-			}
-		}
-		
+    		//X509Certificate[] certs = (X509Certificate[])request.getAttribute("javax.servlet.request.X509Certificate");
+
         System.out.println("swagger-ui.html");
         return "redirect:swagger-ui.html";
     }

@@ -46,19 +46,19 @@ public class GetVersionApiController implements GetVersionApi {
             try {
 	            	JSONObject output = new JSONObject();
 	            	try {
-						output.put("Comet version", CometInitializer.COMET_VERSION);
-						output.put("Comet API version", CometInitializer.COMET_API_VERSION);
-					} catch (JSONException e) {
-						log.error("JSON Exception: " + e.getMessage());
-					}
+					output.put("Comet version", CometInitializer.COMET_VERSION);
+					output.put("Comet API version", CometInitializer.COMET_API_VERSION);
+				} catch (JSONException e) {
+					log.error("JSON Exception: " + e.getMessage());
+				}
 	    			CometResponse comet = new CometResponse();
 	    			comet.setValue(output.toString());
 	    			comet.setStatus("OK");
 	    			comet.setMessage("message");
 	    			comet.setVersion("0.1");
-	    			System.out.println(comet.toString());
+	    			//System.out.println(comet.toString());
 	    			String crTemp = "{  \"message\" : \"success\",  \"value\" : " + output.toString() + ",  \"version\" : \"0.1\",  \"status\" : \"OK\"}";
-	                System.out.println(crTemp);
+	    			//System.out.println(crTemp);
 	    			//return new ResponseEntity<CometResponse>(objectMapper.readValue("{  \"message\" : \"message\",  \"value\" : \"{}\",  \"version\" : \"version\",  \"status\" : \"status\"}", CometResponse.class), HttpStatus.OK);
 	    			return new ResponseEntity<CometResponse>(objectMapper.readValue(crTemp, CometResponse.class), HttpStatus.OK);
                 //return new ResponseEntity<CometResponse>(objectMapper.readValue("{  \"message\" : \"message\",  \"value\" : \"{}\",  \"version\" : \"version\",  \"status\" : \"status\"}", CometResponse.class), HttpStatus.NOT_IMPLEMENTED);

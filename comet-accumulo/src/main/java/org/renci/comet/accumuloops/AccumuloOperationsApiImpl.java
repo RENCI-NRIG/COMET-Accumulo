@@ -183,7 +183,7 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
 			output.put("contextID", rowID);
 			output.put(colQual.toString(), value);
 		} catch (JSONException e) {
-			System.out.println("JSON Exception: " + e.getMessage());
+			log.error("JSON Exception: " + e.getMessage());
 		}
 		return output;
     }

@@ -102,7 +102,7 @@ public class ReadScopeApiController implements ReadScopeApi {
 			}
 		}
 
-        System.out.println("ReadScope operation: contextID: " + contextID + "\n family: " + family + "\n key: " + key + "\n readToken: " + readToken);
+        log.debug("ReadScope operation: contextID: " + contextID + "\n family: " + family + "\n key: " + key + "\n readToken: " + readToken);
 
 		if (accept != null && accept.contains("application/json")) {
         		try {
