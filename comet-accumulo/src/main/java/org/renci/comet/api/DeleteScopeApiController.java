@@ -39,6 +39,8 @@ public class DeleteScopeApiController implements DeleteScopeApi {
     private final HttpServletRequest request;
 
     private boolean certValid = false;
+    
+    private boolean checkCert = org.renci.comet.CometOps.CHECK_CLIENT_CERT;
 
     @org.springframework.beans.factory.annotation.Autowired
     public DeleteScopeApiController(ObjectMapper objectMapper, HttpServletRequest request) {
@@ -47,7 +49,10 @@ public class DeleteScopeApiController implements DeleteScopeApi {
     }
 
     public ResponseEntity<CometResponse> deleteScopeDelete(@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "contextID", required = true) String contextID,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "family", required = true) String family,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "Key", required = true) String key,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "readToken", required = true) String readToken,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "writeToken", required = true) String writeToken) {
-        String accept = request.getHeader("Accept");
+        
+	    	if (!checkCert)
+	    		certValid = true;
+    		String accept = request.getHeader("Accept");
         X509Certificate[] certs = (X509Certificate[])request.getAttribute("javax.servlet.request.X509Certificate");
         if (certs == null) {
 			//System.out.print("Enumerate scope, Cert is NULL!!!\n");
@@ -83,29 +88,27 @@ public class DeleteScopeApiController implements DeleteScopeApi {
 			}
 		}
 
-		if (certValid == true && accept != null && accept.contains("application/json")) {
-        		//if (certValid) {
-                if (true) {
-            		try {
-            			CometOps cometOps = new CometOps();
-            			log.debug("DeleteScope Operation: contectID: " + contextID + "; family: " + family + "; key: " + key + "; readToken: " + readToken + "; writeToken: " + writeToken);
-            			JSONObject output = cometOps.deleteScope(contextID, family, key, readToken, writeToken);
-            			//return new ResponseEntity<CometResponse>(objectMapper.readValue("{  \"message\" : \"message\",  \"value\" : \"{}\",  \"version\" : \"version\",  \"status\" : \"status\"}", CometResponse.class), HttpStatus.OK);
-                    CometResponse comet = new CometResponse();
-                    comet.setValue(output.toString());
-                    comet.setStatus("OK");
-                    comet.setMessage("message");
-                    comet.setVersion("0.1");
-                    //System.out.println(comet.toString());
-                    String crTemp = "{  \"message\" : \"success\",  \"value\" : " + output.toString() + ",  \"version\" : \"" + CometInitializer.COMET_VERSION + "\",  \"status\" : \"OK\"}";
-                    return new ResponseEntity<CometResponse>(objectMapper.readValue(crTemp, CometResponse.class), HttpStatus.OK);
-            		} catch (IOException ioe) {
-                        log.error("Couldn't serialize response for content type application/json", ioe);
-                        return new ResponseEntity<CometResponse>(HttpStatus.INTERNAL_SERVER_ERROR);
-                 } catch (Exception e) {
-            			log.error("Accumulo internal error", e);
-                    return new ResponseEntity<CometResponse>(HttpStatus.INTERNAL_SERVER_ERROR);
-            		}
+		if (certValid && accept != null && accept.contains("application/json")) {
+        		try {
+        			log.debug("DeleteScope: certificate is valid.");
+        			CometOps cometOps = new CometOps();
+        			log.debug("DeleteScope Operation: contectID: " + contextID + "; family: " + family + "; key: " + key + "; readToken: " + readToken + "; writeToken: " + writeToken);
+        			JSONObject output = cometOps.deleteScope(contextID, family, key, readToken, writeToken);
+        			//return new ResponseEntity<CometResponse>(objectMapper.readValue("{  \"message\" : \"message\",  \"value\" : \"{}\",  \"version\" : \"version\",  \"status\" : \"status\"}", CometResponse.class), HttpStatus.OK);
+                CometResponse comet = new CometResponse();
+                comet.setValue(output.toString());
+                comet.setStatus("OK");
+                comet.setMessage("message");
+                comet.setVersion("0.1");
+                //System.out.println(comet.toString());
+                String crTemp = "{  \"message\" : \"success\",  \"value\" : " + output.toString() + ",  \"version\" : \"" + CometInitializer.COMET_VERSION + "\",  \"status\" : \"OK\"}";
+                return new ResponseEntity<CometResponse>(objectMapper.readValue(crTemp, CometResponse.class), HttpStatus.OK);
+        		} catch (IOException ioe) {
+                log.error("Couldn't serialize response for content type application/json", ioe);
+                return new ResponseEntity<CometResponse>(HttpStatus.INTERNAL_SERVER_ERROR);
+             } catch (Exception e) {
+        			log.error("Accumulo internal error", e);
+                return new ResponseEntity<CometResponse>(HttpStatus.INTERNAL_SERVER_ERROR);
         		}
         }
 

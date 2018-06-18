@@ -49,6 +49,8 @@ public class WriteScopeApiController implements WriteScopeApi {
     private final HttpServletRequest request;
 
     private boolean certValid = false;
+    
+    private boolean checkCert = org.renci.comet.CometOps.CHECK_CLIENT_CERT;
 
     @org.springframework.beans.factory.annotation.Autowired
     public WriteScopeApiController(ObjectMapper objectMapper, HttpServletRequest request) {
@@ -57,10 +59,13 @@ public class WriteScopeApiController implements WriteScopeApi {
     }
 
     public ResponseEntity<CometResponse> writeScopePost(@ApiParam(value = "" ,required=true )  @Valid @RequestBody String value,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "contextID", required = true) String contextID,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "family", required = true) String family,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "Key", required = true) String key,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "readToken", required = true) String readToken,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "writeToken", required = true) String writeToken) {
-        String accept = request.getHeader("Accept");
+        if (!checkCert)
+        		certValid = true;
+    	
+    		String accept = request.getHeader("Accept");
 
         X509Certificate[] certs = (X509Certificate[])request.getAttribute("javax.servlet.request.X509Certificate");
-        System.out.println("got request");
+        log.debug("WriteScope: got request");
 		if (certs == null) {
 			log.error("Spring: Certificate is null!");
 		} else {
@@ -86,8 +91,6 @@ public class WriteScopeApiController implements WriteScopeApi {
 			log.error("Accumulo internal error", e1);
 			return new ResponseEntity<CometResponse>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-		
-		
 		
 		if (certs != null) {
 			try {

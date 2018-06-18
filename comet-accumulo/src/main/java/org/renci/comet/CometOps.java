@@ -45,13 +45,14 @@ public class CometOps implements CometOpsIfce {
     String zooServers = "zoo1,zoo2,zoo3"; // Provide list of zookeeper server here. For example, localhost:2181
     String userName = "root"; // Provide username
     String password = "secret"; // Provide password
+    public String tableName="trace"; //provide Accumulo table name
+    
     public static String ERROR = "error";
 	public static String SUCCESS = "Success";
 	public static final int NUM_OF_SERIALIZED_PARAMETERS = 5;
     private static final Logger log = Logger.getLogger(AccumuloOperationsApiImpl.class);
-    //public String tableName="accu-test";
-    public String tableName="trace";
     public static final boolean CHECK_TOKEN_STRENGTH = false;
+    public static final boolean CHECK_CLIENT_CERT = true;
 
 	/**
 	 * Check if password contains:
@@ -74,7 +75,7 @@ public class CometOps implements CometOpsIfce {
 	 * @return
 	 */
 	public static boolean isTokenStrong(String expression) {
-		if (CometOps.CHECK_TOKEN_STRENGTH == false)
+		if (!CometOps.CHECK_TOKEN_STRENGTH)
 			return true;
 	    if (expression != null) {
 	        return expression.matches("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,}$");
@@ -119,7 +120,7 @@ public class CometOps implements CometOpsIfce {
 		} else {
 			for (Map.Entry<String, Value> entry : mapOutput.entrySet()) {
 		    		Value v = entry.getValue();
-		    		System.out.println("Comet readscope: got Value: " + v);
+		    		log.debug("Comet readscope: got Value: " + v);
 		    		String[] deserialized = null;
 				try {
 					deserialized = (String[]) deserialize(v.get());
@@ -147,15 +148,15 @@ public class CometOps implements CometOpsIfce {
 		//Accumulo value field format: {ifDeleted, writeToken, scopeValue, Comet_version, deletionTimeStamp}
 		String[] value = {"false", writeToken, scopeValue, CometInitializer.COMET_VERSION, ""};
 		log.debug("Writing in scope: contextID: " + contextID + "\n family: " + family + "\n key: " + key + "\n readToken: " + readToken);
-		for (String s : value)
-			System.out.println(s);
+		//for (String s : value)
+		//	System.out.println(s);
 
 		byte[] serializedByteArray = null;
 		try {
 			serializedByteArray = serialize(value);
 			log.debug("Serialize successful!");
 		} catch (IOException e) {
-			e.printStackTrace();
+			log.debug(e.toString());
 		}
 
 		org.apache.accumulo.core.data.Value accumuloValue = new org.apache.accumulo.core.data.Value(serializedByteArray);

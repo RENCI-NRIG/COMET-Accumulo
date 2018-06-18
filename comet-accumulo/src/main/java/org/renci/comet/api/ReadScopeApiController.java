@@ -51,7 +51,7 @@ public class ReadScopeApiController implements ReadScopeApi {
 
     private final HttpServletRequest request;
 
-    private boolean certValid = false;
+    //private boolean certValid = false;
 
     @org.springframework.beans.factory.annotation.Autowired
     public ReadScopeApiController(ObjectMapper objectMapper, HttpServletRequest request) {
@@ -65,10 +65,10 @@ public class ReadScopeApiController implements ReadScopeApi {
 
         X509Certificate[] certs = (X509Certificate[])request.getAttribute("javax.servlet.request.X509Certificate");
 
-        System.out.println("Read scope: request accepted");
+        //System.out.println("Read scope: request accepted");
 
         if (certs == null) {
-			System.out.print("ReadScope, Cert is NULL!!!\n");
+			//System.out.print("ReadScope, Cert is NULL!!!\n");
 		} else {
 			log.debug("Got client certificate:");
 			for (X509Certificate x : certs) {
@@ -76,7 +76,8 @@ public class ReadScopeApiController implements ReadScopeApi {
 			}
 		}
 
-		if (certs != null) {
+        //ReadScope doesn't check client cert.
+		/*if (certs != null) {
 			try {
                 for (int i = 0; i < certs.length; i++)
                     certs[i].checkValidity();
@@ -84,7 +85,7 @@ public class ReadScopeApiController implements ReadScopeApi {
             } catch (Exception e) {
             		log.error("Unable to validate certificate!");
 			}
-		}
+		}*/
 
 		if (contextID == null || family == null || key == null || readToken == null) {
 			try {
@@ -105,7 +106,7 @@ public class ReadScopeApiController implements ReadScopeApi {
 
 		if (accept != null && accept.contains("application/json")) {
         		try {
-                    CometOps cometOps = new CometOps();
+        			CometOps cometOps = new CometOps();
         			//JSONObject test = cometOps.readScope("id0001", "hero", "name", "secretId");
         			//System.out.println(test);
         			JSONObject output = cometOps.readScope(contextID, family, key, readToken);
@@ -115,9 +116,9 @@ public class ReadScopeApiController implements ReadScopeApi {
         			comet.setStatus("OK");
         			comet.setMessage("message");
         			comet.setVersion("0.1");
-        			System.out.println(comet.toString());
+        			//System.out.println(comet.toString());
         			String crTemp = "{  \"message\" : \"success\",  \"value\" : " + output.toString() + ",  \"version\" : \"" + CometInitializer.COMET_VERSION + "\",  \"status\" : \"OK\"}";
-                    System.out.println(crTemp);
+        			//System.out.println(crTemp);
         			//return new ResponseEntity<CometResponse>(objectMapper.readValue("{  \"message\" : \"message\",  \"value\" : \"{}\",  \"version\" : \"version\",  \"status\" : \"status\"}", CometResponse.class), HttpStatus.OK);
         			return new ResponseEntity<CometResponse>(objectMapper.readValue(crTemp, CometResponse.class), HttpStatus.OK);
         		} catch (IOException ioe) {
