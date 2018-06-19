@@ -51,7 +51,7 @@ public class CometOps implements CometOpsIfce {
 	public static String SUCCESS = "Success";
 	public static final int NUM_OF_SERIALIZED_PARAMETERS = 5;
     private static final Logger log = Logger.getLogger(AccumuloOperationsApiImpl.class);
-    public static final boolean CHECK_TOKEN_STRENGTH = false;
+    public static final boolean CHECK_TOKEN_STRENGTH = true;
     public static final boolean CHECK_CLIENT_CERT = true;
 
 	/**
