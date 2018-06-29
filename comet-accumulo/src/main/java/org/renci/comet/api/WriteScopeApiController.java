@@ -124,7 +124,7 @@ public class WriteScopeApiController implements WriteScopeApi {
 
 		if (readToken.equals(writeToken)) {
 			try {
-				return new ResponseEntity<CometResponse>(objectMapper.readValue("{  \"message\" : \"Invalid tokens: read and write token cannot be the same\",  \"value\" : \"invalid tokens\",  \"" + CometInitializer.COMET_VERSION + "\" : \"version\",  \"status\" : \"status\"}", CometResponse.class), HttpStatus.BAD_REQUEST);
+				return new ResponseEntity<CometResponse>(objectMapper.readValue("{  \"message\" : \"Invalid tokens: read and write token cannot be the same\",  \"value\" : \"invalid tokens\",  \"version\" : \"" + CometInitializer.COMET_VERSION + "\",  \"status\" : \"status\"}", CometResponse.class), HttpStatus.BAD_REQUEST);
 			} catch (JsonParseException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -139,7 +139,7 @@ public class WriteScopeApiController implements WriteScopeApi {
 
 		if (!CometOps.isTokenStrong(readToken)) {
 			try {
-				return new ResponseEntity<CometResponse>(objectMapper.readValue("{  \"message\" : \"Read token not strong enough\",  \"value\" : \"weak read token\",  \"" + CometInitializer.COMET_VERSION + "\" : \"version\",  \"status\" : \"status\"}", CometResponse.class), HttpStatus.BAD_REQUEST);
+				return new ResponseEntity<CometResponse>(objectMapper.readValue("{  \"message\" : \"Read token not strong enough\",  \"value\" : \"weak read token\",  \"version\" : \"" + CometInitializer.COMET_VERSION + "\",  \"status\" : \"status\"}", CometResponse.class), HttpStatus.BAD_REQUEST);
 			} catch (JsonParseException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -154,7 +154,7 @@ public class WriteScopeApiController implements WriteScopeApi {
 
 		if (!CometOps.isTokenStrong(writeToken)) {
 			try {
-				return new ResponseEntity<CometResponse>(objectMapper.readValue("{  \"message\" : \"Write token not strong enough\",  \"value\" : \"weak write token\",  \"" + CometInitializer.COMET_VERSION + "\" : \"version\",  \"status\" : \"status\"}", CometResponse.class), HttpStatus.BAD_REQUEST);
+				return new ResponseEntity<CometResponse>(objectMapper.readValue("{  \"message\" : \"Write token not strong enough\",  \"value\" : \"weak write token\",  \"version\" : \"" + CometInitializer.COMET_VERSION + "\",  \"status\" : \"status\"}", CometResponse.class), HttpStatus.BAD_REQUEST);
 			} catch (JsonParseException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
