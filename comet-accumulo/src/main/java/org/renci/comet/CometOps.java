@@ -29,13 +29,16 @@ import org.apache.accumulo.core.data.Value;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Map.Entry;
 import org.renci.comet.accumuloops.AccumuloOperationsApiIfce;
 import org.renci.comet.accumuloops.AccumuloOperationsApiImpl;
@@ -51,9 +54,37 @@ public class CometOps implements CometOpsIfce {
 	public static String SUCCESS = "Success";
 	public static final int NUM_OF_SERIALIZED_PARAMETERS = 5;
     private static final Logger log = Logger.getLogger(AccumuloOperationsApiImpl.class);
-    public static final boolean CHECK_TOKEN_STRENGTH = true;
-    public static final boolean CHECK_CLIENT_CERT = true;
-
+    
+    public static final String configFile = "src/main/resources/application.properties";
+    
+    public static String[] readProperties() {
+    		String checkTokenStrength = "true";
+        String checkClientCert = "true";
+	    	Properties prop = new Properties();
+	    	InputStream input = null;
+	
+	    	try {
+	    		input = new FileInputStream(configFile);
+	    		// load a properties file
+	    		prop.load(input);
+	    		checkTokenStrength = prop.getProperty("cometconfig.checkStrength");
+	    		checkClientCert = prop.getProperty("cometconfig.certCheck");
+	    		return new String[] {checkTokenStrength, checkClientCert};
+	
+	    	} catch (IOException ex) {
+	    		ex.printStackTrace();
+	    	} finally {
+	    		if (input != null) {
+	    			try {
+	    				input.close();
+	    			} catch (IOException e) {
+	    				e.printStackTrace();
+	    			}
+	    		}
+	    	}
+	    	return new String[] {checkTokenStrength, checkClientCert};
+    }
+    
 	/**
 	 * Check if password contains:
 	 * At least 8 chars
@@ -75,8 +106,12 @@ public class CometOps implements CometOpsIfce {
 	 * @return
 	 */
 	public static boolean isTokenStrong(String expression) {
-		if (!CometOps.CHECK_TOKEN_STRENGTH)
+		String checkTokenStrength = readProperties()[0];
+		//token strength checking turned off. Always return true.
+		if (checkTokenStrength.equals("false"))
 			return true;
+		
+		//Token strength checking.
 	    if (expression != null) {
 	        return expression.matches("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,}$");
 	    }

@@ -40,7 +40,7 @@ public class DeleteScopeApiController implements DeleteScopeApi {
 
     private boolean certValid = false;
     
-    private boolean checkCert = org.renci.comet.CometOps.CHECK_CLIENT_CERT;
+    private String checkCert = org.renci.comet.CometOps.readProperties()[1];
 
     @org.springframework.beans.factory.annotation.Autowired
     public DeleteScopeApiController(ObjectMapper objectMapper, HttpServletRequest request) {
@@ -50,7 +50,7 @@ public class DeleteScopeApiController implements DeleteScopeApi {
 
     public ResponseEntity<CometResponse> deleteScopeDelete(@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "contextID", required = true) String contextID,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "family", required = true) String family,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "Key", required = true) String key,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "readToken", required = true) String readToken,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "writeToken", required = true) String writeToken) {
         
-	    	if (!checkCert)
+	    	if (checkCert.equals("false"))
 	    		certValid = true;
     		String accept = request.getHeader("Accept");
         X509Certificate[] certs = (X509Certificate[])request.getAttribute("javax.servlet.request.X509Certificate");

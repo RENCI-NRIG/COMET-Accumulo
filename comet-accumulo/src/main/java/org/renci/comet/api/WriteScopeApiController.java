@@ -50,7 +50,10 @@ public class WriteScopeApiController implements WriteScopeApi {
 
     private boolean certValid = false;
     
-    private boolean checkCert = org.renci.comet.CometOps.CHECK_CLIENT_CERT;
+    private String checkCert = org.renci.comet.CometOps.readProperties()[1];
+    
+    //@Value("${cometconfig.certCheck}")
+    //private String certCheck;
 
     @org.springframework.beans.factory.annotation.Autowired
     public WriteScopeApiController(ObjectMapper objectMapper, HttpServletRequest request) {
@@ -59,7 +62,7 @@ public class WriteScopeApiController implements WriteScopeApi {
     }
 
     public ResponseEntity<CometResponse> writeScopePost(@ApiParam(value = "" ,required=true )  @Valid @RequestBody String value,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "contextID", required = true) String contextID,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "family", required = true) String family,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "Key", required = true) String key,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "readToken", required = true) String readToken,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "writeToken", required = true) String writeToken) {
-        if (!checkCert)
+        if (checkCert.equals("false"))
         		certValid = true;
     	
     		String accept = request.getHeader("Accept");
