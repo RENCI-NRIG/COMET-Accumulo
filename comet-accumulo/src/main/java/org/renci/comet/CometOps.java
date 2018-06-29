@@ -44,11 +44,11 @@ import org.renci.comet.accumuloops.AccumuloOperationsApiIfce;
 import org.renci.comet.accumuloops.AccumuloOperationsApiImpl;
 
 public class CometOps implements CometOpsIfce {
-	String instanceName = "aws-development";
-    String zooServers = "zoo1,zoo2,zoo3"; // Provide list of zookeeper server here. For example, localhost:2181
-    String userName = "root"; // Provide username
-    String password = "secret"; // Provide password
-    public String tableName="trace"; //provide Accumulo table name
+	String instanceName = readProperties()[2];
+    String zooServers = readProperties()[3]; // Provide list of zookeeper server here. For example, localhost:2181
+    String userName = readProperties()[4]; // Provide username
+    String password = readProperties()[5]; // Provide password
+    public String tableName = readProperties()[6]; //provide Accumulo table name
     
     public static String ERROR = "error";
 	public static String SUCCESS = "Success";
@@ -57,9 +57,15 @@ public class CometOps implements CometOpsIfce {
     
     public static final String configFile = "src/main/resources/application.properties";
     
+    //return array format: {checkTokenStrength, checkClientCert, }
     public static String[] readProperties() {
     		String checkTokenStrength = "true";
         String checkClientCert = "true";
+        String instanceName = "aws-development";
+        String zooServers = "zoo1,zoo2,zoo3"; // Provide list of zookeeper server here. For example, localhost:2181
+        String userName = "root"; // Provide username
+        String password = "secret"; // Provide password
+        String tableName="trace"; //provide Accumulo table name
 	    	Properties prop = new Properties();
 	    	InputStream input = null;
 	
@@ -67,9 +73,14 @@ public class CometOps implements CometOpsIfce {
 	    		input = new FileInputStream(configFile);
 	    		// load a properties file
 	    		prop.load(input);
-	    		checkTokenStrength = prop.getProperty("cometconfig.checkStrength");
-	    		checkClientCert = prop.getProperty("cometconfig.certCheck");
-	    		return new String[] {checkTokenStrength, checkClientCert};
+	    		checkTokenStrength = prop.getProperty("comet.checkStrength");
+	    		checkClientCert = prop.getProperty("comet.certCheck");
+	    		instanceName = prop.getProperty("accumulo.instanceName");
+	    		zooServers = prop.getProperty("accumulo.zooServers");
+	    		userName = prop.getProperty("accumulo.userName");
+	    		password = prop.getProperty("accumulo.password");
+	    		tableName = prop.getProperty("accumulo.tableName");
+	    		return new String[] {checkTokenStrength, checkClientCert, instanceName, zooServers, userName, password, tableName};
 	
 	    	} catch (IOException ex) {
 	    		ex.printStackTrace();
@@ -82,7 +93,8 @@ public class CometOps implements CometOpsIfce {
 	    			}
 	    		}
 	    	}
-	    	return new String[] {checkTokenStrength, checkClientCert};
+	    	log.debug("Some properties are missing in the application.properties file, using default values."); 
+	    	return new String[] {checkTokenStrength, checkClientCert, instanceName, zooServers, userName, password, tableName};
     }
     
 	/**
