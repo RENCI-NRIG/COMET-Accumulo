@@ -157,13 +157,13 @@ public class CometOps implements CometOpsIfce {
 		
 		Map<String, Value> mapOutput = new HashMap<String, Value>();
 		//System.out.println("Starting accu.readOneRow(conn, readToken, rowID, colFam, colQual, vis.toString())");
-		mapOutput = accu.readOneRow(conn, tableName, rowID, colFam, colQual, readToken);
+		mapOutput = accu.readOneRowAccuFormat(conn, tableName, rowID, colFam, colQual, readToken);
 		//System.out.println("Ended accu.readOneRow(conn, readToken, rowID, colFam, colQual, vis.toString())");
 		int mapSize = mapOutput.size();
 		if (mapSize == 0) {
-			log.debug("No scope, creating new one");
+			log.debug("No scope, creating new one.");
 		} else if (mapSize != 1) {
-			log.debug("Conflict in Accumulo record, please clean up");
+			log.debug("Conflict in Accumulo record, please clean up.");
 		} else {
 			for (Map.Entry<String, Value> entry : mapOutput.entrySet()) {
 		    		Value v = entry.getValue();
@@ -233,7 +233,7 @@ public class CometOps implements CometOpsIfce {
 		Text vis = new Text(readToken);
 		Map<String, Value> mapOutput = new HashMap<String, Value>();
 		//System.out.println("Starting accu.readOneRow(conn, readToken, rowID, colFam, colQual, vis.toString())");
-		mapOutput = accu.readOneRow(conn, tableName, rowID, colFam, colQual, readToken);
+		mapOutput = accu.readOneRowAccuFormat(conn, tableName, rowID, colFam, colQual, readToken);
 		//System.out.println("Ended accu.readOneRow(conn, readToken, rowID, colFam, colQual, vis.toString())");
 
 
@@ -314,7 +314,7 @@ public class CometOps implements CometOpsIfce {
 		Text colFam = new Text(family);
 		Text colQual = new Text(key);
 		String scopeValue = null;
-		Map<String, Value> output = new HashMap<String, Value>();
+		Map<String[], Value> output = new HashMap<String[], Value>();
 
 		JSONObject jsonOutput = new JSONObject();
 		/*try {
@@ -345,7 +345,7 @@ public class CometOps implements CometOpsIfce {
 
 		//public JSONObject readOneRow(Connector conn, String tableName, Text rowID, Text colFam, Text colQual, String visibility)
 	    output = accu.readOneRow(conn, tableName, rowID, colFam, colQual, readToken);
-	    for (Map.Entry<String, Value> entry : output.entrySet()) {
+	    for (Map.Entry<String[], Value> entry : output.entrySet()) {
 	    		Value v = entry.getValue();
 	    		//System.out.println("Comet readscope: got Value: " + v);
 	    		String[] deserialized = null;
@@ -359,13 +359,24 @@ public class CometOps implements CometOpsIfce {
 	    			for (String s : deserialized)
 	    				log.debug(s);
 	    			log.debug("deserialized values done.");
-	    			if (deserialized[0].equals("false")) {
+	    			if (deserialized[0].equals("true")) {
 		    			try {
-						jsonOutput.put(entry.getKey(), deserialized[2]);
+		    				jsonOutput.put(ERROR, "Failed to read scope: scope already deleted.");
+		    				return jsonOutput;
 					} catch (JSONException e) {
 						e.printStackTrace();
 					}
 	    			}
+	    			
+	    			try {
+					//jsonOutput.put(entry.getKey(), deserialized[2]);
+	    				jsonOutput.put("contextId", entry.getKey()[0]);
+	    				jsonOutput.put("family", entry.getKey()[1]);
+	    				jsonOutput.put("key", entry.getKey()[2]);
+	    				jsonOutput.put(entry.getKey()[1], deserialized[2]);
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
 	    		}
 	    }
 	    return jsonOutput;
@@ -382,8 +393,7 @@ public class CometOps implements CometOpsIfce {
 		AccumuloOperationsApiImpl accu = new AccumuloOperationsApiImpl();
 
 		Text rowID = new Text(contextID);
-		String scopeValue = null;
-		Map<String, Value> output = new HashMap<String, Value>();
+		Map<String[], Value> output = new HashMap<String[], Value>();
 
 		JSONObject jsonOutput = new JSONObject();
 
@@ -396,17 +406,18 @@ public class CometOps implements CometOpsIfce {
 			log.error("Table not found: " + e2);
 		}
 
-
-		for (Map.Entry<String, Value> entry : output.entrySet()) {
+		for (Map.Entry<String[], Value> entry : output.entrySet()) {
 			//System.out.println("Enumerate scope key values: ");
     			//System.out.printf("Key: %-60s Value: %s\n", entry.getKey(), entry.getValue());
 	    		Value v = entry.getValue();
 	    		String[] deserialized = null;
-				try {
-					deserialized = (String[]) deserialize(v.get());
-				} catch (ClassNotFoundException | IOException e1) {
-					log.error("deserialization failed: " + e1);
-				}
+	    		
+			try {
+				deserialized = (String[]) deserialize(v.get());
+			} catch (ClassNotFoundException | IOException e1) {
+				log.error("deserialization failed: " + e1);
+			}
+			
 	    		if (deserialized != null && deserialized.length == CometOps.NUM_OF_SERIALIZED_PARAMETERS) {
 	    			log.debug("deserialized values:");
 	    			for (String s : deserialized)
@@ -414,7 +425,10 @@ public class CometOps implements CometOpsIfce {
 	    			log.debug("deserialized values done.");
 	    			if (deserialized[0].equals("false")) {
 		    			try {
-						jsonOutput.put(entry.getKey(), deserialized[2]);
+		    				jsonOutput.put("contextId", entry.getKey()[0]);
+		    				jsonOutput.put("family", entry.getKey()[1]);
+		    				jsonOutput.put("key", entry.getKey()[2]);
+		    				jsonOutput.put(entry.getKey()[1], deserialized[2]);
 					} catch (JSONException e) {
 						e.printStackTrace();
 					}

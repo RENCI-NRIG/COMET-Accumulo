@@ -103,10 +103,10 @@ public interface AccumuloOperationsApiIfce {
 	 * @throws TableNotFoundException
 	 * @throws AccumuloSecurityException
 	 */
-   public Map<String, Value> enumerateRows(Connector conn, String tableName, Text rowID, String visibility) throws TableNotFoundException, AccumuloException, AccumuloSecurityException;
+   public Map<String[], Value> enumerateRows(Connector conn, String tableName, Text rowID, String visibility) throws TableNotFoundException, AccumuloException, AccumuloSecurityException;
 
     /**
-	 * Read one row.
+	 * Read one row return String[].
 	 * @param tableName
 	 * @param colFam
 	 * @param colQual
@@ -116,5 +116,18 @@ public interface AccumuloOperationsApiIfce {
      * @throws AccumuloSecurityException
      * @throws AccumuloException
 	 */
-   public Map<String, Value> readOneRow(Connector conn, String tableName, Text rowID, Text colFam, Text colQual, String visibility) throws TableNotFoundException, AccumuloException, AccumuloSecurityException;
+   public Map<String[], Value> readOneRow(Connector conn, String tableName, Text rowID, Text colFam, Text colQual, String visibility) throws TableNotFoundException, AccumuloException, AccumuloSecurityException;
+   
+   /**
+	 * Read one row in Accumulo format.
+	 * @param tableName
+	 * @param colFam
+	 * @param colQual
+	 * @param visibility
+	 * @return map of key-value pair
+	 * @throws TableNotFoundException
+    * @throws AccumuloSecurityException
+    * @throws AccumuloException
+	 */
+  public Map<String, Value> readOneRowAccuFormat(Connector conn, String tableName, Text rowID, Text colFam, Text colQual, String visibility) throws TableNotFoundException, AccumuloException, AccumuloSecurityException;
 }

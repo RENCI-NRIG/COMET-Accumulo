@@ -115,7 +115,7 @@ There is no good way to predict a-priori which elements will need to be modified
 ### Workflow for updates:
 
 1. Update the specification in swaggerhub and save the results
-2. Generate new JAX-RS server stub code into a separate directory
+2. Generate new Spring Boot server stub code into a separate directory
 3. Diff the elements of the new stub code as they correspond to their counterparts in the repository
 4. Manually implement the diffs where needed
 5. Add new code to enable the new features of the updated specification

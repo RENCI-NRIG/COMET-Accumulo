@@ -264,8 +264,8 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
 
 
 
-	public Map<String, Value> enumerateRows(Connector conn, String tableName, Text rowID, String visibility) throws TableNotFoundException, AccumuloException, AccumuloSecurityException {
-		Map<String, Value> output = new HashMap<>();
+	public Map<String[], Value> enumerateRows(Connector conn, String tableName, Text rowID, String visibility) throws TableNotFoundException, AccumuloException, AccumuloSecurityException {
+		Map<String[], Value> output = new HashMap<>();
 		//ScannerOpts scanOpts = new ScannerOpts();
 		// Create a scanner
 		Authorizations auths = new Authorizations(visibility);
@@ -276,13 +276,25 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
 	    // and end key is the one that immediately follows the row
 	    scanner.setRange(new Range(rowID));
 	    //scanner.fetchColumn(new Text("fam1"), new Text("k1"));
+	    
 	    for (Map.Entry<Key, Value> entry : scanner) {
+	    		//String[] key format: {Row, ColFam, ColQual}
+	    		String[] keys = new String[3];
+	    		keys[0] = entry.getKey().getRow().toString();
+	    		keys[1] = entry.getKey().getColumnFamily().toString();
+	    		keys[2] = entry.getKey().getColumnQualifier().toString();
+	    		//String key =  entry.getKey().getRow() + " " + entry.getKey().getColumnFamily() + ":" + entry.getKey().getColumnQualifier();
+			Value value = entry.getValue();
+			output.put(keys, value);
+	    }
+	    
+	    /*for (Map.Entry<Key, Value> entry : scanner) {
 	    		String key =  entry.getKey().getRow() + " " + entry.getKey().getColumnFamily() + ":" + entry.getKey().getColumnQualifier();
 			Value value = entry.getValue();
 			output.put(key, value);
 
 	    		//log.debug("Key : %-50s  Value : %s\n", entry.getKey().toString(), entry.getValue().toString());
-	    }
+	    }*/
 	    scanner.close();
 	    return output;
 	}
@@ -339,8 +351,8 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
      * @throws AccumuloException
      * @throws AccumuloSecurityException
 	 */
-    public Map<String, Value> readOneRow(Connector conn, String tableName, Text rowID, Text colFam, Text colQual, String visibility) throws TableNotFoundException, AccumuloException, AccumuloSecurityException {
-    		Map<String, Value> output = new HashMap<>();
+    public Map<String[], Value> readOneRow(Connector conn, String tableName, Text rowID, Text colFam, Text colQual, String visibility) throws TableNotFoundException, AccumuloException, AccumuloSecurityException {
+    		Map<String[], Value> output = new HashMap<>();
     		//ScannerOpts scanOpts = new ScannerOpts();
     		// Create a scanner
     		Authorizations auths = new Authorizations(visibility);
@@ -352,6 +364,50 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
         scanner.setRange(new Range(rowID));
         scanner.fetchColumn(colFam, colQual);
         for (Map.Entry<Key, Value> entry : scanner) {
+        		//String[] key format: {Row, ColFam, ColQual}
+        		String[] keys = new String[3];
+        		keys[0] = entry.getKey().getRow().toString();
+        		keys[1] = entry.getKey().getColumnFamily().toString();
+        		keys[2] = entry.getKey().getColumnQualifier().toString();
+	    		//String key =  entry.getKey().getRow() + " " + entry.getKey().getColumnFamily() + ":" + entry.getKey().getColumnQualifier();
+			Value value = entry.getValue();
+			output.put(keys, value);
+	    }
+        /*for (Map.Entry<Key, Value> entry : scanner) {
+        		String key =  entry.getKey().getRow() + " " + entry.getKey().getColumnFamily() + ":" + entry.getKey().getColumnQualifier();
+			Value value = entry.getValue();
+			output.put(key, value);
+        		//System.out.printf("Key : %-50s  Value : %s\n", entry.getKey(), entry.getValue());
+        }*/
+        scanner.close();
+        return output;
+    }
+
+    
+    /**
+	 * Read single row with specific visibility return accumulo format.
+	 * @param conn
+	 * @param tableName
+	 * @param rowID
+	 * @return
+     * @throws TableNotFoundException
+     * @throws AccumuloException
+     * @throws AccumuloSecurityException
+	 */
+    public Map<String, Value> readOneRowAccuFormat(Connector conn, String tableName, Text rowID, Text colFam, Text colQual, String visibility) throws TableNotFoundException, AccumuloException, AccumuloSecurityException {
+    		Map<String, Value> output = new HashMap<>();
+    		//ScannerOpts scanOpts = new ScannerOpts();
+    		// Create a scanner
+    		Authorizations auths = new Authorizations(visibility);
+    		conn.securityOperations().changeUserAuthorizations("root", auths);
+        Scanner scanner = conn.createScanner(tableName, auths);
+        //scanner.setBatchSize(scanOpts.scanBatchSize);
+        // Say start key is the one with key of row
+        // and end key is the one that immediately follows the row
+        scanner.setRange(new Range(rowID));
+        scanner.fetchColumn(colFam, colQual);
+        
+        for (Map.Entry<Key, Value> entry : scanner) {
         		String key =  entry.getKey().getRow() + " " + entry.getKey().getColumnFamily() + ":" + entry.getKey().getColumnQualifier();
 			Value value = entry.getValue();
 			output.put(key, value);
@@ -360,5 +416,4 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
         scanner.close();
         return output;
     }
-
 }
