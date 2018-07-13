@@ -447,7 +447,7 @@ public class CometOps implements CometOpsIfce {
 	    }
 		
 		try {
-			jsonOutput.put("entry", jArr);
+			jsonOutput.put("entries", jArr);
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
