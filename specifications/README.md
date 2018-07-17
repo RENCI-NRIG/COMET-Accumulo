@@ -14,10 +14,12 @@ Naming hierarchy for COMET API
 ## 2. Authorization principles
 
 Comet relies on a combination of X.509 certificates and tokens to authorize operations. Two types of certificates are allows:
+
 - Valid certificates - certificates that may not be traceable to a trust root or self-signed certificates, but are otherwise valid
 - Trusted certificates - valid certificates that can be traced to one of the trust roots in possession of the Comet instance
 
 Two types of tokens are used:
+
 - Read tokens - allow to perform read operations
 - Write tokens - allow to overwrite/modify values
 
@@ -33,6 +35,15 @@ The following table summarizes the required authorization policies for the API c
 | readScope  | read existing scope |  V  |     |  V   |    |
 | enumerateScope | enumerate scopes in a context |  V  |     |  V  |    |
 | deleteScope | delete existing scope |     |  V  |  V  |  V  |
+
+The read and write token need to be strong enough to be accepted by COMET. The the tokens will need follow these rules:
+
+* At least 8 chars
+* Contains at least one digit
+* Contains at least one lower alpha char and one upper alpha char
+* Contains at least one char within a set of special chars (@#%$^ etc.)
+* Does not contain white spaces, tab, etc.
+
 
 ## 3. COMET API operations implementation
 
