@@ -44,7 +44,6 @@ The read and write token need to be strong enough to be accepted by COMET. The t
 * At least 8 chars
 * Contains at least one digit
 * Contains at least one lower alpha char and one upper alpha char
-* Contains at least one char within a set of special chars (@#%$^ etc.)
 * Does not contain white spaces, tab, etc.
 
 
