@@ -124,7 +124,7 @@ public class CometOps implements CometOpsIfce {
 		
 		//Token strength checking.
 	    if (expression != null) {
-	        return expression.matches("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=\\\\S+$).{8,}$");
+	        return expression.matches("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=\S+$).{8,}$");
 	    }
 	    return false;
 	}
