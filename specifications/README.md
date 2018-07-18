@@ -13,10 +13,12 @@ Naming hierarchy for COMET API
 
 ## 2. Authorization principles
 
-Comet relies on a combination of X.509 certificates and tokens to authorize operations. Two types of certificates are allows:
+Comet relies on a combination of X.509 certificates and tokens to authorize operations. Two types of client certificates are allowd:
 
 - Valid certificates - certificates that may not be traceable to a trust root or self-signed certificates, but are otherwise valid
 - Trusted certificates - valid certificates that can be traced to one of the trust roots in possession of the Comet instance
+
+Also for some operations, a client certificate is optional. 
 
 Two types of tokens are used:
 
@@ -25,15 +27,16 @@ Two types of tokens are used:
 
 The following table summarizes the required authorization policies for the API calls that are described in the following section. 
 
-`V = validate`
+`V = validate a client cert is trusted`
 `S = specify`
+`O = a valid client cert is optional`
 
 | API Call | Semantics | Valid Cert | Trusted Cert | Read Token | Write Token |
 |---|---|:---:|:---:|:---:|:---:|
 | writeScope | create new scope |   |  V  |  S  |  S  |
-| writeScope | modify existing scope |  V  |     |  V  |  V  |
-| readScope  | read existing scope |  V  |     |  V   |    |
-| enumerateScope | enumerate scopes in a context |  V  |     |  V  |    |
+| writeScope | modify existing scope |  O  |     |  V  |  V  |
+| readScope  | read existing scope |  O  |     |  V   |    |
+| enumerateScope | enumerate scopes in a context |  O  |     |  V  |    |
 | deleteScope | delete existing scope |     |  V  |  V  |  V  |
 
 The read and write token need to be strong enough to be accepted by COMET. The the tokens will need follow these rules:
