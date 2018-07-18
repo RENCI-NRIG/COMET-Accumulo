@@ -27,8 +27,8 @@ Two types of tokens are used:
 
 The following table summarizes the required authorization policies for the API calls that are described in the following section. 
 
-`V = validate a client cert is trusted`
-`S = specify`
+`V = validate if a client cert/or token is trusted`
+`S = specify a new token`
 `O = a valid client cert is optional`
 
 | API Call | Semantics | Valid Cert | Trusted Cert | Read Token | Write Token |
