@@ -380,6 +380,81 @@ public class CometOps implements CometOpsIfce {
 	    }
 	    return jsonOutput;
 	}
+    
+    public JSONObject enumerateScopesWithFamily(String contextID, String family, String readToken) throws AccumuloException, AccumuloSecurityException {
+
+	    	Instance inst = new ZooKeeperInstance(instanceName,zooServers);
+			//System.out.println("read scope: instance initiated");
+	
+		Connector conn = inst.getConnector(userName, password);
+		//System.out.println("read scope: got connection");
+	
+		AccumuloOperationsApiImpl accu = new AccumuloOperationsApiImpl();
+	
+		Text rowID = new Text(contextID);
+		//Text colFam = new Text(family);
+		Map<String[], Value> output = new HashMap<String[], Value>();
+	
+		JSONObject jsonOutput = new JSONObject();
+		
+		try {
+			//System.out.println("Starting accu.enumerateRows(conn, contextID, contextID, readToken)");
+			output = accu.enumerateRows(conn, tableName, rowID, readToken);
+			//System.out.println("Ended accu.enumerateRows(conn, contextID, contextID, readToken)");
+		} catch (TableNotFoundException e2) {
+			// TODO Auto-generated catch block
+			log.error("Table not found: " + e2);
+		}
+	
+		try {
+			jsonOutput.put("contextId", contextID);
+			jsonOutput.put("family", family);
+		} catch (JSONException e3) {
+			e3.printStackTrace();
+		}
+		
+		JSONArray jArr = new JSONArray();
+		
+		for (Map.Entry<String[], Value> entry : output.entrySet()) {
+			//System.out.println("Enumerate scope key values: ");
+				//System.out.printf("Key: %-60s Value: %s\n", entry.getKey(), entry.getValue());
+			JSONObject arrayElement = new JSONObject();
+	    		Value v = entry.getValue();
+	    		String[] deserialized = null;
+	    		
+			try {
+				deserialized = (String[]) deserialize(v.get());
+			} catch (ClassNotFoundException | IOException e1) {
+				log.error("deserialization failed: " + e1);
+			}
+			
+	    		if (deserialized != null && deserialized.length == CometOps.NUM_OF_SERIALIZED_PARAMETERS) {
+	    			log.debug("deserialized values:");
+	    			for (String s : deserialized)
+	    				log.debug(s);
+	    			log.debug("deserialized values done.");
+	    			if (deserialized[0].equals("false") && deserialized[1].equals(family)) {
+		    			try {
+		    				arrayElement.put("key", entry.getKey()[2]);
+		    				arrayElement.put("value", deserialized[2]);
+		    				jArr.put(arrayElement);
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+	    			}
+	    		}
+	    }
+		
+		try {
+			jsonOutput.put("entries", jArr);
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		
+	    return jsonOutput;
+	}
+    
+    
 
     public JSONObject enumerateScopes(String contextID, String readToken) throws AccumuloException, AccumuloSecurityException {
 

@@ -73,12 +73,13 @@ public class EnumerateScopeApiController implements EnumerateScopeApi {
             // For testing only
             try {
                 CometOps cometOps = new CometOps();
+                JSONObject output = new JSONObject();
                 if (family != null) {
-                    return new ResponseEntity<CometResponse>(objectMapper.readValue("{  \"message\" : \"family should be empty for enumerate scope operation\",  \"value\" : \"family should be empyty \",  \"version\" : \"" + CometInitializer.COMET_VERSION + "\",  \"status\" : \"status\"}", CometResponse.class), HttpStatus.BAD_REQUEST);
-                }
+                		output = cometOps.enumerateScopesWithFamily(contextID, family, readToken);
+                } else {
                 //System.out.println("contextID: " + contextID + "readToken: " + readToken);
-                JSONObject output = cometOps.enumerateScopes(contextID, readToken);
-
+                		output = cometOps.enumerateScopes(contextID, readToken);
+                }
                 CometResponse comet = new CometResponse();
                 comet.setValue(output.toString());
                 comet.setStatus("OK");

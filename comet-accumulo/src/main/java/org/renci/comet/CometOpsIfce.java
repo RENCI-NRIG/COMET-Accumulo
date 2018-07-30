@@ -69,4 +69,15 @@ public interface CometOpsIfce {
     public JSONObject enumerateScopes(String contextID, String readToken)
     		throws AccumuloException, AccumuloSecurityException;
 
+    /**
+     * 
+     * @param contextID
+     * @param family
+     * @param readToken
+     * @return JSONObject with list of values
+     * @throws AccumuloException
+     * @throws AccumuloSecurityException
+     */
+    public JSONObject enumerateScopesWithFamily(String contextID, String family, String readToken)
+    		throws AccumuloException, AccumuloSecurityException;
 }
