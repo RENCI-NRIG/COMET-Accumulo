@@ -433,7 +433,7 @@ public class CometOps implements CometOpsIfce {
 	    			for (String s : deserialized)
 	    				log.debug(s);
 	    			log.debug("deserialized values done.");
-	    			if (deserialized[0].equals("false") && deserialized[1].equals(family)) {
+	    			if (deserialized[0].equals("false") && entry.getKey()[1].equals(family)) {
 		    			try {
 		    				arrayElement.put("key", entry.getKey()[2]);
 		    				arrayElement.put("value", deserialized[2]);
