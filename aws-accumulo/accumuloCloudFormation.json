@@ -29,7 +29,7 @@
        "ConstraintDescription": "must be a valid IP CIDR range of the form x.x.x.x/x."
      },
      "AccumuloVersion" : {
-       "Default": "1.9.1",
+       "Default": "1.9.2",
        "Description" : "The Accumulo version",
        "Type": "String",
        "MinLength": "1",
