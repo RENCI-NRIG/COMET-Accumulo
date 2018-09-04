@@ -14,7 +14,11 @@ YARN_SITE_FILE=${HADOOP_CONF_DIR}/yarn-site.xml
 WORKERS_FILE=${HADOOP_CONF_DIR}/slaves
 ACCUMULO_SITE_FILE=${ACCUMULO_CONF_DIR}/accumulo-site.xml
 
+# NameNode startup commands
+echo "Staring NameNode"
+runuser -l hadoop -c $'$HADOOP_PREFIX/sbin/hadoop-daemon.sh --config $HADOOP_CONF_DIR --script hdfs start namenode'
+
+#zookepeer configuration
 echo "starting ZooKeeper"
 ${ZOOKEEPER_HOME}/bin/zkServer.sh start
 
-runuser -l hadoop -c $'${ACCUMULO_HOME}/bin/start-here.sh'
