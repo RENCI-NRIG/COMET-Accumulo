@@ -80,10 +80,11 @@ public class CertificateUtil {
     /**
      * converts a certificate chain string in to a list of certificate objects
      * 
-     * @param certChainString
+     * @param  certChainString certChainString
      * @return list of certificate objects
-     * @throws CertificateException
-     * @throws IOException
+     * @throws CertificateException certificate error
+     * @throws IOException io exception error
+     * @return list of certs
      */
     public static List<X509Certificate> getCertChain(String certChainString) throws CertificateException, IOException {
 
@@ -118,10 +119,10 @@ public class CertificateUtil {
     /**
      * converts a pem encoded certificate string in to a certificate object
      * 
-     * @param pemString
-     * @return
-     * @throws CertificateException
-     * @throws DecodingException 
+     * @param pemString pemString
+     * @return X509Certificate
+     * @throws CertificateException certificate error
+     * @throws DecodingException decoding error 
      */
     public static X509Certificate createCertFromPem(String pemString) throws CertificateException, DecodingException {
         ByteArrayInputStream bytearrayinputstream = new ByteArrayInputStream(Base64.decode(pemString));
@@ -133,11 +134,11 @@ public class CertificateUtil {
     /**
      * verifies if the given certificate chain has a path up to a trusted authority
      * 
-     * @param certChain
-     * @param trustKeyStorePath
-     * @param keyStorePassword
+     * @param certChain certChain
+     * @param trustKeyStorePath trustKeyStorePath
+     * @param keyStorePassword keyStorePassword
      * @return the trusted root authority
-     * @throws CertPathValidatorException
+     * @throws CertPathValidatorException certificate validation error
      *             - if a path does not exist
      */
     public static X509Certificate verifyCertChain(List<X509Certificate> certChain, String trustKeyStorePath,
@@ -185,6 +186,11 @@ public class CertificateUtil {
     
     /**
      * Checks whether given X.509 certificate is self-signed.
+     * @param cert cert
+     * @throws CertificateException cert exception
+     * @throws NoSuchAlgorithmException algo exception
+     * @throws NoSuchProviderException no provider exception
+     * @return boolean
      */
     public static boolean isSelfSigned(X509Certificate cert)
             throws CertificateException, NoSuchAlgorithmException,
@@ -206,10 +212,11 @@ public class CertificateUtil {
     /**
      * Method to get the keyid of a certificate; Calls getKeyidFromDER to do the actual work
      * 
-     * @param cert
+     * @param cert cert
      * @return string representing the sha-1 hash of the public key in cert
-     * @throws NoSuchAlgorithmException
-     * @throws IOException
+     * @throws NoSuchAlgorithmException algo error
+     * @throws IOException io exception error
+     * @return String
      */
 
     public static String getCertKeyid(X509Certificate cert) throws NoSuchAlgorithmException, IOException {
@@ -234,9 +241,10 @@ public class CertificateUtil {
     /**
      * Method to find keyid from a DER encoded object (public key in this case)
      * 
-     * @param obj
-     * @return
-     * @throws NoSuchAlgorithmException
+     * @param obj obj
+     * @return String
+     * @throws NoSuchAlgorithmException no algo error
+     * @return String
      */
     public static String getKeyidFromDER(DEREncodable obj) throws NoSuchAlgorithmException {
         String returnString = null;
@@ -276,9 +284,9 @@ public class CertificateUtil {
     
     /**
      * Compare base64 encoding of a cert to a first cert in a chain
-     * @param act_base64
-     * @param chain
-     * @return
+     * @param cert_base64 cert_base64
+     * @param chain chain
+     * @return boolean
      */
 	protected static boolean compareCertsBase64(String cert_base64, X509Certificate[] chain) {
 	    	
@@ -321,7 +329,7 @@ public class CertificateUtil {
 	
 	/**
      * Check if the client is using secure channel
-     * @return
+     * @return boolean
      */
 	protected boolean checkSecure() {
 	    	// if comms are secure, session id will be set
@@ -337,7 +345,7 @@ public class CertificateUtil {
     
 	/**
      * Retrieve certificate chain if available (null if not)
-     * @return
+     * @return X509Certificate
      */
     protected X509Certificate[] getClientCerts() {
 	    	if (checkSecure()) {
@@ -358,11 +366,11 @@ public class CertificateUtil {
     
     /**
      * Check client certificate against the database
-     * @param clientID
-     * @param trustKeyStorePath
-     * @param keyStorePassword
-     * @return 
-     * @throws CertPathValidatorException 
+     * @param clientID clientID
+     * @param trustKeyStorePath trustKeyStorePath
+     * @param keyStorePassword keyStorePassword
+     * @return boolean
+     * @throws CertPathValidatorException certificate validation error 
      */
     protected boolean clientCertCheck(String clientID,  String trustKeyStorePath, String keyStorePassword) throws CertPathValidatorException {
 	    	try {
@@ -408,8 +416,8 @@ public class CertificateUtil {
     /**
      * Method to convert to hex from byte array
      * 
-     * @param bytes
-     * @return
+     * @param bytes bytes
+     * @return String
      */
     public static String hexify(byte bytes[]) {
 

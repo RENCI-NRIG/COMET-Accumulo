@@ -25,109 +25,99 @@ import org.codehaus.jettison.json.JSONObject;
 
 
 public interface AccumuloOperationsApiIfce {
-/*	*//**
-	 * Create new Zookeeper instance.
-	 * @param instanceName
-	 * @param zooServers
-	 * @return Instance
-	 *//*
-    Instance createZooKeeperInstance(String instanceName, String zooServers);
-
-    *//**
-	 * Create new Accumulo connector.
-	 * @param userName
-	 * @param password
-	 * @return AccuConnector
-	 *//*
-    Instance getAccumuloConnector(String userName, String password);*/
 
     /**
 	 * Create new Accumulo table. (Admin only method. No public REST interface.)
-	 * @param conn
-	 * @param tableName
+	 * @param conn conn
+	 * @param tableName tableName 
 	 * @return JSONObject indicating if table creation is successful
-     * @throws TableExistsException
-     * @throws AccumuloSecurityException
-     * @throws AccumuloException
+     * @throws TableExistsException if table already exists
+     * @throws AccumuloSecurityException in case of security error
+     * @throws AccumuloException in case of accumulo error
 	 */
     public JSONObject createAccumuloTable(Connector conn, String tableName) throws AccumuloException, AccumuloSecurityException, TableExistsException;
 
     /**
 	 * Delete Accumulo table. (Admin only method. No public REST interface.)
-	 * @param conn
-	 * @param userName
+	 * @param conn conn
+	 * @param tableName tableName 
 	 * @return JSONObject indicating if table deletion is successful
-	 * @throws TableNotFoundException
-     * @throws AccumuloSecurityException
-     * @throws AccumuloException
+	 * @throws TableNotFoundException table not found
+     * @throws AccumuloSecurityException in case of security error
+     * @throws AccumuloException in case of accumulo error
 	 */
     public JSONObject deleteAccumuloTable(Connector conn, String tableName) throws TableNotFoundException, AccumuloException, AccumuloSecurityException;
 
     /**
 	 * Create new Accumulo row.
-	 * @param conn
-	 * @param tableName
-	 * @param rowID
-	 * @param colFam
-	 * @param colQual
-	 * @param value
-	 * @param visibility
+	 * @param conn conn
+	 * @param tableName tableName
+	 * @param rowID rowID
+	 * @param colFam colFam
+	 * @param colQual colQual
+	 * @param value value
+	 * @param visibility visibility
 	 * @return JSONObject indicating if addition is successful
-	 * @throws TableNotFoundException
-     * @throws MutationsRejectedException
+	 * @throws TableNotFoundException table not found
+     * @throws MutationsRejectedException change rejected
 	 */
     public JSONObject addAccumuloRow(Connector conn, String tableName, Text rowID, Text colFam, Text colQual, Value value, Text visibility) throws TableNotFoundException, MutationsRejectedException;
 
     /**
 	 * Delete Accumulo row. Mark row as deleted.
-	 * @param conn
-	 * @param scanner
-	 * @param tableName
-	 * @param colFam
-	 * @param colQual
-	 * @param visibility
+	 * @param conn conn
+	 * @param scanner scanner
+	 * @param tableName tableName
+	 * @param rowID rowID
+	 * @param colFam colFam
+	 * @param colQual colQual
+	 * @param visibility visibility
 	 * @return JSONObject indicating if deletion is successful
-	 * @throws MutationsRejectedException
-	 * @throws TableNotFoundException
+	 * @throws MutationsRejectedException change rejected
+	 * @throws TableNotFoundException table not found
 	 */
    public Map<String, Value> deleteAccumuloRow(Connector conn, Scanner scanner, String tableName, Text rowID, Text colFam, Text colQual, Text visibility) throws MutationsRejectedException, TableNotFoundException;
 
    /**
 	 * Enumerate Accumulo row that with the specific rowID and visibility.
-	 * @param conn
-	 * @param tableName
-	 * @param rowID
-	 * @param visibility
+	 * @param conn conn
+	 * @param tableName tableName
+	 * @param rowID rowID
+	 * @param visibility visibility
 	 * @return map of key-value pairs
-	 * @throws AccumuloException
-	 * @throws TableNotFoundException
-	 * @throws AccumuloSecurityException
+	 * @throws AccumuloException in case of accumulo error
+	 * @throws TableNotFoundException table not found
+	 * @throws AccumuloSecurityException in case of security error
 	 */
    public Map<String[], Value> enumerateRows(Connector conn, String tableName, Text rowID, String visibility) throws TableNotFoundException, AccumuloException, AccumuloSecurityException;
 
     /**
 	 * Read one row return String[].
-	 * @param tableName
-	 * @param colFam
-	 * @param colQual
-	 * @param visibility
+	 * @param conn conn
+	 * @param tableName tableName
+	 * @param rowID rowID
+	 * @param colFam colFam
+	 * @param colQual colQual
+	 * @param visibility visibility
 	 * @return map of key-value pair
-	 * @throws TableNotFoundException
-     * @throws AccumuloSecurityException
-     * @throws AccumuloException
+	 * @throws TableNotFoundException table not found
+     * @throws AccumuloSecurityException in case of security error
+     * @throws AccumuloException in case of accumulo error
 	 */
    public Map<String[], Value> readOneRow(Connector conn, String tableName, Text rowID, Text colFam, Text colQual, String visibility) throws TableNotFoundException, AccumuloException, AccumuloSecurityException;
    
    /**
 	 * Read one row in Accumulo format.
-	 * @param tableName
-	 * @param colFam
-	 * @param colQual
-	 * @param visibility
+	 * @param conn conn
+	* @param tableName tableName
+	*  @param rowID rowID
+	 * @param colFam colFam
+	 * @param colQual colQual
+	 * @param visibility visibility
 	 * @return map of key-value pair
-	 * @throws TableNotFoundException
-    * @throws AccumuloSecurityException
-    * @throws AccumuloException
+	 * @throws TableNotFoundException table not found
+    * @throws AccumuloSecurityException in case of security error
+    * @throws AccumuloException in case of accumulo error
 	 */
   public Map<String, Value> readOneRowAccuFormat(Connector conn, String tableName, Text rowID, Text colFam, Text colQual, String visibility) throws TableNotFoundException, AccumuloException, AccumuloSecurityException;
 }

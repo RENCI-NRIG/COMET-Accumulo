@@ -112,8 +112,8 @@ public class CometOps implements CometOpsIfce {
      * .{8,}             # anything, at least eight places though
      * $                 # end-of-string
      * 
-     * @param expression
-     * @return
+     * @param expression string
+     * @return true on success and false otherwise
      */
     public static boolean isTokenStrong(String expression) {
         String checkTokenStrength = readProperties()[0];
