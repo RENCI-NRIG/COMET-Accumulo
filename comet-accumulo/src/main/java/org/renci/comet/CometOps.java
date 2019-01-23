@@ -69,13 +69,27 @@ public class CometOps implements CometOpsIfce {
 
             Map<String, String> env_map = System.getenv();
 
-            if(env_map.get("COMET_CHECK_TOKEN_STRENGTH") != null) checkTokenStrength = env_map.get("COMET_CHECK_TOKEN_STRENGTH");
-            if(env_map.get("COMET_CHECK_CLIENT_CERT") != null) checkClientCert = env_map.get("COMET_CHECK_CLIENT_CERT");
-            if(env_map.get("COMET_ACCUMULO_NAME") != null) instanceName = env_map.get("COMET_ACCUMULO_NAME");
-            if(env_map.get("COMET_ACCUMULO_ZOOSERVERS") != null) zooServers = env_map.get("COMET_ACCUMULO_ZOOSERVERS");
-            if(env_map.get("COMET_ACCUMULO_USER") != null) userName = env_map.get("COMET_ACCUMULO_USER");
-            if(env_map.get("COMET_ACCUMULO_PASSWORD") != null) password = env_map.get("COMET_ACCUMULO_PASSWORD");
-            if(env_map.get("COMET_ACCUMULO_TABLENAME") != null) tableName = env_map.get("COMET_ACCUMULO_TABLENAME");
+            if(env_map.get("COMET_CHECK_TOKEN_STRENGTH") != null) {
+                checkTokenStrength = env_map.get("COMET_CHECK_TOKEN_STRENGTH");
+            }
+            if(env_map.get("COMET_CHECK_CLIENT_CERT") != null) {
+                checkClientCert = env_map.get("COMET_CHECK_CLIENT_CERT");
+            }
+            if(env_map.get("COMET_ACCUMULO_NAME") != null) {
+                instanceName = env_map.get("COMET_ACCUMULO_NAME");
+            }
+            if(env_map.get("COMET_ACCUMULO_ZOOSERVERS") != null) {
+                zooServers = env_map.get("COMET_ACCUMULO_ZOOSERVERS");
+            }
+            if(env_map.get("COMET_ACCUMULO_USER") != null) {
+                userName = env_map.get("COMET_ACCUMULO_USER");
+            }
+            if(env_map.get("COMET_ACCUMULO_PASSWORD") != null) {
+                password = env_map.get("COMET_ACCUMULO_PASSWORD");
+            }
+            if(env_map.get("COMET_ACCUMULO_TABLENAME") != null) {
+                tableName = env_map.get("COMET_ACCUMULO_TABLENAME");
+            }
 
 
             try {
@@ -84,13 +98,27 @@ public class CometOps implements CometOpsIfce {
                 // load a properties file
                 prop.load(input);
 
-                if(env_map.get("COMET_CHECK_TOKEN_STRENGTH") == null) checkTokenStrength = prop.getProperty("comet.checkStrength");
-                if(env_map.get("COMET_CHECK_CLIENT_CERT") == null) checkClientCert = prop.getProperty("comet.certCheck");
-                if(env_map.get("COMET_ACCUMULO_NAME") == null) instanceName = prop.getProperty("accumulo.instanceName");
-                if(env_map.get("COMET_ACCUMULO_ZOOSERVERS") == null) zooServers = prop.getProperty("accumulo.zooServers");
-                if(env_map.get("COMET_ACCUMULO_USER") == null) userName = prop.getProperty("accumulo.userName");
-                if(env_map.get("COMET_ACCUMULO_PASSWORD") == null) password = prop.getProperty("accumulo.password");
-                if(env_map.get("COMET_ACCUMULO_TABLENAME") == null) tableName = prop.getProperty("accumulo.tableName");
+                if(env_map.get("COMET_CHECK_TOKEN_STRENGTH") == null) {
+                    checkTokenStrength = prop.getProperty("comet.checkStrength");
+                }
+                if(env_map.get("COMET_CHECK_CLIENT_CERT") == null) {
+                    checkClientCert = prop.getProperty("comet.certCheck");
+                }
+                if(env_map.get("COMET_ACCUMULO_NAME") == null) {
+                    instanceName = prop.getProperty("accumulo.instanceName");
+                }
+                if(env_map.get("COMET_ACCUMULO_ZOOSERVERS") == null) {
+                    zooServers = prop.getProperty("accumulo.zooServers");
+                }
+                if(env_map.get("COMET_ACCUMULO_USER") == null) {
+                    userName = prop.getProperty("accumulo.userName");
+                }
+                if(env_map.get("COMET_ACCUMULO_PASSWORD") == null) {
+                    password = prop.getProperty("accumulo.password");
+                }
+                if(env_map.get("COMET_ACCUMULO_TABLENAME") == null) {
+                    tableName = prop.getProperty("accumulo.tableName");
+                }
 
                 log.debug("checkTokenStrength: " + checkTokenStrength
                         + ", checkClientCert: " + checkClientCert
