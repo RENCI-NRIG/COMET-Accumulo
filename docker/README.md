@@ -1,10 +1,4 @@
 
-## Pull image from dockerhub
-
-```
-docker pull rencinrig/comet-spring:latest
-```
-
 ## Build docker image locally
 Put the Dockerfile in the same directory as pom.xml: 
 ```
@@ -82,7 +76,7 @@ COMET_CHECK_TOKEN_STRENGTH=true
 COMET_CHECK_CLIENT_CERT=true
 COMET_ACCUMULO_NAME=accu1
 COMET_ACCUMULO_ZOOSERVERS=zoo_a,zoo_b,zoo_c
-COMET_ACCUMULO_USER=ericafu
+COMET_ACCUMULO_USER=user1
 COMET_ACCUMULO_PASSWORD=password
 COMET_ACCUMULO_TABLENAME=tablename1
 ```
