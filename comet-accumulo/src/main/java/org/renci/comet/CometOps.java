@@ -120,13 +120,13 @@ public class CometOps implements CometOpsIfce {
                     tableName = prop.getProperty("accumulo.tableName");
                 }
 
-                log.debug("checkTokenStrength: " + checkTokenStrength
+                /* log.debug("checkTokenStrength: " + checkTokenStrength
                         + ", checkClientCert: " + checkClientCert
                         + ", instanceName: " +  instanceName
                         + ", zooServers: " +  zooServers
                         + ", userName: " +  userName
                         + ", password: " +  password
-                        + ", tableName: " +  tableName);
+                        + ", tableName: " +  tableName); */
 
                 return new String[] {checkTokenStrength, checkClientCert, instanceName, zooServers, userName, password, tableName};
     
