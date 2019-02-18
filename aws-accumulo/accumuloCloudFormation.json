@@ -28,6 +28,13 @@
        "AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
        "ConstraintDescription": "must be a valid IP CIDR range of the form x.x.x.x/x."
      },
+    "S3BucketName" : {
+        "Default": "rencicomet",
+        "Description" : "S3 bucket Name",
+        "Type": "String",
+        "MinLength": "1",
+        "MaxLength": "64"
+      },
      "AccumuloVersion" : {
        "Default": "1.9.2",
        "Description" : "The Accumulo version",
@@ -38,7 +45,7 @@
        "ConstraintDescription" : "must begin with x.x.x and contain only numeric characters."
      },
      "HadoopVersion" : {
-       "Default": "3.2.0",
+       "Default": "2.9.0",
        "Description" : "The Hadoop version",
        "Type": "String",
        "MinLength": "1",
@@ -204,7 +211,7 @@
      "S3Bucket" : {
         "Type" : "AWS::S3::Bucket",
         "Properties" : {
-          "BucketName": "rencicomet"
+          "BucketName": { "Ref": "S3BucketName" }
         }
      },
      "RunCmdInstanceProfile": {
@@ -331,8 +338,8 @@
                            "/root/setupzookeeper.sh ",{"Ref" : "ZooKeeperVersion"}," > /var/log/setupzookeeper.log 2>&1\n",
                            "/root/setuphadoop.sh ", {"Ref" : "HadoopVersion"} ," > /var/log/setuphadoop.log 2>&1\n",
                            "/root/setupaccumulo.sh ", {"Ref" : "AccumuloVersion"} ," > /var/log/setupaccumulo.log 2>&1\n",
-                           "/root/ipAndKeys.sh namenode rencicomet 'namenode resourcemanager worker1 worker2 accumulomaster' true > /var/log/ipAndKeys.log 2>&1\n",
-                           "/root/configure.sh accumulomaster false false false true false false false 'worker1 worker2' 'namenode resourcemanager worker1 worker2 accumulomaster' rencicomet > /var/log/configure.log 2>&1"
+                           "/root/ipAndKeys.sh namenode ", { "Ref": "S3BucketName" }, " 'namenode resourcemanager worker1 worker2 accumulomaster' true > /var/log/ipAndKeys.log 2>&1\n",
+                           "/root/configure.sh accumulomaster false false false true false false false 'worker1 worker2' 'namenode resourcemanager worker1 worker2 accumulomaster' ", { "Ref": "S3BucketName" }, " > /var/log/configure.log 2>&1"
                  ]]},
                  "mode"  : "000700",
                  "owner" : "root",
@@ -391,7 +398,7 @@
        },
        "CreationPolicy" : {
          "ResourceSignal" : {
-           "Timeout" : "PT15M"
+           "Timeout" : "PT50M"
          }
        }
      },
@@ -437,8 +444,8 @@
                            "/root/setupzookeeper.sh ",{"Ref" : "ZooKeeperVersion"}," > /var/log/setupzookeeper.log 2>&1\n",
                            "/root/setuphadoop.sh ", {"Ref" : "HadoopVersion"} ," > /var/log/setuphadoop.log 2>&1\n",
                            "/root/setupaccumulo.sh ", {"Ref" : "AccumuloVersion"} ," > /var/log/setupaccumulo.log 2>&1\n",
-                           "/root/ipAndKeys.sh resourcemanager rencicomet 'namenode resourcemanager worker1 worker2 accumulomaster' false > /var/log/ipAndKeys.log 2>&1\n",
-                           "/root/configure.sh accumulomaster false false false false false false true 'worker1 worker2' 'namenode resourcemanager worker1 worker2 accumulomaster' rencicomet > /var/log/configure.log 2>&1"			   
+                           "/root/ipAndKeys.sh resourcemanager ", { "Ref": "S3BucketName" }, " 'namenode resourcemanager worker1 worker2 accumulomaster' false > /var/log/ipAndKeys.log 2>&1\n",
+                           "/root/configure.sh accumulomaster false false false false false false true 'worker1 worker2' 'namenode resourcemanager worker1 worker2 accumulomaster' ", { "Ref": "S3BucketName" }, " > /var/log/configure.log 2>&1"			   
                  ]]},
                  "mode"  : "000700",
                  "owner" : "root",
@@ -497,7 +504,7 @@
        },
        "CreationPolicy" : {
          "ResourceSignal" : {
-           "Timeout" : "PT15M"
+           "Timeout" : "PT50M"
          }
        }
      },
@@ -543,8 +550,8 @@
                            "/root/setupzookeeper.sh ",{"Ref" : "ZooKeeperVersion"}," > /var/log/setupzookeeper.log 2>&1\n",
                            "/root/setuphadoop.sh ", {"Ref" : "HadoopVersion"} ," > /var/log/setuphadoop.log 2>&1\n",
                            "/root/setupaccumulo.sh ", {"Ref" : "AccumuloVersion"} ," > /var/log/setupaccumulo.log 2>&1\n",
-                           "/root/ipAndKeys.sh worker1 rencicomet 'namenode resourcemanager worker1 worker2 accumulomaster' false > /var/log/ipAndKeys.log 2>&1\n",
-                           "/root/configure.sh accumulomaster false true false false false true false 'worker1 worker2' 'namenode resourcemanager worker1 worker2 accumulomaster' rencicomet > /var/log/configure.log 2>&1"			   
+                           "/root/ipAndKeys.sh worker1 ", { "Ref": "S3BucketName" }, " 'namenode resourcemanager worker1 worker2 accumulomaster' false > /var/log/ipAndKeys.log 2>&1\n",
+                           "/root/configure.sh accumulomaster false true false false false true false 'worker1 worker2' 'namenode resourcemanager worker1 worker2 accumulomaster' ", { "Ref": "S3BucketName" }, " > /var/log/configure.log 2>&1"			   
                  ]]},
                  "mode"  : "000700",
                  "owner" : "root",
@@ -603,7 +610,7 @@
        },
        "CreationPolicy" : {
          "ResourceSignal" : {
-           "Timeout" : "PT15M"
+           "Timeout" : "PT50M"
          }
        }
      },
@@ -649,8 +656,8 @@
                            "/root/setupzookeeper.sh ",{"Ref" : "ZooKeeperVersion"}," > /var/log/setupzookeeper.log 2>&1\n",
                            "/root/setuphadoop.sh ", {"Ref" : "HadoopVersion"} ," > /var/log/setuphadoop.log 2>&1\n",
                            "/root/setupaccumulo.sh ", {"Ref" : "AccumuloVersion"} ," > /var/log/setupaccumulo.log 2>&1\n",
-                           "/root/ipAndKeys.sh worker2 rencicomet 'namenode resourcemanager worker1 worker2 accumulomaster' false > /var/log/ipAndKeys.log 2>&1\n",
-                           "/root/configure.sh accumulomaster false true false false false true false 'worker1 worker2' 'namenode resourcemanager worker1 worker2 accumulomaster' rencicomet > /var/log/configure.log 2>&1"			   
+                           "/root/ipAndKeys.sh worker2 ", { "Ref": "S3BucketName" }, " 'namenode resourcemanager worker1 worker2 accumulomaster' false > /var/log/ipAndKeys.log 2>&1\n",
+                           "/root/configure.sh accumulomaster false true false false false true false 'worker1 worker2' 'namenode resourcemanager worker1 worker2 accumulomaster' ", { "Ref": "S3BucketName" }, " > /var/log/configure.log 2>&1"			   
                  ]]},
                  "mode"  : "000700",
                  "owner" : "root",
@@ -709,7 +716,7 @@
        },
        "CreationPolicy" : {
          "ResourceSignal" : {
-           "Timeout" : "PT15M"
+           "Timeout" : "PT50M"
          }
        }
      },
@@ -756,8 +763,8 @@
                            "/root/setupzookeeper.sh ",{"Ref" : "ZooKeeperVersion"}," > /var/log/setupzookeeper.log 2>&1\n",
                            "/root/setuphadoop.sh ", {"Ref" : "HadoopVersion"} ," > /var/log/setuphadoop.log 2>&1\n",
                            "/root/setupaccumulo.sh ", {"Ref" : "AccumuloVersion"} ," > /var/log/setupaccumulo.log 2>&1\n",
-                           "/root/ipAndKeys.sh accumulomaster rencicomet 'namenode resourcemanager worker1 worker2 accumulomaster' false > /var/log/ipAndKeys.log 2>&1\n",
-                           "/root/configure.sh accumulomaster true false false false false false false 'worker1 worker2' 'namenode resourcemanager worker1 worker2 accumulomaster' rencicomet > /var/log/configure.log 2>&1"			   
+                           "/root/ipAndKeys.sh accumulomaster ", { "Ref": "S3BucketName" }, " 'namenode resourcemanager worker1 worker2 accumulomaster' false > /var/log/ipAndKeys.log 2>&1\n",
+                           "/root/configure.sh accumulomaster true false false false false false false 'worker1 worker2' 'namenode resourcemanager worker1 worker2 accumulomaster' ", { "Ref": "S3BucketName" }, " > /var/log/configure.log 2>&1"			   
                  ]]},
                  "mode"  : "000700",
                  "owner" : "root",
@@ -817,7 +824,7 @@
        },
        "CreationPolicy" : {
          "ResourceSignal" : {
-           "Timeout" : "PT15M"
+           "Timeout" : "PT50M"
          }
        }
      }

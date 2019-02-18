@@ -212,7 +212,7 @@ if $IS_DATA_NODE; then
 fi
 
 # update JAVA_HOME in hadoop-env
-runuser -l hadoop -c $'sed -i \'s:export JAVA_HOME=.*:export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.171-8.b10.38.amzn1.x86_64/jre:\' /home/hadoop/hadoop/etc/hadoop/hadoop-env.sh'
+runuser -l hadoop -c $'sed -i \'s:export JAVA_HOME=.*:export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.191.b12-0.42.amzn1.x86_64/jre:\' /home/hadoop/hadoop/etc/hadoop/hadoop-env.sh'
 
 # set haddop configuration files
 _core_site_xml
