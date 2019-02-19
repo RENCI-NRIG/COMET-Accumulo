@@ -55,9 +55,7 @@ public class CometOps implements CometOpsIfce {
     public static String SUCCESS = "Success";
     public static final int NUM_OF_SERIALIZED_PARAMETERS = 5;
     private static final Logger log = Logger.getLogger(CometOps.class);
-    
-    public static final String configFile = "src/main/resources/application.properties";
-    
+
     public static String[] readProperties() {
         String checkTokenStrength = "true";
         String checkClientCert = "true";
@@ -68,18 +66,68 @@ public class CometOps implements CometOpsIfce {
         String tableName="trace"; //provide Accumulo table name
             Properties prop = new Properties();
             InputStream input = null;
-    
+
+            Map<String, String> env_map = System.getenv();
+
+            if(env_map.get("COMET_CHECK_TOKEN_STRENGTH") != null) {
+                checkTokenStrength = env_map.get("COMET_CHECK_TOKEN_STRENGTH");
+            }
+            if(env_map.get("COMET_CHECK_CLIENT_CERT") != null) {
+                checkClientCert = env_map.get("COMET_CHECK_CLIENT_CERT");
+            }
+            if(env_map.get("ACCUMULO_INSTANCE") != null) {
+                instanceName = env_map.get("ACCUMULO_INSTANCE");
+            }
+            if(env_map.get("ACCUMULO_ZOOSERVERS") != null) {
+                zooServers = env_map.get("ACCUMULO_ZOOSERVERS");
+            }
+            if(env_map.get("ACCUMULO_USER") != null) {
+                userName = env_map.get("ACCUMULO_USER");
+            }
+            if(env_map.get("ACCUMULO_PASSWORD") != null) {
+                password = env_map.get("ACCUMULO_PASSWORD");
+            }
+            if(env_map.get("ACCUMULO_TABLENAME") != null) {
+                tableName = env_map.get("ACCUMULO_TABLENAME");
+            }
+
+
             try {
-                input = new FileInputStream(configFile);
+                input = CometOps.class.getClassLoader().getResourceAsStream("application.properties");
+
                 // load a properties file
                 prop.load(input);
-                checkTokenStrength = prop.getProperty("comet.checkStrength");
-                checkClientCert = prop.getProperty("comet.certCheck");
-                instanceName = prop.getProperty("accumulo.instanceName");
-                zooServers = prop.getProperty("accumulo.zooServers");
-                userName = prop.getProperty("accumulo.userName");
-                password = prop.getProperty("accumulo.password");
-                tableName = prop.getProperty("accumulo.tableName");
+
+                if(env_map.get("COMET_CHECK_TOKEN_STRENGTH") == null) {
+                    checkTokenStrength = prop.getProperty("comet.checkStrength");
+                }
+                if(env_map.get("COMET_CHECK_CLIENT_CERT") == null) {
+                    checkClientCert = prop.getProperty("comet.certCheck");
+                }
+                if(env_map.get("ACCUMULO_INSTANCE") == null) {
+                    instanceName = prop.getProperty("accumulo.instanceName");
+                }
+                if(env_map.get("ACCUMULO_ZOOSERVERS") == null) {
+                    zooServers = prop.getProperty("accumulo.zooServers");
+                }
+                if(env_map.get("ACCUMULO_USER") == null) {
+                    userName = prop.getProperty("accumulo.userName");
+                }
+                if(env_map.get("ACCUMULO_PASSWORD") == null) {
+                    password = prop.getProperty("accumulo.password");
+                }
+                if(env_map.get("ACCUMULO_TABLENAME") == null) {
+                    tableName = prop.getProperty("accumulo.tableName");
+                }
+
+                /* log.debug("checkTokenStrength: " + checkTokenStrength
+                        + ", checkClientCert: " + checkClientCert
+                        + ", instanceName: " +  instanceName
+                        + ", zooServers: " +  zooServers
+                        + ", userName: " +  userName
+                        + ", password: " +  password
+                        + ", tableName: " +  tableName); */
+
                 return new String[] {checkTokenStrength, checkClientCert, instanceName, zooServers, userName, password, tableName};
     
             } catch (IOException ex) {
