@@ -23,6 +23,8 @@ import org.codehaus.jettison.json.JSONObject;
 import org.apache.hadoop.io.Text;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.ColumnVisibility;
+import org.apache.accumulo.core.client.security.tokens.PasswordToken;
+
 
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
@@ -144,7 +146,7 @@ public class CometOps implements CometOpsIfce {
     public JSONObject writeScope (String contextID, String family, String key, String scopeValue, String readToken, String writeToken) 
                                 throws AccumuloException, AccumuloSecurityException,TableNotFoundException, TableExistsException {
         Instance inst = new ZooKeeperInstance(instanceName,zooServers);
-        Connector conn = inst.getConnector(userName, password);
+        Connector conn = inst.getConnector(userName, new PasswordToken(password));
         AccumuloOperationsApiImpl accu = new AccumuloOperationsApiImpl();
 
         Text rowID = new Text(contextID);
@@ -217,7 +219,7 @@ public class CometOps implements CometOpsIfce {
     public JSONObject deleteScope (String contextID, String family, String key, String readToken, String writeToken) throws AccumuloException, AccumuloSecurityException, TableNotFoundException, JSONException {
 
         Instance inst = new ZooKeeperInstance(instanceName,zooServers);
-        Connector conn = inst.getConnector(userName, password);
+        Connector conn = inst.getConnector(userName, new PasswordToken(password));
         AccumuloOperationsApiImpl accu = new AccumuloOperationsApiImpl();
         JSONObject jsonOutput = new JSONObject();
 
@@ -290,7 +292,7 @@ public class CometOps implements CometOpsIfce {
 
     public JSONObject readScope (String contextID, String family, String key, String readToken) throws AccumuloException, AccumuloSecurityException,TableNotFoundException, TableExistsException {
         Instance inst = new ZooKeeperInstance(instanceName,zooServers);
-        Connector conn = inst.getConnector(userName, password);
+        Connector conn = inst.getConnector(userName, new PasswordToken(password));
         AccumuloOperationsApiImpl accu = new AccumuloOperationsApiImpl();
 
         Text rowID = new Text(contextID);
@@ -340,7 +342,7 @@ public class CometOps implements CometOpsIfce {
 
         Instance inst = new ZooKeeperInstance(instanceName,zooServers);
     
-        Connector conn = inst.getConnector(userName, password);
+        Connector conn = inst.getConnector(userName, new PasswordToken(password));
     
         AccumuloOperationsApiImpl accu = new AccumuloOperationsApiImpl();
     
@@ -407,7 +409,7 @@ public class CometOps implements CometOpsIfce {
     public JSONObject enumerateScopes(String contextID, String readToken) throws AccumuloException, AccumuloSecurityException {
 
         Instance inst = new ZooKeeperInstance(instanceName,zooServers);
-        Connector conn = inst.getConnector(userName, password);
+        Connector conn = inst.getConnector(userName, new PasswordToken(password));
         AccumuloOperationsApiImpl accu = new AccumuloOperationsApiImpl();
     
         Text rowID = new Text(contextID);
