@@ -26,6 +26,11 @@ Validate that the server is running at: [http://localhost:8080/swagger.json](htt
 
 <img width="80%" alt="http://localhost:8080/swagger.json" src="https://user-images.githubusercontent.com/5332509/34850991-0ff8259c-f6f6-11e7-99b4-72d391615d17.png">
 
+#### Or Running the server in Docker
+
+Please refer to [Dockerizing.md](Dockerizing.md)
+
+
 ## Initial Code Generation
 
 ### API Server
