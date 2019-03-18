@@ -1,5 +1,3 @@
-# COMET phase 2 
-
 ## About
 
 COMET is a distributed RESTful meta-data service which stores key-value oriented configuration information about resources and applications running in the distributed cloud. Clients of COMET are elements of IaaS cloud provider system, user client tools, applications running in tenant virtual systems/slices. COMET provides strong authorization controls ensuring that information is only shared with appropriate clients.
