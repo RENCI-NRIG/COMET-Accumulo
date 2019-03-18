@@ -7,7 +7,7 @@ COMET is a distributed RESTful meta-data service which stores key-value oriented
 COMET (phase 2) is based on new design of mapping cloud service entries to [Accumulo](https://accumulo.apache.org) table entries.
 
 
-![comet accumulo architecture](https://user-images.githubusercontent.com/29924060/35002282-2bcad8f4-fab7-11e7-882c-0f5041f81cbd.png)
+![comet accumulo architecture](https://user-images.githubusercontent.com/29924060/54558372-ed31e100-4993-11e9-98ce-ffe342670e9e.jpg)
 
 ## COMET API implementation
 
