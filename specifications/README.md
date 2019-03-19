@@ -1,4 +1,4 @@
-# COMET Design - Phase 2
+# COMET Design
 
 ## 1. Introduction
 
