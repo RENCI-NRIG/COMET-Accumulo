@@ -314,22 +314,14 @@
          "Type": "AWS::EC2::SecurityGroupIngress",
          "Properties": {
              "GroupName": { "Ref": "CometAccumuloSGBase" },
-<<<<<<< HEAD
              "IpProtocol" : "tcp", "FromPort" : "9998", "ToPort" : "9998", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] } 
-=======
-             "IpProtocol" : "tcp", "FromPort" : "9998", "ToPort" : "9998", "SourceSecurityGroupId": { "Ref": "CometAccumuloSGBase" } 
->>>>>>> d2d0ad951724a9cbc430c4cf25a151ae9c255f15
          }
      },
      "CometAccumuloSGBaseIngress2" : {
          "Type": "AWS::EC2::SecurityGroupIngress",
          "Properties": {
              "GroupName": { "Ref": "CometAccumuloSGBase" },
-<<<<<<< HEAD
              "IpProtocol" : "tcp", "FromPort" : "9999", "ToPort" : "9999", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
-=======
-             "IpProtocol" : "tcp", "FromPort" : "9999", "ToPort" : "9999", "SourceSecurityGroupId": { "Ref": "CometAccumuloSGBase" }
->>>>>>> d2d0ad951724a9cbc430c4cf25a151ae9c255f15
          }
      },
      "Namenode": {
@@ -369,13 +361,9 @@
                "/root/install.sh": {
                  "content": { "Fn::Join": [ "", [
                            "git clone https://github.com/RENCI-NRIG/COMET-Accumulo.git /root/COMET-Accumulo\n",
-<<<<<<< HEAD
                            "cd /root/COMET-Accumulo \n",
                            "git checkout -b br15\n",
                            "cd \n",
-=======
-                           "git checkout -b br15",
->>>>>>> d2d0ad951724a9cbc430c4cf25a151ae9c255f15
                            "mv /root/COMET-Accumulo/aws-accumulo/config/* /root/\n",
                            "rm -rf /root/COMET-Accumulo\n",
                            "/root/setupzookeeper.sh ",{"Ref" : "ZooKeeperVersion"}," > /var/log/setupzookeeper.log 2>&1\n",
@@ -482,13 +470,9 @@
                "/root/install.sh": {
                  "content": { "Fn::Join": [ "", [
                            "git clone https://github.com/RENCI-NRIG/COMET-Accumulo.git /root/COMET-Accumulo\n",
-<<<<<<< HEAD
                            "cd /root/COMET-Accumulo \n",
                            "git checkout -b br15\n",
                            "cd \n",
-=======
-                           "git checkout -b br15",
->>>>>>> d2d0ad951724a9cbc430c4cf25a151ae9c255f15
                            "mv /root/COMET-Accumulo/aws-accumulo/config/* /root/\n",
                            "rm -rf /root/COMET-Accumulo\n",                     
                            "/root/setupzookeeper.sh ",{"Ref" : "ZooKeeperVersion"}," > /var/log/setupzookeeper.log 2>&1\n",
@@ -595,13 +579,9 @@
                "/root/install.sh": {
                  "content": { "Fn::Join": [ "", [
                            "git clone https://github.com/RENCI-NRIG/COMET-Accumulo.git /root/COMET-Accumulo\n",
-<<<<<<< HEAD
                            "cd /root/COMET-Accumulo \n",
                            "git checkout -b br15\n",
                            "cd \n",
-=======
-                           "git checkout -b br15",
->>>>>>> d2d0ad951724a9cbc430c4cf25a151ae9c255f15
                            "mv /root/COMET-Accumulo/aws-accumulo/config/* /root/\n",
                            "rm -rf /root/COMET-Accumulo\n",                     
                            "/root/setupzookeeper.sh ",{"Ref" : "ZooKeeperVersion"}," > /var/log/setupzookeeper.log 2>&1\n",
@@ -708,13 +688,9 @@
                "/root/install.sh": {
                  "content": { "Fn::Join": [ "", [
                            "git clone https://github.com/RENCI-NRIG/COMET-Accumulo.git /root/COMET-Accumulo\n",
-<<<<<<< HEAD
                            "cd /root/COMET-Accumulo \n",
                            "git checkout -b br15\n",
                            "cd \n",
-=======
-                           "git checkout -b br15",
->>>>>>> d2d0ad951724a9cbc430c4cf25a151ae9c255f15
                            "mv /root/COMET-Accumulo/aws-accumulo/config/* /root/\n",
                            "rm -rf /root/COMET-Accumulo\n",                     
                            "/root/setupzookeeper.sh ",{"Ref" : "ZooKeeperVersion"}," > /var/log/setupzookeeper.log 2>&1\n",
@@ -821,13 +797,9 @@
                "/root/install.sh": {
                  "content": { "Fn::Join": [ "", [
                            "git clone https://github.com/RENCI-NRIG/COMET-Accumulo.git /root/COMET-Accumulo\n",
-<<<<<<< HEAD
                            "cd /root/COMET-Accumulo \n",
                            "git checkout -b br15\n",
                            "cd \n",
-=======
-                           "git checkout -b br15",
->>>>>>> d2d0ad951724a9cbc430c4cf25a151ae9c255f15
                            "mv /root/COMET-Accumulo/aws-accumulo/config/* /root/\n",
                            "mv /root/COMET-Accumulo/aws-accumulo/docker/comet/* /root/\n",
                            "rm -rf /root/COMET-Accumulo\n",                     
@@ -948,6 +920,7 @@
                            "git clone https://github.com/RENCI-NRIG/COMET-Accumulo.git /root/COMET-Accumulo\n",
                            "cd /root/COMET-Accumulo \n",
                            "git checkout -b br15\n",
+                           "git pull origin br15\n",
                            "cd /root/\n",
                            "mv /root/COMET-Accumulo/aws-accumulo/docker/comet/* /root/\n",
                            "rm -rf /root/COMET-Accumulo\n",

@@ -17,12 +17,8 @@ services:
       ACCUMULO_INSTANCE: docker-development
       COMET_CHECK_TOKEN_STRENGTH: 'false'
       COMET_CHECK_CLIENT_CERT: 'false'
-<<<<<<< HEAD
       COMET_SSL_KEY_STORE: cometserver.jks
       COMET_SSL_KEY_STORE_PWD: 'changeme'
       COMET_SSL_KEY_PWD: 'changeme'
       COMET_SSL_TRUST_STORE: comettrustedstore.jks
       COMET_SSL_TRUST_STORE_PWD: 'changeme'
-
-=======
->>>>>>> d2d0ad951724a9cbc430c4cf25a151ae9c255f15
