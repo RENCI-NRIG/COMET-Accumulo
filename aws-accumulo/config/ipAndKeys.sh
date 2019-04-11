@@ -12,13 +12,12 @@ CLUSTERNODES=$3
 IS_NAME_NODE=$4
 IS_COMET=$5
 
-source /etc/profile.d/hadoop.sh
-
 /opt/aws/bin/ec2-metadata -o | cut -d' ' -f2 > /root/$HOSTNAME.ip
 
 /usr/bin/aws s3 cp /root/$HOSTNAME.ip s3://$BUCKETNAME/
 
 if ! $IS_COMET; then
+    source /etc/profile.d/hadoop.sh
     if $IS_NAME_NODE; then
         runuser -l hadoop -c 'mkdir -p $HADOOP_USER_HOME/.ssh'
 

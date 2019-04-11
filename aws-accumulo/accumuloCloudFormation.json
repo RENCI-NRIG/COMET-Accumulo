@@ -284,28 +284,7 @@
            {"IpProtocol" : "tcp", "FromPort" : "22", "ToPort" : "22", "CidrIp" : { "Ref" : "SSHLocation"}},
            {"IpProtocol" : "tcp", "FromPort" : "80", "ToPort" : "80", "CidrIp" : "0.0.0.0/0"},
            {"IpProtocol" : "tcp", "FromPort" : "8080", "ToPort" : "8080", "CidrIp" : "0.0.0.0/0"},
-           {"IpProtocol" : "tcp", "FromPort" : "8030", "ToPort" : "8030", "CidrIp" : "0.0.0.0/0"},
-           {"IpProtocol" : "tcp", "FromPort" : "8031", "ToPort" : "8031", "CidrIp" : "0.0.0.0/0"},
-           {"IpProtocol" : "tcp", "FromPort" : "8032", "ToPort" : "8032", "CidrIp" : "0.0.0.0/0"},
-           {"IpProtocol" : "tcp", "FromPort" : "8033", "ToPort" : "8033", "CidrIp" : "0.0.0.0/0"},
-           {"IpProtocol" : "tcp", "FromPort" : "2888", "ToPort" : "2888", "CidrIp" : "0.0.0.0/0"},
-           {"IpProtocol" : "tcp", "FromPort" : "2181", "ToPort" : "2181", "CidrIp" : "0.0.0.0/0"},
-           {"IpProtocol" : "tcp", "FromPort" : "3888", "ToPort" : "3888", "CidrIp" : "0.0.0.0/0"},
-           {"IpProtocol" : "tcp", "FromPort" : "50070", "ToPort" : "50070", "CidrIp" : "0.0.0.0/0"},
-           {"IpProtocol" : "tcp", "FromPort" : "50075", "ToPort" : "50075", "CidrIp" : "0.0.0.0/0"},
-           {"IpProtocol" : "tcp", "FromPort" : "50010", "ToPort" : "50010", "CidrIp" : "0.0.0.0/0"},
-           {"IpProtocol" : "tcp", "FromPort" : "50020", "ToPort" : "50020", "CidrIp" : "0.0.0.0/0"},
-           {"IpProtocol" : "tcp", "FromPort" : "8088", "ToPort" : "8088", "CidrIp" : "0.0.0.0/0"},
            {"IpProtocol" : "tcp", "FromPort" : "9995", "ToPort" : "9995", "CidrIp" : "0.0.0.0/0"},
-           {"IpProtocol" : "tcp", "FromPort" : "9996", "ToPort" : "9996", "CidrIp" : "0.0.0.0/0"},
-           {"IpProtocol" : "tcp", "FromPort" : "9997", "ToPort" : "9997", "CidrIp" : "0.0.0.0/0"},
-           {"IpProtocol" : "tcp", "FromPort" : "10001", "ToPort" : "10001", "CidrIp" : "0.0.0.0/0"},
-           {"IpProtocol" : "tcp", "FromPort" : "10001", "ToPort" : "10002", "CidrIp" : "0.0.0.0/0"},
-           {"IpProtocol" : "tcp", "FromPort" : "4560", "ToPort" : "4560", "CidrIp" : "0.0.0.0/0"},
-           {"IpProtocol" : "tcp", "FromPort" : "43335", "ToPort" : "43835", "CidrIp" : "0.0.0.0/0"},
-           {"IpProtocol" : "tcp", "FromPort" : "43335", "ToPort" : "43335", "CidrIp" : "0.0.0.0/0"},
-           {"IpProtocol" : "tcp", "FromPort" : "44743", "ToPort" : "44743", "CidrIp" : "0.0.0.0/0"},
-           {"IpProtocol" : "tcp", "FromPort" : "9000", "ToPort" : "9000", "CidrIp" : "0.0.0.0/0"},
            {"IpProtocol" : "tcp", "FromPort" : "8111", "ToPort" : "8111", "CidrIp" : "0.0.0.0/0"}
          ]
        }
@@ -324,6 +303,146 @@
              "IpProtocol" : "tcp", "FromPort" : "9999", "ToPort" : "9999", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
          }
      },
+     "CometAccumuloSGBaseIngress3" : {
+         "Type": "AWS::EC2::SecurityGroupIngress",
+         "Properties": {
+             "GroupName": { "Ref": "CometAccumuloSGBase" },
+             "IpProtocol" : "tcp", "FromPort" : "8030", "ToPort" : "8030", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
+         }
+     },
+     "CometAccumuloSGBaseIngress4" : {
+         "Type": "AWS::EC2::SecurityGroupIngress",
+         "Properties": {
+             "GroupName": { "Ref": "CometAccumuloSGBase" },
+             "IpProtocol" : "tcp", "FromPort" : "8031", "ToPort" : "8031", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
+         }
+     },
+     "CometAccumuloSGBaseIngress5" : {
+         "Type": "AWS::EC2::SecurityGroupIngress",
+         "Properties": {
+             "GroupName": { "Ref": "CometAccumuloSGBase" },
+             "IpProtocol" : "tcp", "FromPort" : "8032", "ToPort" : "8032", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
+         }
+     },
+     "CometAccumuloSGBaseIngress6" : {
+         "Type": "AWS::EC2::SecurityGroupIngress",
+         "Properties": {
+             "GroupName": { "Ref": "CometAccumuloSGBase" },
+             "IpProtocol" : "tcp", "FromPort" : "2888", "ToPort" : "2888", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
+         }
+     },
+     "CometAccumuloSGBaseIngress7" : {
+         "Type": "AWS::EC2::SecurityGroupIngress",
+         "Properties": {
+             "GroupName": { "Ref": "CometAccumuloSGBase" },
+             "IpProtocol" : "tcp", "FromPort" : "2181", "ToPort" : "2181", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
+         }
+     },
+     "CometAccumuloSGBaseIngress8" : {
+         "Type": "AWS::EC2::SecurityGroupIngress",
+         "Properties": {
+             "GroupName": { "Ref": "CometAccumuloSGBase" },
+             "IpProtocol" : "tcp", "FromPort" : "3888", "ToPort" : "3888", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
+         }
+     },
+     "CometAccumuloSGBaseIngress8" : {
+         "Type": "AWS::EC2::SecurityGroupIngress",
+         "Properties": {
+             "GroupName": { "Ref": "CometAccumuloSGBase" },
+             "IpProtocol" : "tcp", "FromPort" : "50070", "ToPort" : "50070", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
+         }
+     },
+     "CometAccumuloSGBaseIngress9" : {
+         "Type": "AWS::EC2::SecurityGroupIngress",
+         "Properties": {
+             "GroupName": { "Ref": "CometAccumuloSGBase" },
+             "IpProtocol" : "tcp", "FromPort" : "50075", "ToPort" : "50075", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
+         }
+     },
+     "CometAccumuloSGBaseIngress10" : {
+         "Type": "AWS::EC2::SecurityGroupIngress",
+         "Properties": {
+             "GroupName": { "Ref": "CometAccumuloSGBase" },
+             "IpProtocol" : "tcp", "FromPort" : "50010", "ToPort" : "50010", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
+         }
+     },
+     "CometAccumuloSGBaseIngress11" : {
+         "Type": "AWS::EC2::SecurityGroupIngress",
+         "Properties": {
+             "GroupName": { "Ref": "CometAccumuloSGBase" },
+             "IpProtocol" : "tcp", "FromPort" : "50020", "ToPort" : "50020", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
+         }
+     },
+     "CometAccumuloSGBaseIngress12" : {
+         "Type": "AWS::EC2::SecurityGroupIngress",
+         "Properties": {
+             "GroupName": { "Ref": "CometAccumuloSGBase" },
+             "IpProtocol" : "tcp", "FromPort" : "8088", "ToPort" : "8088", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
+         }
+     },
+     "CometAccumuloSGBaseIngress13" : {
+          "Type": "AWS::EC2::SecurityGroupIngress",
+          "Properties": {
+              "GroupName": { "Ref": "CometAccumuloSGBase" },
+              "IpProtocol" : "tcp", "FromPort" : "9996", "ToPort" : "9996", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
+          }
+     },     
+     "CometAccumuloSGBaseIngress14" : {
+          "Type": "AWS::EC2::SecurityGroupIngress",
+          "Properties": {
+              "GroupName": { "Ref": "CometAccumuloSGBase" },
+              "IpProtocol" : "tcp", "FromPort" : "9997", "ToPort" : "9997", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
+          }
+     },     
+     "CometAccumuloSGBaseIngress15" : {
+          "Type": "AWS::EC2::SecurityGroupIngress",
+          "Properties": {
+              "GroupName": { "Ref": "CometAccumuloSGBase" },
+              "IpProtocol" : "tcp", "FromPort" : "10001", "ToPort" : "10001", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
+          }
+     },     
+     "CometAccumuloSGBaseIngress16" : {
+          "Type": "AWS::EC2::SecurityGroupIngress",
+          "Properties": {
+              "GroupName": { "Ref": "CometAccumuloSGBase" },
+              "IpProtocol" : "tcp", "FromPort" : "10002", "ToPort" : "10002", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
+          }
+     },     
+     "CometAccumuloSGBaseIngress17" : {
+          "Type": "AWS::EC2::SecurityGroupIngress",
+          "Properties": {
+              "GroupName": { "Ref": "CometAccumuloSGBase" },
+              "IpProtocol" : "tcp", "FromPort" : "4560", "ToPort" : "4560", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
+          }
+     },     
+     "CometAccumuloSGBaseIngress18" : {
+          "Type": "AWS::EC2::SecurityGroupIngress",
+          "Properties": {
+              "GroupName": { "Ref": "CometAccumuloSGBase" },
+              "IpProtocol" : "tcp", "FromPort" : "43335", "ToPort" : "43335", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
+          }
+     },     
+     "CometAccumuloSGBaseIngress19" : {
+          "Type": "AWS::EC2::SecurityGroupIngress",
+          "Properties": {
+              "GroupName": { "Ref": "CometAccumuloSGBase" },
+              "IpProtocol" : "tcp", "FromPort" : "43835", "ToPort" : "43835", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
+          }
+     },     
+     "CometAccumuloSGBaseIngress20" : {
+          "Type": "AWS::EC2::SecurityGroupIngress",
+          "Properties": {
+              "GroupName": { "Ref": "CometAccumuloSGBase" },
+              "IpProtocol" : "tcp", "FromPort" : "44743", "ToPort" : "44743", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
+          }
+     },     
+     "CometAccumuloSGBaseIngress21" : {
+          "Type": "AWS::EC2::SecurityGroupIngress",
+          "Properties": {
+              "GroupName": { "Ref": "CometAccumuloSGBase" },
+              "IpProtocol" : "tcp", "FromPort" : "9000", "ToPort" : "9000", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
+          }
+     },     
      "Namenode": {
        "Type" : "AWS::EC2::Instance",
        "Metadata" : {
