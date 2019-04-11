@@ -100,6 +100,12 @@ public class CometOps implements CometOpsIfce {
                 // load a properties file
                 prop.load(input);
 
+                log.debug("server.ssl.key-store=" + prop.getProperty("server.ssl.key-store")); 
+                log.debug("server.ssl.key-store-password=" + prop.getProperty("server.ssl.key-store-password")); 
+                log.debug("server.ssl.key-password=" + prop.getProperty("server.ssl.key-password")); 
+                log.debug("server.ssl.trust-store=" + prop.getProperty("server.ssl.trust-store")); 
+                log.debug("server.ssl.trust-store-password=" + prop.getProperty("server.ssl.trust-store-password")); 
+
                 if(env_map.get("COMET_CHECK_TOKEN_STRENGTH") == null) {
                     checkTokenStrength = prop.getProperty("comet.checkStrength");
                 }

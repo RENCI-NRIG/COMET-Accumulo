@@ -1,0 +1,25 @@
+version: '3.1'
+
+services:
+
+  comet:
+    image: rencinrig/comet-spring
+    container_name: comet
+    volumes:
+      - ~/log:/var/log #modify to your desired local directory
+    restart: always
+    hostname: comet
+    ports:
+      - 8111:8111
+    environment:
+      ACCUMULO_TABLENAME: trace
+      ACCUMULO_ZOOSERVERS: zoo1,zoo2,zoo3
+      ACCUMULO_INSTANCE: docker-development
+      COMET_CHECK_TOKEN_STRENGTH: 'false'
+      COMET_CHECK_CLIENT_CERT: 'false'
+      COMET_SSL_KEY_STORE: cometserver.jks
+      COMET_SSL_KEY_STORE_PWD: 'changeme'
+      COMET_SSL_KEY_PWD: 'changeme'
+      COMET_SSL_TRUST_STORE: comettrustedstore.jks
+      COMET_SSL_TRUST_STORE_PWD: 'changeme'
+

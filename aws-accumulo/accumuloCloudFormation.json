@@ -18,6 +18,22 @@
  ,
        "ConstraintDescription" : "must be a valid EC2 instance type."
      },
+     "MasterInstanceType" : {
+       "Description" : "EC2 instance type",
+       "Type" : "String",
+       "Default" : "t2.small",
+       "AllowedValues" : [ "t1.micro", "t2.nano", "t2.micro", "t2.small", "t2.medium", "t2.large", "m1.small", "m1.medium", "m1.large", "m1.xlarge", "m2.xlarge", "m2.       2xlarge", "m2.4xlarge", "m3.medium", "m3.large", "m3.xlarge", "m3.2xlarge", "m4.large", "m4.xlarge", "m4.2xlarge", "m4.4xlarge", "m4.10xlarge", "c1.medium", "c1.xlarge",   "c3.large", "c3.xlarge", "c3.2xlarge", "c3.4xlarge", "c3.8xlarge", "c4.large", "c4.xlarge", "c4.2xlarge", "c4.4xlarge", "c4.8xlarge", "g2.2xlarge", "g2.8xlarge", "r3.      large", "r3.xlarge", "r3.2xlarge", "r3.4xlarge", "r3.8xlarge", "i2.xlarge", "i2.2xlarge", "i2.4xlarge", "i2.8xlarge", "d2.xlarge", "d2.2xlarge", "d2.4xlarge", "d2.         8xlarge", "hi1.4xlarge", "hs1.8xlarge", "cr1.8xlarge", "cc2.8xlarge", "cg1.4xlarge"]
+ ,
+       "ConstraintDescription" : "must be a valid EC2 instance type."
+     },
+     "CometHeadNodeInstanceType" : {
+       "Description" : "EC2 instance type",
+       "Type" : "String",
+       "Default" : "t2.small",
+       "AllowedValues" : [ "t1.micro", "t2.nano", "t2.micro", "t2.small", "t2.medium", "t2.large", "m1.small", "m1.medium", "m1.large", "m1.xlarge", "m2.xlarge", "m2.       2xlarge", "m2.4xlarge", "m3.medium", "m3.large", "m3.xlarge", "m3.2xlarge", "m4.large", "m4.xlarge", "m4.2xlarge", "m4.4xlarge", "m4.10xlarge", "c1.medium", "c1.xlarge",   "c3.large", "c3.xlarge", "c3.2xlarge", "c3.4xlarge", "c3.8xlarge", "c4.large", "c4.xlarge", "c4.2xlarge", "c4.4xlarge", "c4.8xlarge", "g2.2xlarge", "g2.8xlarge", "r3.      large", "r3.xlarge", "r3.2xlarge", "r3.4xlarge", "r3.8xlarge", "i2.xlarge", "i2.2xlarge", "i2.4xlarge", "i2.8xlarge", "d2.xlarge", "d2.2xlarge", "d2.4xlarge", "d2.         8xlarge", "hi1.4xlarge", "hs1.8xlarge", "cr1.8xlarge", "cc2.8xlarge", "cg1.4xlarge"]
+ ,
+       "ConstraintDescription" : "must be a valid EC2 instance type."
+     },
 
      "SSHLocation": {
        "Description": "The IP address range that can be used to SSH to the EC2 instances",
@@ -260,11 +276,12 @@
            }
        }
      },
-     "ServerSecurityGroup" : {
+     "CometAccumuloSGBase" : {
        "Type" : "AWS::EC2::SecurityGroup",
        "Properties" : {
-         "GroupDescription" : "Enable required ports for running haddoop, zookeeper and accumulo + SSH access",
+         "GroupDescription" : "Base Security Group enables SSH",
          "SecurityGroupIngress" : [
+           {"IpProtocol" : "tcp", "FromPort" : "22", "ToPort" : "22", "CidrIp" : { "Ref" : "SSHLocation"}},
            {"IpProtocol" : "tcp", "FromPort" : "80", "ToPort" : "80", "CidrIp" : "0.0.0.0/0"},
            {"IpProtocol" : "tcp", "FromPort" : "8080", "ToPort" : "8080", "CidrIp" : "0.0.0.0/0"},
            {"IpProtocol" : "tcp", "FromPort" : "8030", "ToPort" : "8030", "CidrIp" : "0.0.0.0/0"},
@@ -282,8 +299,6 @@
            {"IpProtocol" : "tcp", "FromPort" : "9995", "ToPort" : "9995", "CidrIp" : "0.0.0.0/0"},
            {"IpProtocol" : "tcp", "FromPort" : "9996", "ToPort" : "9996", "CidrIp" : "0.0.0.0/0"},
            {"IpProtocol" : "tcp", "FromPort" : "9997", "ToPort" : "9997", "CidrIp" : "0.0.0.0/0"},
-           {"IpProtocol" : "tcp", "FromPort" : "9998", "ToPort" : "9998", "CidrIp" : "0.0.0.0/0"},
-           {"IpProtocol" : "tcp", "FromPort" : "9999", "ToPort" : "9999", "CidrIp" : "0.0.0.0/0"},
            {"IpProtocol" : "tcp", "FromPort" : "10001", "ToPort" : "10001", "CidrIp" : "0.0.0.0/0"},
            {"IpProtocol" : "tcp", "FromPort" : "10001", "ToPort" : "10002", "CidrIp" : "0.0.0.0/0"},
            {"IpProtocol" : "tcp", "FromPort" : "4560", "ToPort" : "4560", "CidrIp" : "0.0.0.0/0"},
@@ -291,11 +306,24 @@
            {"IpProtocol" : "tcp", "FromPort" : "43335", "ToPort" : "43335", "CidrIp" : "0.0.0.0/0"},
            {"IpProtocol" : "tcp", "FromPort" : "44743", "ToPort" : "44743", "CidrIp" : "0.0.0.0/0"},
            {"IpProtocol" : "tcp", "FromPort" : "9000", "ToPort" : "9000", "CidrIp" : "0.0.0.0/0"},
-           {"IpProtocol" : "tcp", "FromPort" : "8111", "ToPort" : "8111", "CidrIp" : "0.0.0.0/0"},
-           {"IpProtocol" : "tcp", "FromPort" : "22", "ToPort" : "22", "CidrIp" : { "Ref" : "SSHLocation"}}
+           {"IpProtocol" : "tcp", "FromPort" : "8111", "ToPort" : "8111", "CidrIp" : "0.0.0.0/0"}
          ]
        }
      },     
+     "CometAccumuloSGBaseIngress1" : {
+         "Type": "AWS::EC2::SecurityGroupIngress",
+         "Properties": {
+             "GroupName": { "Ref": "CometAccumuloSGBase" },
+             "IpProtocol" : "tcp", "FromPort" : "9998", "ToPort" : "9998", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] } 
+         }
+     },
+     "CometAccumuloSGBaseIngress2" : {
+         "Type": "AWS::EC2::SecurityGroupIngress",
+         "Properties": {
+             "GroupName": { "Ref": "CometAccumuloSGBase" },
+             "IpProtocol" : "tcp", "FromPort" : "9999", "ToPort" : "9999", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
+         }
+     },
      "Namenode": {
        "Type" : "AWS::EC2::Instance",
        "Metadata" : {
@@ -333,6 +361,9 @@
                "/root/install.sh": {
                  "content": { "Fn::Join": [ "", [
                            "git clone https://github.com/RENCI-NRIG/COMET-Accumulo.git /root/COMET-Accumulo\n",
+                           "cd /root/COMET-Accumulo \n",
+                           "git checkout -b br15\n",
+                           "cd \n",
                            "mv /root/COMET-Accumulo/aws-accumulo/config/* /root/\n",
                            "rm -rf /root/COMET-Accumulo\n",
                            "/root/setupzookeeper.sh ",{"Ref" : "ZooKeeperVersion"}," > /var/log/setupzookeeper.log 2>&1\n",
@@ -376,7 +407,7 @@
          "ImageId" : { "Fn::FindInMap" : [ "AWSRegionArch2AMI", { "Ref" : "AWS::Region" },
                            { "Fn::FindInMap" : [ "AWSInstanceType2Arch", { "Ref" : "InstanceType" }, "Arch" ] } ] },
          "InstanceType"   : { "Ref" : "InstanceType" },
-         "SecurityGroups" : [ {"Ref" : "ServerSecurityGroup"} ],
+         "SecurityGroups" : [ {"Ref" : "CometAccumuloSGBase"} ],
          "KeyName"        : { "Ref" : "KeyName" },
          "Tags"           : [ {"Key" : "Name", "Value" : {"Fn::Join" : [ "", [ { "Ref" : "AWS::StackName" }, "namenode" ] ] }}],
          "IamInstanceProfile": { "Ref": "RunCmdInstanceProfile" },
@@ -439,6 +470,9 @@
                "/root/install.sh": {
                  "content": { "Fn::Join": [ "", [
                            "git clone https://github.com/RENCI-NRIG/COMET-Accumulo.git /root/COMET-Accumulo\n",
+                           "cd /root/COMET-Accumulo \n",
+                           "git checkout -b br15\n",
+                           "cd \n",
                            "mv /root/COMET-Accumulo/aws-accumulo/config/* /root/\n",
                            "rm -rf /root/COMET-Accumulo\n",                     
                            "/root/setupzookeeper.sh ",{"Ref" : "ZooKeeperVersion"}," > /var/log/setupzookeeper.log 2>&1\n",
@@ -482,7 +516,7 @@
          "ImageId" : { "Fn::FindInMap" : [ "AWSRegionArch2AMI", { "Ref" : "AWS::Region" },
                            { "Fn::FindInMap" : [ "AWSInstanceType2Arch", { "Ref" : "InstanceType" }, "Arch" ] } ] },
          "InstanceType"   : { "Ref" : "InstanceType" },
-         "SecurityGroups" : [ {"Ref" : "ServerSecurityGroup"} ],
+         "SecurityGroups" : [ {"Ref" : "CometAccumuloSGBase"} ],
          "KeyName"        : { "Ref" : "KeyName" },
          "Tags"           : [ {"Key" : "Name", "Value" : {"Fn::Join" : [ "", [ { "Ref" : "AWS::StackName" }, "resourcemanager" ] ] }}],
          "IamInstanceProfile": { "Ref": "RunCmdInstanceProfile" },
@@ -545,6 +579,9 @@
                "/root/install.sh": {
                  "content": { "Fn::Join": [ "", [
                            "git clone https://github.com/RENCI-NRIG/COMET-Accumulo.git /root/COMET-Accumulo\n",
+                           "cd /root/COMET-Accumulo \n",
+                           "git checkout -b br15\n",
+                           "cd \n",
                            "mv /root/COMET-Accumulo/aws-accumulo/config/* /root/\n",
                            "rm -rf /root/COMET-Accumulo\n",                     
                            "/root/setupzookeeper.sh ",{"Ref" : "ZooKeeperVersion"}," > /var/log/setupzookeeper.log 2>&1\n",
@@ -588,7 +625,7 @@
          "ImageId" : { "Fn::FindInMap" : [ "AWSRegionArch2AMI", { "Ref" : "AWS::Region" },
                            { "Fn::FindInMap" : [ "AWSInstanceType2Arch", { "Ref" : "InstanceType" }, "Arch" ] } ] },
          "InstanceType"   : { "Ref" : "InstanceType" },
-         "SecurityGroups" : [ {"Ref" : "ServerSecurityGroup"} ],
+         "SecurityGroups" : [ {"Ref" : "CometAccumuloSGBase"} ],
          "KeyName"        : { "Ref" : "KeyName" },
          "Tags"           : [ {"Key" : "Name", "Value" : {"Fn::Join" : [ "", [ { "Ref" : "AWS::StackName" }, "worker1" ] ] }}],
          "IamInstanceProfile": { "Ref": "RunCmdInstanceProfile" },
@@ -651,6 +688,9 @@
                "/root/install.sh": {
                  "content": { "Fn::Join": [ "", [
                            "git clone https://github.com/RENCI-NRIG/COMET-Accumulo.git /root/COMET-Accumulo\n",
+                           "cd /root/COMET-Accumulo \n",
+                           "git checkout -b br15\n",
+                           "cd \n",
                            "mv /root/COMET-Accumulo/aws-accumulo/config/* /root/\n",
                            "rm -rf /root/COMET-Accumulo\n",                     
                            "/root/setupzookeeper.sh ",{"Ref" : "ZooKeeperVersion"}," > /var/log/setupzookeeper.log 2>&1\n",
@@ -694,7 +734,7 @@
          "ImageId" : { "Fn::FindInMap" : [ "AWSRegionArch2AMI", { "Ref" : "AWS::Region" },
                            { "Fn::FindInMap" : [ "AWSInstanceType2Arch", { "Ref" : "InstanceType" }, "Arch" ] } ] },
          "InstanceType"   : { "Ref" : "InstanceType" },
-         "SecurityGroups" : [ {"Ref" : "ServerSecurityGroup"} ],
+         "SecurityGroups" : [ {"Ref" : "CometAccumuloSGBase"} ],
          "KeyName"        : { "Ref" : "KeyName" },
          "Tags"           : [ {"Key" : "Name", "Value" : {"Fn::Join" : [ "", [ { "Ref" : "AWS::StackName" }, "worker2" ] ] }}],
          "IamInstanceProfile": { "Ref": "RunCmdInstanceProfile" },
@@ -757,14 +797,26 @@
                "/root/install.sh": {
                  "content": { "Fn::Join": [ "", [
                            "git clone https://github.com/RENCI-NRIG/COMET-Accumulo.git /root/COMET-Accumulo\n",
+                           "cd /root/COMET-Accumulo \n",
+                           "git checkout -b br15\n",
+                           "cd \n",
                            "mv /root/COMET-Accumulo/aws-accumulo/config/* /root/\n",
+                           "mv /root/COMET-Accumulo/aws-accumulo/docker/comet/* /root/\n",
                            "rm -rf /root/COMET-Accumulo\n",                     
                            "/root/setupmaven.sh ",{"Ref" : "MavenVersion"}," > /var/log/setupmaven.log 2>&1\n",
                            "/root/setupzookeeper.sh ",{"Ref" : "ZooKeeperVersion"}," > /var/log/setupzookeeper.log 2>&1\n",
                            "/root/setuphadoop.sh ", {"Ref" : "HadoopVersion"} ," > /var/log/setuphadoop.log 2>&1\n",
                            "/root/setupaccumulo.sh ", {"Ref" : "AccumuloVersion"} ," > /var/log/setupaccumulo.log 2>&1\n",
                            "/root/ipAndKeys.sh accumulomaster ", { "Ref": "S3BucketName" }, " 'namenode resourcemanager worker1 worker2 accumulomaster' false > /var/log/ipAndKeys.log 2>&1\n",
-                           "/root/configure.sh accumulomaster true false false false false false false 'worker1 worker2' 'namenode resourcemanager worker1 worker2 accumulomaster' ", { "Ref": "S3BucketName" }, " > /var/log/configure.log 2>&1"			   
+                           "/root/configure.sh accumulomaster true false false false false false false 'worker1 worker2' 'namenode resourcemanager worker1 worker2 accumulomaster' ", { "Ref": "S3BucketName" }, " > /var/log/configure.log 2>&1\n",
+                           "echo \"enable for docker service\"\n",
+                           "chkconfig --add docker\n",
+                           "echo \"start docker service\"\n",
+                           "service docker start\n",
+                           "curl -L \"https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)\" -o /usr/local/bin/docker-compose\n",
+                           "chmod +x /usr/local/bin/docker-compose\n",
+                           "ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose\n",
+                           "docker-compose up -d\n"
                  ]]},
                  "mode"  : "000700",
                  "owner" : "root",
@@ -783,7 +835,8 @@
                "yum" : {
                    "java-1.8.0-openjdk"  : [],
                    "java-1.8.0-openjdk-devel"  : [],
-                   "git"  : []
+                   "git"  : [],
+                   "docker"  : []
                }
              },
              "commands" : {
@@ -801,8 +854,8 @@
        "Properties": {
          "ImageId" : { "Fn::FindInMap" : [ "AWSRegionArch2AMI", { "Ref" : "AWS::Region" },
                            { "Fn::FindInMap" : [ "AWSInstanceType2Arch", { "Ref" : "InstanceType" }, "Arch" ] } ] },
-         "InstanceType"   : { "Ref" : "InstanceType" },
-         "SecurityGroups" : [ {"Ref" : "ServerSecurityGroup"} ],
+         "InstanceType"   : { "Ref" : "MasterInstanceType" },
+         "SecurityGroups" : [ {"Ref" : "CometAccumuloSGBase"} ],
          "KeyName"        : { "Ref" : "KeyName" },
          "Tags"           : [ {"Key" : "Name", "Value" : {"Fn::Join" : [ "", [ { "Ref" : "AWS::StackName" }, "accumulomaster" ] ] }}],
          "IamInstanceProfile": { "Ref": "RunCmdInstanceProfile" },
@@ -819,6 +872,120 @@
                         "/opt/aws/bin/cfn-signal -e $? ",
                         "         --stack ", { "Ref" : "AWS::StackName" },
                         "         --resource accumulomaster ",
+                        "         --region ", { "Ref" : "AWS::Region" }, "\n"
+         ]]}}
+       },
+       "CreationPolicy" : {
+         "ResourceSignal" : {
+           "Timeout" : "PT50M"
+         }
+       }
+     },
+     "cometheadnode": {
+       "Type" : "AWS::EC2::Instance",
+       "Metadata" : {
+         "AWS::CloudFormation::Init" : {
+           "configSets" : {
+             "cometheadnode_install" : ["install_cfn", "install_comet" ]
+           },
+           "install_cfn" : {
+             "files": {
+               "/etc/cfn/cfn-hup.conf": {
+                 "content": { "Fn::Join": [ "", [
+                   "[main]\n",
+                   "stack=", { "Ref": "AWS::StackId" }, "\n",
+                   "region=", { "Ref": "AWS::Region" }, "\n"
+                 ]]},
+                 "mode"  : "000400",
+                 "owner" : "root",
+                 "group" : "root"
+               },
+               "/etc/cfn/hooks.d/cfn-auto-reloader.conf": {
+                 "content": { "Fn::Join": [ "", [
+                   "[cfn-auto-reloader-hook]\n",
+                   "triggers=post.update\n",
+                   "path=Resources.cometheadnode.Metadata.AWS::CloudFormation::Init\n",
+                   "action=/opt/aws/bin/cfn-init -v ",
+                           "         --stack ", { "Ref" : "AWS::StackName" },
+                           "         --resource cometheadnode ",
+                           "         --configsets cometheadnode_install ",
+                           "         --region ", { "Ref" : "AWS::Region" }, "\n"
+                 ]]},
+                 "mode"  : "000400",
+                 "owner" : "root",
+                 "group" : "root"
+               },
+               "/root/install.sh": {
+                 "content": { "Fn::Join": [ "", [
+                           "git clone https://github.com/RENCI-NRIG/COMET-Accumulo.git /root/COMET-Accumulo\n",
+                           "cd /root/COMET-Accumulo \n",
+                           "git checkout -b br15\n",
+                           "cd /root/\n",
+                           "mv /root/COMET-Accumulo/aws-accumulo/docker/comet/* /root/\n",
+                           "rm -rf /root/COMET-Accumulo\n",
+                           "echo \"enable for docker service\"\n",
+                           "chkconfig --add docker\n",
+                           "echo \"start docker service\"\n",
+                           "service docker start\n",
+                           "curl -L \"https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)\" -o /usr/local/bin/docker-compose\n",
+                           "chmod +x /usr/local/bin/docker-compose\n",
+                           "ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose\n",
+                           "docker-compose up -d\n"
+                 ]]},
+                 "mode"  : "000700",
+                 "owner" : "root",
+                 "group" : "root"
+               }     
+             },
+             "services" : {
+               "sysvinit" : {
+                 "cfn-hup" : { "enabled" : "true", "ensureRunning" : "true",
+                               "files" : ["/etc/cfn/cfn-hup.conf", "/etc/cfn/hooks.d/cfn-auto-reloader.conf"] }
+               }
+             }
+           },               
+           "install_comet" : {
+             "packages" : {
+               "yum" : {
+                   "java-1.8.0-openjdk"  : [],
+                   "java-1.8.0-openjdk-devel"  : [],
+                   "git"  : [],
+                   "docker"  : []
+               }
+             },
+             "commands" : {
+               "01_install" : {
+                 "command" : "/bin/sh /root/install.sh"
+               }
+             },
+             "services" : {
+               "sysvinit" : {
+               }
+             }
+           }
+         }
+       },
+       "Properties": {
+         "ImageId" : { "Fn::FindInMap" : [ "AWSRegionArch2AMI", { "Ref" : "AWS::Region" },
+                           { "Fn::FindInMap" : [ "AWSInstanceType2Arch", { "Ref" : "InstanceType" }, "Arch" ] } ] },
+         "InstanceType"   : { "Ref" : "CometHeadNodeInstanceType" },
+         "SecurityGroups" : [ {"Ref" : "CometAccumuloSGBase"} ],
+         "KeyName"        : { "Ref" : "KeyName" },
+         "Tags"           : [ {"Key" : "Name", "Value" : {"Fn::Join" : [ "", [ { "Ref" : "AWS::StackName" }, "cometheadnode" ] ] }}],
+         "IamInstanceProfile": { "Ref": "RunCmdInstanceProfile" },
+         "UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
+                        "#!/bin/bash -xe\n",
+                        "yum update -y aws-cfn-bootstrap\n",
+
+                        "/opt/aws/bin/cfn-init -v ",
+                        "         --stack ", { "Ref" : "AWS::StackName" },
+                        "         --resource cometheadnode ",
+                        "         --configsets cometheadnode_install ",
+                        "         --region ", { "Ref" : "AWS::Region" }, "\n",
+
+                        "/opt/aws/bin/cfn-signal -e $? ",
+                        "         --stack ", { "Ref" : "AWS::StackName" },
+                        "         --resource cometheadnode ",
                         "         --region ", { "Ref" : "AWS::Region" }, "\n"
          ]]}}
        },
