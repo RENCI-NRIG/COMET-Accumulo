@@ -345,102 +345,123 @@
              "IpProtocol" : "tcp", "FromPort" : "3888", "ToPort" : "3888", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
          }
      },
-     "CometAccumuloSGBaseIngress8" : {
+     "CometAccumuloSGBaseIngress9" : {
          "Type": "AWS::EC2::SecurityGroupIngress",
          "Properties": {
              "GroupName": { "Ref": "CometAccumuloSGBase" },
              "IpProtocol" : "tcp", "FromPort" : "50070", "ToPort" : "50070", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
          }
      },
-     "CometAccumuloSGBaseIngress9" : {
+     "CometAccumuloSGBaseIngress10" : {
          "Type": "AWS::EC2::SecurityGroupIngress",
          "Properties": {
              "GroupName": { "Ref": "CometAccumuloSGBase" },
              "IpProtocol" : "tcp", "FromPort" : "50075", "ToPort" : "50075", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
          }
      },
-     "CometAccumuloSGBaseIngress10" : {
+     "CometAccumuloSGBaseIngress11" : {
          "Type": "AWS::EC2::SecurityGroupIngress",
          "Properties": {
              "GroupName": { "Ref": "CometAccumuloSGBase" },
              "IpProtocol" : "tcp", "FromPort" : "50010", "ToPort" : "50010", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
          }
      },
-     "CometAccumuloSGBaseIngress11" : {
+     "CometAccumuloSGBaseIngress12" : {
          "Type": "AWS::EC2::SecurityGroupIngress",
          "Properties": {
              "GroupName": { "Ref": "CometAccumuloSGBase" },
              "IpProtocol" : "tcp", "FromPort" : "50020", "ToPort" : "50020", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
          }
      },
-     "CometAccumuloSGBaseIngress12" : {
+     "CometAccumuloSGBaseIngress13" : {
          "Type": "AWS::EC2::SecurityGroupIngress",
          "Properties": {
              "GroupName": { "Ref": "CometAccumuloSGBase" },
              "IpProtocol" : "tcp", "FromPort" : "8088", "ToPort" : "8088", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
          }
      },
-     "CometAccumuloSGBaseIngress13" : {
+     "CometAccumuloSGBaseIngress14" : {
           "Type": "AWS::EC2::SecurityGroupIngress",
           "Properties": {
               "GroupName": { "Ref": "CometAccumuloSGBase" },
               "IpProtocol" : "tcp", "FromPort" : "9996", "ToPort" : "9996", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
           }
      },     
-     "CometAccumuloSGBaseIngress14" : {
+     "CometAccumuloSGBaseIngress15" : {
           "Type": "AWS::EC2::SecurityGroupIngress",
           "Properties": {
               "GroupName": { "Ref": "CometAccumuloSGBase" },
               "IpProtocol" : "tcp", "FromPort" : "9997", "ToPort" : "9997", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
           }
      },     
-     "CometAccumuloSGBaseIngress15" : {
+     "CometAccumuloSGBaseIngress16" : {
           "Type": "AWS::EC2::SecurityGroupIngress",
           "Properties": {
               "GroupName": { "Ref": "CometAccumuloSGBase" },
               "IpProtocol" : "tcp", "FromPort" : "10001", "ToPort" : "10001", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
           }
      },     
-     "CometAccumuloSGBaseIngress16" : {
+     "CometAccumuloSGBaseIngress17" : {
           "Type": "AWS::EC2::SecurityGroupIngress",
           "Properties": {
               "GroupName": { "Ref": "CometAccumuloSGBase" },
               "IpProtocol" : "tcp", "FromPort" : "10002", "ToPort" : "10002", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
           }
      },     
-     "CometAccumuloSGBaseIngress17" : {
+     "CometAccumuloSGBaseIngress18" : {
           "Type": "AWS::EC2::SecurityGroupIngress",
           "Properties": {
               "GroupName": { "Ref": "CometAccumuloSGBase" },
               "IpProtocol" : "tcp", "FromPort" : "4560", "ToPort" : "4560", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
           }
      },     
-     "CometAccumuloSGBaseIngress18" : {
+     "CometAccumuloSGBaseIngress19" : {
           "Type": "AWS::EC2::SecurityGroupIngress",
           "Properties": {
               "GroupName": { "Ref": "CometAccumuloSGBase" },
               "IpProtocol" : "tcp", "FromPort" : "43335", "ToPort" : "43335", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
           }
      },     
-     "CometAccumuloSGBaseIngress19" : {
+     "CometAccumuloSGBaseIngress20" : {
           "Type": "AWS::EC2::SecurityGroupIngress",
           "Properties": {
               "GroupName": { "Ref": "CometAccumuloSGBase" },
               "IpProtocol" : "tcp", "FromPort" : "43835", "ToPort" : "43835", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
           }
      },     
-     "CometAccumuloSGBaseIngress20" : {
+     "CometAccumuloSGBaseIngress21" : {
           "Type": "AWS::EC2::SecurityGroupIngress",
           "Properties": {
               "GroupName": { "Ref": "CometAccumuloSGBase" },
               "IpProtocol" : "tcp", "FromPort" : "44743", "ToPort" : "44743", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
           }
      },     
-     "CometAccumuloSGBaseIngress21" : {
+     "CometAccumuloSGBaseIngress22" : {
           "Type": "AWS::EC2::SecurityGroupIngress",
           "Properties": {
               "GroupName": { "Ref": "CometAccumuloSGBase" },
               "IpProtocol" : "tcp", "FromPort" : "9000", "ToPort" : "9000", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
+          }
+     },     
+     "CometAccumuloSGBaseIngress23" : {
+          "Type": "AWS::EC2::SecurityGroupIngress",
+          "Properties": {
+              "GroupName": { "Ref": "CometAccumuloSGBase" },
+              "IpProtocol" : "tcp", "FromPort" : "12234", "ToPort" : "12234", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
+          }
+     },     
+     "CometAccumuloSGBaseIngress24" : {
+          "Type": "AWS::EC2::SecurityGroupIngress",
+          "Properties": {
+              "GroupName": { "Ref": "CometAccumuloSGBase" },
+              "IpProtocol" : "tcp", "FromPort" : "8222", "ToPort" : "8222", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
+          }
+     },     
+     "CometAccumuloSGBaseIngress25" : {
+          "Type": "AWS::EC2::SecurityGroupIngress",
+          "Properties": {
+              "GroupName": { "Ref": "CometAccumuloSGBase" },
+              "IpProtocol" : "tcp", "FromPort" : "39359", "ToPort" : "39359", "SourceSecurityGroupId": { "Fn::GetAtt": ["CometAccumuloSGBase", "GroupId"] }
           }
      },     
      "Namenode": {
@@ -925,22 +946,13 @@
                            "git pull origin br15\n",
                            "cd /root/\n",
                            "mv /root/COMET-Accumulo/aws-accumulo/config/* /root/\n",
-                           "mv /root/COMET-Accumulo/aws-accumulo/docker/comet/* /root/\n",
                            "rm -rf /root/COMET-Accumulo\n",                     
                            "/root/setupmaven.sh ",{"Ref" : "MavenVersion"}," > /var/log/setupmaven.log 2>&1\n",
                            "/root/setupzookeeper.sh ",{"Ref" : "ZooKeeperVersion"}," > /var/log/setupzookeeper.log 2>&1\n",
                            "/root/setuphadoop.sh ", {"Ref" : "HadoopVersion"} ," > /var/log/setuphadoop.log 2>&1\n",
                            "/root/setupaccumulo.sh ", {"Ref" : "AccumuloVersion"} ," > /var/log/setupaccumulo.log 2>&1\n",
                            "/root/ipAndKeys.sh accumulomaster ", { "Ref": "S3BucketName" }, " 'namenode resourcemanager worker1 worker2 accumulomaster' false false > /var/log/ipAndKeys.log 2>&1\n",
-                           "/root/configure.sh accumulomaster true false false false false false false 'worker1 worker2' 'namenode resourcemanager worker1 worker2 accumulomaster' ", { "Ref": "S3BucketName" }, " > /var/log/configure.log 2>&1\n",
-                           "echo \"enable for docker service\"\n",
-                           "chkconfig --add docker\n",
-                           "echo \"start docker service\"\n",
-                           "service docker start\n",
-                           "curl -L \"https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)\" -o /usr/local/bin/docker-compose\n",
-                           "chmod +x /usr/local/bin/docker-compose\n",
-                           "ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose\n",
-                           "docker-compose up -d\n"
+                           "/root/configure.sh accumulomaster true false false false false false false 'worker1 worker2' 'namenode resourcemanager worker1 worker2 accumulomaster' ", { "Ref": "S3BucketName" }, " > /var/log/configure.log 2>&1\n"
                  ]]},
                  "mode"  : "000700",
                  "owner" : "root",
@@ -959,8 +971,7 @@
                "yum" : {
                    "java-1.8.0-openjdk"  : [],
                    "java-1.8.0-openjdk-devel"  : [],
-                   "git"  : [],
-                   "docker"  : []
+                   "git"  : []
                }
              },
              "commands" : {
