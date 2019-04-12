@@ -194,6 +194,9 @@ _accumulo_site_xml() {
     sed -i "/<value>secret/s/secret/${ACCUMULO_PASSWORD}/" ${ACCUMULO_HOME}/conf/accumulo-site.xml
 
     sed -i '/<name>instance.volumes<\/name>/!b;n;c\ \ \ \ <value>hdfs:\/\/namenode:9000\/accumulo<\/value>' ${ACCUMULO_HOME}/conf/accumulo-site.xml
+
+    # setup message size
+    sed -i 's/<\/configuration>/<property>\n<name>tserver.server.message.size.max<\/name>\n<value>50M<\/value>\n<\/property>\n<property>\n<name>general.server.message.size.max<\/name>\n<value>50M<\/value>\n<\/property>\n<\/configuration>/' ${ACCUMULO_HOME}/conf/accumulo-site.xml
   fi
   chown hadoop:hadoop $ACCUMULO_SITE_FILE
 }

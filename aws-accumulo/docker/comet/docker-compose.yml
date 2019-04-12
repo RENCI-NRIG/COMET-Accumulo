@@ -6,7 +6,7 @@ services:
     image: rencinrig/comet-spring
     container_name: comet
     volumes:
-      - ~/log:/var/log #modify to your desired local directory
+      - /var/log:/var/log #modify to your desired local directory
     restart: always
     hostname: comet
     ports:

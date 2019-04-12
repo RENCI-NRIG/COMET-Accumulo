@@ -52,7 +52,7 @@
         "MaxLength": "64"
       },
      "AccumuloVersion" : {
-       "Default": "1.9.2",
+       "Default": "1.9.3",
        "Description" : "The Accumulo version",
        "Type": "String",
        "MinLength": "1",
