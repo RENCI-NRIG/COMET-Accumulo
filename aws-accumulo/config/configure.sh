@@ -194,6 +194,9 @@ _accumulo_site_xml() {
     sed -i "/<value>secret/s/secret/${ACCUMULO_PASSWORD}/" ${ACCUMULO_HOME}/conf/accumulo-site.xml
 
     sed -i '/<name>instance.volumes<\/name>/!b;n;c\ \ \ \ <value>hdfs:\/\/namenode:9000\/accumulo<\/value>' ${ACCUMULO_HOME}/conf/accumulo-site.xml
+
+    # setup message size
+    sed -i 's/<\/configuration>/<property>\n<name>tserver.server.message.size.max<\/name>\n<value>50M<\/value>\n<\/property>\n<property>\n<name>general.server.message.size.max<\/name>\n<value>50M<\/value>\n<\/property>\n<\/configuration>/' ${ACCUMULO_HOME}/conf/accumulo-site.xml
   fi
   chown hadoop:hadoop $ACCUMULO_SITE_FILE
 }
@@ -212,7 +215,7 @@ if $IS_DATA_NODE; then
 fi
 
 # update JAVA_HOME in hadoop-env
-runuser -l hadoop -c $'sed -i \'s:export JAVA_HOME=.*:export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.191.b12-0.42.amzn1.x86_64/jre:\' /home/hadoop/hadoop/etc/hadoop/hadoop-env.sh'
+runuser -l hadoop -c $'sed -i \'s:export JAVA_HOME=.*:export JAVA_HOME=/usr/lib/jvm/jre-1.8.0-openjdk.x86_64:\' /home/hadoop/hadoop/etc/hadoop/hadoop-env.sh'
 
 # set haddop configuration files
 _core_site_xml

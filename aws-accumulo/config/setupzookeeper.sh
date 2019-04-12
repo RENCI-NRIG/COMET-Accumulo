@@ -41,6 +41,7 @@ tar -xzf $WORKDIR/${DISTRO_NAME}.tar.gz -C $WORKDIR
 echo "Clean up"
 mv $WORKDIR/$DISTRO_NAME $WORKDIR/zookeeper
 rm -rf $WORKDIR/$DISTRO_NAME.tar.gz
+cp $WORKDIR/zookeeper/conf/log4j.properties /root/
 
 #Setup zookeper profile
 cat > /etc/profile.d/zookeeper.sh <<EOL
