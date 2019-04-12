@@ -1016,7 +1016,7 @@
          }
        }
      },
-     "cometheadnode": {
+     "cometheadnode1": {
        "Type" : "AWS::EC2::Instance",
        "Metadata" : {
          "AWS::CloudFormation::Init" : {
@@ -1039,10 +1039,10 @@
                  "content": { "Fn::Join": [ "", [
                    "[cfn-auto-reloader-hook]\n",
                    "triggers=post.update\n",
-                   "path=Resources.cometheadnode.Metadata.AWS::CloudFormation::Init\n",
+                   "path=Resources.cometheadnode1.Metadata.AWS::CloudFormation::Init\n",
                    "action=/opt/aws/bin/cfn-init -v ",
                            "         --stack ", { "Ref" : "AWS::StackName" },
-                           "         --resource cometheadnode ",
+                           "         --resource cometheadnode1 ",
                            "         --configsets cometheadnode_install ",
                            "         --region ", { "Ref" : "AWS::Region" }, "\n"
                  ]]},
@@ -1109,7 +1109,7 @@
          "InstanceType"   : { "Ref" : "CometHeadNodeInstanceType" },
          "SecurityGroups" : [ {"Ref" : "CometAccumuloSGBase"} ],
          "KeyName"        : { "Ref" : "KeyName" },
-         "Tags"           : [ {"Key" : "Name", "Value" : {"Fn::Join" : [ "", [ { "Ref" : "AWS::StackName" }, "cometheadnode" ] ] }}],
+         "Tags"           : [ {"Key" : "Name", "Value" : {"Fn::Join" : [ "", [ { "Ref" : "AWS::StackName" }, "cometheadnode1" ] ] }}],
          "IamInstanceProfile": { "Ref": "RunCmdInstanceProfile" },
          "UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
                         "#!/bin/bash -xe\n",
@@ -1117,13 +1117,130 @@
 
                         "/opt/aws/bin/cfn-init -v ",
                         "         --stack ", { "Ref" : "AWS::StackName" },
-                        "         --resource cometheadnode ",
+                        "         --resource cometheadnode1 ",
                         "         --configsets cometheadnode_install ",
                         "         --region ", { "Ref" : "AWS::Region" }, "\n",
 
                         "/opt/aws/bin/cfn-signal -e $? ",
                         "         --stack ", { "Ref" : "AWS::StackName" },
-                        "         --resource cometheadnode ",
+                        "         --resource cometheadnode1 ",
+                        "         --region ", { "Ref" : "AWS::Region" }, "\n"
+         ]]}}
+       },
+       "CreationPolicy" : {
+         "ResourceSignal" : {
+           "Timeout" : "PT50M"
+         }
+       }
+     },
+     "cometheadnode2": {
+       "Type" : "AWS::EC2::Instance",
+       "Metadata" : {
+         "AWS::CloudFormation::Init" : {
+           "configSets" : {
+             "cometheadnode_install" : ["install_cfn", "install_comet" ]
+           },
+           "install_cfn" : {
+             "files": {
+               "/etc/cfn/cfn-hup.conf": {
+                 "content": { "Fn::Join": [ "", [
+                   "[main]\n",
+                   "stack=", { "Ref": "AWS::StackId" }, "\n",
+                   "region=", { "Ref": "AWS::Region" }, "\n"
+                 ]]},
+                 "mode"  : "000400",
+                 "owner" : "root",
+                 "group" : "root"
+               },
+               "/etc/cfn/hooks.d/cfn-auto-reloader.conf": {
+                 "content": { "Fn::Join": [ "", [
+                   "[cfn-auto-reloader-hook]\n",
+                   "triggers=post.update\n",
+                   "path=Resources.cometheadnode2.Metadata.AWS::CloudFormation::Init\n",
+                   "action=/opt/aws/bin/cfn-init -v ",
+                           "         --stack ", { "Ref" : "AWS::StackName" },
+                           "         --resource cometheadnode2 ",
+                           "         --configsets cometheadnode_install ",
+                           "         --region ", { "Ref" : "AWS::Region" }, "\n"
+                 ]]},
+                 "mode"  : "000400",
+                 "owner" : "root",
+                 "group" : "root"
+               },
+               "/root/install.sh": {
+                 "content": { "Fn::Join": [ "", [
+                           "git clone https://github.com/RENCI-NRIG/COMET-Accumulo.git /root/COMET-Accumulo\n",
+                           "cd /root/COMET-Accumulo \n",
+                           "git checkout -b br15\n",
+                           "git pull origin br15\n",
+                           "cd /root/\n",
+                           "mv /root/COMET-Accumulo/aws-accumulo/config/* /root/\n",
+                           "mv /root/COMET-Accumulo/aws-accumulo/docker/comet/* /root/\n",
+                           "rm -rf /root/COMET-Accumulo\n",
+                           "echo \"enable for docker service\"\n",
+                           "chkconfig --add docker\n",
+                           "echo \"start docker service\"\n",
+                           "service docker start\n",
+                           "curl -L \"https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)\" -o /usr/local/bin/docker-compose\n",
+                           "chmod +x /usr/local/bin/docker-compose\n",
+                           "ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose\n",
+                           "/root/ipAndKeys.sh comet ", { "Ref": "S3BucketName" }, " 'namenode resourcemanager worker1 worker2 accumulomaster' false true > /var/log/ipAndKeys.log 2>&1\n",
+                           "docker-compose up -d\n"
+                 ]]},
+                 "mode"  : "000700",
+                 "owner" : "root",
+                 "group" : "root"
+               }     
+             },
+             "services" : {
+               "sysvinit" : {
+                 "cfn-hup" : { "enabled" : "true", "ensureRunning" : "true",
+                               "files" : ["/etc/cfn/cfn-hup.conf", "/etc/cfn/hooks.d/cfn-auto-reloader.conf"] }
+               }
+             }
+           },               
+           "install_comet" : {
+             "packages" : {
+               "yum" : {
+                   "java-1.8.0-openjdk"  : [],
+                   "java-1.8.0-openjdk-devel"  : [],
+                   "git"  : [],
+                   "docker"  : []
+               }
+             },
+             "commands" : {
+               "01_install" : {
+                 "command" : "/bin/sh /root/install.sh"
+               }
+             },
+             "services" : {
+               "sysvinit" : {
+               }
+             }
+           }
+         }
+       },
+       "Properties": {
+         "ImageId" : { "Fn::FindInMap" : [ "AWSRegionArch2AMI", { "Ref" : "AWS::Region" },
+                           { "Fn::FindInMap" : [ "AWSInstanceType2Arch", { "Ref" : "InstanceType" }, "Arch" ] } ] },
+         "InstanceType"   : { "Ref" : "CometHeadNodeInstanceType" },
+         "SecurityGroups" : [ {"Ref" : "CometAccumuloSGBase"} ],
+         "KeyName"        : { "Ref" : "KeyName" },
+         "Tags"           : [ {"Key" : "Name", "Value" : {"Fn::Join" : [ "", [ { "Ref" : "AWS::StackName" }, "cometheadnode2" ] ] }}],
+         "IamInstanceProfile": { "Ref": "RunCmdInstanceProfile" },
+         "UserData" : { "Fn::Base64" : { "Fn::Join" : ["", [
+                        "#!/bin/bash -xe\n",
+                        "yum update -y aws-cfn-bootstrap\n",
+
+                        "/opt/aws/bin/cfn-init -v ",
+                        "         --stack ", { "Ref" : "AWS::StackName" },
+                        "         --resource cometheadnode2 ",
+                        "         --configsets cometheadnode_install ",
+                        "         --region ", { "Ref" : "AWS::Region" }, "\n",
+
+                        "/opt/aws/bin/cfn-signal -e $? ",
+                        "         --stack ", { "Ref" : "AWS::StackName" },
+                        "         --resource cometheadnode2 ",
                         "         --region ", { "Ref" : "AWS::Region" }, "\n"
          ]]}}
        },
