@@ -11,10 +11,16 @@ services:
     hostname: comet
     ports:
       - 8111:8111
+    extra_hosts:
+      - "zoo1:"
+      - "zoo2:"
+      - "zoo3:"
+      - "worker1:"
+      - "worker2:"
     environment:
       ACCUMULO_TABLENAME: trace
       ACCUMULO_ZOOSERVERS: zoo1,zoo2,zoo3
-      ACCUMULO_INSTANCE: docker-development
+      ACCUMULO_INSTANCE: aws-development
       COMET_CHECK_TOKEN_STRENGTH: 'false'
       COMET_CHECK_CLIENT_CERT: 'false'
       COMET_SSL_KEY_STORE: cometserver.jks

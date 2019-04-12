@@ -57,18 +57,33 @@ for node in $CLUSTERNODES ; do
     echo "$IP $node" >> /etc/hosts
     if [ $node == "namenode" ]; then
         echo "$IP zoo1" >> /etc/hosts
+        if $IS_COMET; then
+            sed -i "/zoo1:/ s/zoo1:$IP/" /root/docker-compose.yml
+        fi
     fi
     if [ $node == "resourcemanager" ]; then
         echo "$IP zoo2" >> /etc/hosts
+        if $IS_COMET; then
+            sed -i "/zoo2:/ s/zoo2:$IP/" /root/docker-compose.yml
+        fi
     fi
     if [ $node == "accumulomaster" ]; then
         echo "$IP zoo3" >> /etc/hosts
+        if $IS_COMET; then
+            sed -i "/zoo3:/ s/zoo3:$IP/" /root/docker-compose.yml
+        fi
     fi
     if [ $node == "worker1" ]; then
         echo "$IP worker1" >> /etc/hosts
+        if $IS_COMET; then
+            sed -i "/worker1:/ s/worker1:$IP/" /root/docker-compose.yml
+        fi
     fi
     if [ $node == "worker2" ]; then
         echo "$IP worker2" >> /etc/hosts
+        if $IS_COMET; then
+            sed -i "/worker2:/ s/worker2:$IP/" /root/docker-compose.yml
+        fi
     fi
 done
 echo "All Ip addresses have been configured"
