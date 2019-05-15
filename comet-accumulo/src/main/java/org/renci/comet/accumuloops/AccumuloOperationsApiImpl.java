@@ -209,27 +209,37 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
 
     public Map<String[], Value> enumerateRows(Connector conn, String tableName, Text rowID, String visibility) throws TableNotFoundException, AccumuloException, AccumuloSecurityException {
         Map<String[], Value> output = new HashMap<>();
-        //ScannerOpts scanOpts = new ScannerOpts();
-        // Create a scanner
-        Authorizations auths = new Authorizations(visibility);
-        conn.securityOperations().changeUserAuthorizations("root", auths);
-        Scanner scanner = conn.createScanner(tableName, auths);
-        //scanner.setBatchSize(scanOpts.scanBatchSize);
-        // Say start key is the one with key of row
-        // and end key is the one that immediately follows the row
-        scanner.setRange(new Range(rowID));
+        try {
+            //ScannerOpts scanOpts = new ScannerOpts();
+            // Create a scanner
+            Authorizations auths = new Authorizations(visibility);
+            conn.securityOperations().changeUserAuthorizations("root", auths);
+            Scanner scanner = conn.createScanner(tableName, auths);
+            //scanner.setBatchSize(scanOpts.scanBatchSize);
+            // Say start key is the one with key of row
+            // and end key is the one that immediately follows the row
+            scanner.setRange(new Range(rowID));
 
-        for (Map.Entry<Key, Value> entry : scanner) {
-            //String[] key format: {Row, ColFam, ColQual}
-            String[] keys = new String[3];
-            keys[0] = entry.getKey().getRow().toString();
-            keys[1] = entry.getKey().getColumnFamily().toString();
-            keys[2] = entry.getKey().getColumnQualifier().toString();
-            Value value = entry.getValue();
-            output.put(keys, value);
+            for (Map.Entry<Key, Value> entry : scanner) {
+                //String[] key format: {Row, ColFam, ColQual}
+                String[] keys = new String[3];
+                keys[0] = entry.getKey().getRow().toString();
+                keys[1] = entry.getKey().getColumnFamily().toString();
+                keys[2] = entry.getKey().getColumnQualifier().toString();
+                Value value = entry.getValue();
+                output.put(keys, value);
+            }
+
+            scanner.close();
+
         }
-
-        scanner.close();
+        catch (AccumuloSecurityException securityException) {
+            if( securityException.getMessage() != null) {
+                if(securityException.getMessage().contains("BAD_AUTHORIZATIONS")) {
+                    System.out.println("AccumuloOperationsApiImpl:enumerateRows: Ignoring BAD_AUTHORIZATIONS intentionally= " + securityException.getMessage());
+                }
+            }
+        }
         return output;
     }
 
@@ -248,25 +258,35 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
      */
     public Map<String[], Value> readOneRow(Connector conn, String tableName, Text rowID, Text colFam, Text colQual, String visibility) throws TableNotFoundException, AccumuloException, AccumuloSecurityException {
         Map<String[], Value> output = new HashMap<>();
-        //ScannerOpts scanOpts = new ScannerOpts();
-        // Create a scanner
-        Authorizations auths = new Authorizations(visibility);
-        conn.securityOperations().changeUserAuthorizations("root", auths);
-        Scanner scanner = conn.createScanner(tableName, auths);
-        //scanner.setBatchSize(scanOpts.scanBatchSize);
-        // Say start key is the one with key of row
-        // and end key is the one that immediately follows the row
-        scanner.setRange(new Range(rowID));
-        scanner.fetchColumn(colFam, colQual);
-        for (Map.Entry<Key, Value> entry : scanner) {
-            String[] keys = new String[3];
-            keys[0] = entry.getKey().getRow().toString();
-            keys[1] = entry.getKey().getColumnFamily().toString();
-            keys[2] = entry.getKey().getColumnQualifier().toString();
-            Value value = entry.getValue();
-            output.put(keys, value);
+        try {
+
+            //ScannerOpts scanOpts = new ScannerOpts();
+            // Create a scanner
+            Authorizations auths = new Authorizations(visibility);
+            conn.securityOperations().changeUserAuthorizations("root", auths);
+            Scanner scanner = conn.createScanner(tableName, auths);
+            //scanner.setBatchSize(scanOpts.scanBatchSize);
+            // Say start key is the one with key of row
+            // and end key is the one that immediately follows the row
+            scanner.setRange(new Range(rowID));
+            scanner.fetchColumn(colFam, colQual);
+            for (Map.Entry<Key, Value> entry : scanner) {
+                String[] keys = new String[3];
+                keys[0] = entry.getKey().getRow().toString();
+                keys[1] = entry.getKey().getColumnFamily().toString();
+                keys[2] = entry.getKey().getColumnQualifier().toString();
+                Value value = entry.getValue();
+                output.put(keys, value);
+            }
+            scanner.close();
         }
-        scanner.close();
+        catch (AccumuloSecurityException securityException) {
+            if( securityException.getMessage() != null) {
+                if(securityException.getMessage().contains("BAD_AUTHORIZATIONS")) {
+                    System.out.println("AccumuloOperationsApiImpl:readOneRow:Ignoring BAD_AUTHORIZATIONS intentionally= " + securityException.getMessage());
+                }
+            }
+        }
         return output;
     }
 
@@ -286,23 +306,32 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
      */
     public Map<String, Value> readOneRowAccuFormat(Connector conn, String tableName, Text rowID, Text colFam, Text colQual, String visibility) throws TableNotFoundException, AccumuloException, AccumuloSecurityException {
         Map<String, Value> output = new HashMap<>();
-        //ScannerOpts scanOpts = new ScannerOpts();
-        // Create a scanner
-        Authorizations auths = new Authorizations(visibility);
-        conn.securityOperations().changeUserAuthorizations("root", auths);
-        Scanner scanner = conn.createScanner(tableName, auths);
-        //scanner.setBatchSize(scanOpts.scanBatchSize);
-        // Say start key is the one with key of row
-        // and end key is the one that immediately follows the row
-        scanner.setRange(new Range(rowID));
-        scanner.fetchColumn(colFam, colQual);
+        try {
+            //ScannerOpts scanOpts = new ScannerOpts();
+            // Create a scanner
+            Authorizations auths = new Authorizations(visibility);
+            conn.securityOperations().changeUserAuthorizations("root", auths);
+            Scanner scanner = conn.createScanner(tableName, auths);
+            //scanner.setBatchSize(scanOpts.scanBatchSize);
+            // Say start key is the one with key of row
+            // and end key is the one that immediately follows the row
+            scanner.setRange(new Range(rowID));
+            scanner.fetchColumn(colFam, colQual);
 
-        for (Map.Entry<Key, Value> entry : scanner) {
-            String key =  entry.getKey().getRow() + " " + entry.getKey().getColumnFamily() + ":" + entry.getKey().getColumnQualifier();
-            Value value = entry.getValue();
-            output.put(key, value);
+            for (Map.Entry<Key, Value> entry : scanner) {
+                String key = entry.getKey().getRow() + " " + entry.getKey().getColumnFamily() + ":" + entry.getKey().getColumnQualifier();
+                Value value = entry.getValue();
+                output.put(key, value);
+            }
+            scanner.close();
         }
-        scanner.close();
+        catch (AccumuloSecurityException securityException) {
+            if( securityException.getMessage() != null) {
+                if(securityException.getMessage().contains("BAD_AUTHORIZATIONS")) {
+                    System.out.println("AccumuloOperationsApiImpl:readOneRowAccuFormat:Ignoring BAD_AUTHORIZATIONS intentionally= " + securityException.getMessage());
+                }
+            }
+        }
         return output;
     }
 }

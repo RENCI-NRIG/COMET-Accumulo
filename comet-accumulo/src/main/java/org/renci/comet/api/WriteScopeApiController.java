@@ -94,10 +94,10 @@ public class WriteScopeApiController implements WriteScopeApi {
             log.error("Accumulo internal error", e1);
             return new ResponseEntity<CometResponse>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-                catch (AccumuloSecurityException e1) {
-                        // Intentionally ignoring the exception
-                        e1.printStackTrace();
-                }
+        catch (AccumuloSecurityException e1) {
+                // Intentionally ignoring the exception
+                e1.printStackTrace();
+        }
         
         if (certs != null) {
             try {
@@ -174,27 +174,26 @@ public class WriteScopeApiController implements WriteScopeApi {
 
         //Test code below, without cert checking
         if (certValid == true && accept != null && accept.contains("application/json")) {
+            log.debug("WriteScope: certificate is valid");
+            try {
 
-                log.debug("WriteScope: certificate is valid");
-                try {
-                
-                    output = cometOps.writeScope(contextID, family, key, value, readToken, writeToken);
-                    log.debug("WriteScope: successful");
-                    CometResponse comet = new CometResponse();
-                    comet.setValue(output.toString());
-                    comet.setStatus("OK");
-                    comet.setMessage("message");
-                    comet.setVersion("0.1");
-                    String crTemp = "{  \"message\" : \"success\",  \"value\" : " + output.toString() + ",  \"version\" : \"" + 
-                                    CometInitializer.COMET_VERSION + "\",  \"status\" : \"OK\"}";
-                    return new ResponseEntity<CometResponse>(objectMapper.readValue(crTemp, CometResponse.class), HttpStatus.OK);
-                } catch (IOException ioe) {
-                    log.error("Couldn't serialize response for content type application/json", ioe);
-                    return new ResponseEntity<CometResponse>(HttpStatus.INTERNAL_SERVER_ERROR);
-                } catch (Exception e) {
-                    log.error("Accumulo internal error", e);
+                output = cometOps.writeScope(contextID, family, key, value, readToken, writeToken);
+                log.debug("WriteScope: successful");
+                CometResponse comet = new CometResponse();
+                comet.setValue(output.toString());
+                comet.setStatus("OK");
+                comet.setMessage("message");
+                comet.setVersion("0.1");
+                String crTemp = "{  \"message\" : \"success\",  \"value\" : " + output.toString() + ",  \"version\" : \"" +
+                                CometInitializer.COMET_VERSION + "\",  \"status\" : \"OK\"}";
+                return new ResponseEntity<CometResponse>(objectMapper.readValue(crTemp, CometResponse.class), HttpStatus.OK);
+            } catch (IOException ioe) {
+                log.error("Couldn't serialize response for content type application/json", ioe);
                 return new ResponseEntity<CometResponse>(HttpStatus.INTERNAL_SERVER_ERROR);
-                }
+            } catch (Exception e) {
+                log.error("Accumulo internal error", e);
+            return new ResponseEntity<CometResponse>(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
 
         }
 
