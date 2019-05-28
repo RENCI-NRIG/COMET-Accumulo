@@ -14,7 +14,7 @@ Node=$4
 
 ./setupzookeeper.sh $ZooKeeperVersion > /var/log/setupzookeeper.log 2>&1
 ./setuphadoop.sh $HadoopVersion > /var/log/setuphadoop.log 2>&1
-./setupaccumulo.sh $AccumuloVersion /var/log/setupaccumulo.log 2>&1
+./setupaccumulo.sh $AccumuloVersion > /var/log/setupaccumulo.log 2>&1
 
 
 if [ "$Node" = "namenode" ]; then 
