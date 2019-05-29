@@ -17,12 +17,17 @@ Node=$4
 ./setupaccumulo.sh $AccumuloVersion > /var/log/setupaccumulo.log 2>&1
 
 
+source /etc/profile.d/hadoop.sh
 if [ "$Node" = "namenode" ]; then 
-    source /etc/profile.d/hadoop.sh
     runuser -l hadoop -c 'mkdir -p $HADOOP_USER_HOME/.ssh'
     runuser -l hadoop -c "ssh-keygen -t rsa -N '' -f $HADOOP_USER_HOME/.ssh/id_rsa"
     runuser -l hadoop -c 'cat $HADOOP_USER_HOME/.ssh/id_rsa.pub >> $HADOOP_USER_HOME/.ssh/authorized_keys'
     chmod 0600 $HADOOP_USER_HOME/.ssh/authorized_keys
+    chown -R hadoop:hadoop $HADOOP_USER_HOME/.ssh
+else
+    runuser -l hadoop -c 'mkdir -p $HADOOP_USER_HOME/.ssh'
+    runuser -l hadoop -c 'touch $HADOOP_USER_HOME/.ssh/id_rsa.pub'
+    runuser -l hadoop -c 'touch $HADOOP_USER_HOME/.ssh/id_rsa'
     chown -R hadoop:hadoop $HADOOP_USER_HOME/.ssh
 fi
 
