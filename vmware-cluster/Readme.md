@@ -93,11 +93,28 @@ Execute the following commands in order as root user
 ```
 ./setup.sh master
 ```
-#### worker1
+#### workers
 ```
-./setup.sh worker1
+./setup.sh worker
 ```
-#### worker2
+#### headnodes
+NOTE: All commands to be executed as root user
+- Clone code and go to vmware-cluster
 ```
-./setup.sh worker2
+git clone https://github.com/RENCI-NRIG/COMET-Accumulo.git
+cd COMET-Accumulo/vmware-cluster/
+```
+- Update docker-compose.yml to include IPs for zoo servers and workers
+
+```
+    extra_hosts:
+      - "zoo1:192.168.100.34"
+      - "zoo2:192.168.100.35"
+      - "zoo3:192.168.100.31"
+      - "comet-w1:192.168.100.32"
+      - "comet-w2:192.168.100.33"
+```
+- Bring up comet head node
+```
+./setupheadnode.sh
 ```
