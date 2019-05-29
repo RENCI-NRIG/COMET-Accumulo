@@ -53,6 +53,17 @@ cd COMET-Accumulo/vmware-cluster
 # ./install.sh <ZooKeeperVersion> <HadoopVersion> <AccumuloVersion> accumulo
 ./install.sh 3.4.12 2.9.0 1.9.3 accumulo
 ```
+### Host names
+Update /etc/hosts on all servers(master, resource manager, worker1, worker2, comet-hn1 and comet-hn2) with hostnames pointing to internal IPs
+```
+192.168.100.31 comet-master zoo3
+192.168.100.32 comet-w1
+192.168.100.33 comet-w2
+192.168.100.34 comet-nn zoo1
+192.168.100.35 comet-mgr zoo2
+192.168.100.36 comet-hn1
+192.168.100.37 comet-hn2
+```
 ### SSH Keys
 Copy SSH Keys from namenode to rest of the servers(master, resource manager, worker1 and worker2)
 Files to be copied at the same location:
