@@ -309,7 +309,7 @@ sed -i 's:export JAVA_HOME=.*:export JAVA_HOME=/usr/lib/jvm/jre-1.8.0-openjdk:' 
 
 # Need monitor to bind to public port
 sed -i "/ACCUMULO_MONITOR_BIND_ALL/ s/^# //" ${ACCUMULO_HOME}/conf/accumulo-env.sh
-sed -i '/HOSTS=/ cTEMP=`grep $IP /etc/hosts | grep -v zoo|cut -d\" \" -f2`;HOSTS=\"$(hostname -a 2> /dev/null) $(hostname) localhost 127.0.0.1 $IP $TEMP\"' ${ACCUMULO_HOME}/bin/start-here.sh
+sed -i '/HOSTS=/ cTEMP=`grep $IP /etc/hosts | grep -v zoo|cut -d\" \" -f2`;HOSTS=\"$(hostname -s 2> /dev/null) $(hostname -s) localhost 127.0.0.1 $IP $TEMP\"' ${ACCUMULO_HOME}/bin/start-here.sh
 
 if $IS_NAME_NODE; then
     runuser -l hadoop -c $'touch setupcomplete'
