@@ -50,7 +50,7 @@ Configure rest of the servers(master, resource manager, worker1 and worker2) usi
 ```
 git clone https://github.com/RENCI-NRIG/COMET-Accumulo.git
 cd COMET-Accumulo/vmware-cluster
-# ./install.sh <ZooKeeperVersion> <HadoopVersion> <AccumuloVersion> namenode
+# ./install.sh <ZooKeeperVersion> <HadoopVersion> <AccumuloVersion> accumulo
 ./install.sh 3.4.12 2.9.0 1.9.3 accumulo
 ```
 ### SSH Keys
