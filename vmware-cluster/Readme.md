@@ -6,9 +6,9 @@ Request 7 VMs from ACIS with following profile.
 Group 1: 
 
 3 VMs with the names below:
--VM1: comet-master.exogeni.net
--VM2: comet-w1.exogeni.net
--VM3: comet-w2.exogeni.net
+- VM1: comet-master.exogeni.net
+- VM2: comet-w1.exogeni.net
+- VM3: comet-w2.exogeni.net
 
 Resource specifications:
 - OS: CentOS 7 (64bit) 
@@ -21,10 +21,10 @@ Resource specifications:
 Group 2: 
 
 4 VMs with the names below:
--VM1: comet-nn.exogeni.net
--VM2: comet-mgr.exogeni.net
--VM3: comet-hn1.exogeni.net
--VM4: comet-hn2.exogeni.net
+- VM1: comet-nn.exogeni.net
+- VM2: comet-mgr.exogeni.net
+- VM3: comet-hn1.exogeni.net
+- VM4: comet-hn2.exogeni.net
 
 Resource specifications:
 - OS: CentOS 7 (64bit) 
