@@ -113,7 +113,7 @@ _yarn_site_xml() {
 <configuration>
   <property>
     <name>yarn.resourcemanager.hostname</name>
-    <value>resourcemanager</value>
+    <value>comet-mgr</value>
   </property>
   <property>
     <name>yarn.resourcemanager.bind-host</name>
@@ -193,7 +193,7 @@ _accumulo_site_xml() {
     # if the password is changed by the user, the script needs to change it here too.
     sed -i "/<value>secret/s/secret/${ACCUMULO_PASSWORD}/" ${ACCUMULO_HOME}/conf/accumulo-site.xml
 
-    sed -i '/<name>instance.volumes<\/name>/!b;n;c\ \ \ \ <value>hdfs:\/\/$NAMENODE:9000\/accumulo<\/value>' ${ACCUMULO_HOME}/conf/accumulo-site.xml
+    sed -i "/<name>instance.volumes<\/name>/!b;n;c\ \ \ \ <value>hdfs:\/\/$NAMENODE:9000\/accumulo<\/value>" ${ACCUMULO_HOME}/conf/accumulo-site.xml
 
     # setup message size
     sed -i 's/<\/configuration>/<property>\n<name>tserver.server.message.size.max<\/name>\n<value>50M<\/value>\n<\/property>\n<property>\n<name>general.server.message.size.max<\/name>\n<value>50M<\/value>\n<\/property>\n<\/configuration>/' ${ACCUMULO_HOME}/conf/accumulo-site.xml
@@ -303,6 +303,9 @@ for node in $ACCUMULOWORKERS; do
 done
 
 _accumulo_site_xml
+
+# update JAVA_HOME in accumulo-env
+sed -i 's:export JAVA_HOME=.*:export JAVA_HOME=/usr/lib/jvm/jre-1.8.0-openjdk:' ${ACCUMULO_HOME}/conf/accumulo-env.sh
 
 # Need monitor to bind to public port
 sed -i "/ACCUMULO_MONITOR_BIND_ALL/ s/^# //" ${ACCUMULO_HOME}/conf/accumulo-env.sh
