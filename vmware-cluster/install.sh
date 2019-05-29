@@ -11,7 +11,7 @@ HadoopVersion=$2
 AccumuloVersion=$3
 Node=$4
 
-
+yum install -y java-1.8.0-openjdk
 ./setupzookeeper.sh $ZooKeeperVersion > /var/log/setupzookeeper.log 2>&1
 ./setuphadoop.sh $HadoopVersion > /var/log/setuphadoop.log 2>&1
 ./setupaccumulo.sh $AccumuloVersion > /var/log/setupaccumulo.log 2>&1
