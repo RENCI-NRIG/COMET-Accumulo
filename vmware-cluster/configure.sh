@@ -2,20 +2,21 @@
 set -e
 
 if [ $# -ne 11 ]; then
-    echo "Required arguments [accumulo master] [IS_ACCUMULO_MASTER] [IS_ACCUMULO_WORKER] [IS_NODE_MANAGER] [IS_NAME_NODE] [IS_SECONDARY_NAME_NODE] [IS_DATA_NODE] [IS_RESOURCE_MANAGER] [ACCUMULOWORKERS] [CLUSTER_NODES] not provided"
+    echo "Required arguments [accumulo master] [namenode] [IS_ACCUMULO_MASTER] [IS_ACCUMULO_WORKER] [IS_NODE_MANAGER] [IS_NAME_NODE] [IS_SECONDARY_NAME_NODE] [IS_DATA_NODE] [IS_RESOURCE_MANAGER] [ACCUMULOWORKERS] [CLUSTER_NODES] not provided"
     exit 1
 fi
 
 ACCUMULOMASTER=$1
-IS_ACCUMULO_MASTER=$2
-IS_ACCUMULO_WORKER=$3
-IS_NODE_MANAGER=$4
-IS_NAME_NODE=$5
-IS_SECONDARY_NAME_NODE=$6
-IS_DATA_NODE=$7
-IS_RESOURCE_MANAGER=$8
-ACCUMULOWORKERS=${9}
-CLUSTERNODES=${10}
+NAMENODE=$2
+IS_ACCUMULO_MASTER=$3
+IS_ACCUMULO_WORKER=$4
+IS_NODE_MANAGER=$5
+IS_NAME_NODE=$6
+IS_SECONDARY_NAME_NODE=$7
+IS_DATA_NODE=$8
+IS_RESOURCE_MANAGER=$9
+ACCUMULOWORKERS=${10}
+CLUSTERNODES=${11}
 
 source /etc/profile.d/zookeeper.sh
 source /etc/profile.d/hadoop.sh
@@ -45,7 +46,7 @@ _core_site_xml () {
 <configuration>
   <property>
     <name>fs.default.name</name>
-    <value>hdfs://namenode:9000</value>
+    <value>hdfs://$NAMENODE:9000</value>
   </property>
 </configuration>
 EOF
@@ -69,7 +70,7 @@ _hdfs_site_xml () {
   </property>
   <property>
     <name>dfs.name.dir</name>
-    <value>file:///hdfsdata/namenode</value>
+    <value>file:///hdfsdata/$NAMENODE</value>
   </property>
   <property>
     <name>dfs.data.dir</name>
@@ -168,7 +169,7 @@ export ACCUMULO_INSTANCE=${ACCUMULO_INSTANCE}
 export ACCUMULO_HOME=${ACCUMULO_HOME}
 export ACCUMULO_CONF_DIR=${ACCUMULO_HOME}/conf
 export ACCUMULO_MASTER=${ACCUMULOMASTER}
-export ACCUMULO_WORKERS=${ACCUMULOWORKERS}
+export ACCUMULO_WORKERS="${ACCUMULOWORKERS}"
 export IS_ACCUMULO_MASTER=${IS_ACCUMULO_MASTER}
 export IS_ACCUMULO_WORKER=${IS_ACCUMULO_WORKER}
 export IS_NODE_MANAGER=${IS_NODE_MANAGER}
@@ -176,7 +177,7 @@ export IS_NAME_NODE=${IS_NAME_NODE}
 export IS_SECONDARY_NAME_NODE=${IS_SECONDARY_NAME_NODE}
 export IS_DATA_NODE=${IS_DATA_NODE}
 export IS_RESOURCE_MANAGER=${IS_RESOURCE_MANAGER}
-export CLUSTER_NODES=${CLUSTERNODES}
+export CLUSTER_NODES="${CLUSTERNODES}"
 EOF
 }
 
@@ -192,7 +193,7 @@ _accumulo_site_xml() {
     # if the password is changed by the user, the script needs to change it here too.
     sed -i "/<value>secret/s/secret/${ACCUMULO_PASSWORD}/" ${ACCUMULO_HOME}/conf/accumulo-site.xml
 
-    sed -i '/<name>instance.volumes<\/name>/!b;n;c\ \ \ \ <value>hdfs:\/\/namenode:9000\/accumulo<\/value>' ${ACCUMULO_HOME}/conf/accumulo-site.xml
+    sed -i '/<name>instance.volumes<\/name>/!b;n;c\ \ \ \ <value>hdfs:\/\/$NAMENODE:9000\/accumulo<\/value>' ${ACCUMULO_HOME}/conf/accumulo-site.xml
 
     # setup message size
     sed -i 's/<\/configuration>/<property>\n<name>tserver.server.message.size.max<\/name>\n<value>50M<\/value>\n<\/property>\n<property>\n<name>general.server.message.size.max<\/name>\n<value>50M<\/value>\n<\/property>\n<\/configuration>/' ${ACCUMULO_HOME}/conf/accumulo-site.xml
@@ -205,8 +206,8 @@ _hadoop_profile
 _accumulo_profile
 
 if $IS_NAME_NODE; then
-  mkdir -p /hdfsdata/namenode
-  chown -R hadoop:hadoop /hdfsdata/namenode
+  mkdir -p /hdfsdata/$NAMENODE
+  chown -R hadoop:hadoop /hdfsdata/$NAMENODE
 fi
 if $IS_DATA_NODE; then
   mkdir -p /hdfsdata/datanode
@@ -214,7 +215,7 @@ if $IS_DATA_NODE; then
 fi
 
 # update JAVA_HOME in hadoop-env
-runuser -l hadoop -c $'sed -i \'s:export JAVA_HOME=.*:export JAVA_HOME=/usr/lib/jvm/jre-1.8.0-openjdk.x86_64:\' /home/hadoop/hadoop/etc/hadoop/hadoop-env.sh'
+runuser -l hadoop -c $'sed -i \'s:export JAVA_HOME=.*:export JAVA_HOME=/usr/lib/jvm/jre-1.8.0-openjdk:\' /home/hadoop/hadoop/etc/hadoop/hadoop-env.sh'
 
 # set haddop configuration files
 _core_site_xml
@@ -238,7 +239,7 @@ chmod -R o-w /home/hadoop/.ssh
 # NameNode startup commands
 if $IS_NAME_NODE; then
     echo "Staring NameNode"
-    runuser -l hadoop -c $'$HADOOP_PREFIX/bin/hdfs namenode -format'
+    runuser -l hadoop -c $"$HADOOP_PREFIX/bin/hdfs namenode -format"
     runuser -l hadoop -c $'$HADOOP_PREFIX/sbin/hadoop-daemon.sh --config $HADOOP_CONF_DIR --script hdfs start namenode'
 fi
 
@@ -313,7 +314,7 @@ fi
 
 # Commenting the below code; will start master and workers manually
 if $IS_ACCUMULO_MASTER; then
-  until sudo -u hadoop ssh hadoop@namenode ls /home/hadoop/setupcomplete; do sleep 2; done
+  until sudo -u hadoop ssh hadoop@$NAMENODE ls /home/hadoop/setupcomplete; do sleep 2; done
   # initialize the Accumulo cluster
   runuser -l hadoop -c $'${ACCUMULO_HOME}/bin/accumulo init --instance-name ${ACCUMULO_INSTANCE} <<EOF
 ${ACCUMULO_PASSWORD}
