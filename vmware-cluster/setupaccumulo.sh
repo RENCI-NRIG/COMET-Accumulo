@@ -32,7 +32,7 @@ cat > /etc/profile.d/accumulo.sh <<EOL
   export ACCUMULO_HOME=/opt/accumulo-${ACCUMULO_VERSION}
   export ACCUMULO_CONF_DIR=${ACCUMULO_HOME}/conf
   export ACCUMULO_PASSWORD=secret
-  export ACCUMULO_INSTANCE=aws-development
+  export ACCUMULO_INSTANCE=exogeni-accumulo
   export ACCUMULO_MASTER=localhost
   export ACCUMULO_WORKERS=''
 EOL
