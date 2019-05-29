@@ -5,3 +5,6 @@ rm -rf zookeeper.out
 rm  -rf /data/*
 rm  -rf /conf/*
 rm -rf /hdfsdata
+rm -rf /etc/profile.d/zookeeper.sh
+rm -rf /etc/profile.d/hadoop.sh
+rm -rf /etc/profile.d/accumulo.sh
