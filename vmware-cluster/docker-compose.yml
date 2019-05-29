@@ -12,11 +12,11 @@ services:
     ports:
       - 8111:8111
     extra_hosts:
-      - "zoo1:"
-      - "zoo2:"
-      - "zoo3:"
-      - "worker1:"
-      - "worker2:"
+      - "zoo1:192.168.100.34"
+      - "zoo2:192.168.100.35"
+      - "zoo3:192.168.100.31"
+      - "comet-w1:192.168.100.32"
+      - "comet-w2:192.168.100.33"
     environment:
       ACCUMULO_TABLENAME: trace
       ACCUMULO_ZOOSERVERS: zoo1,zoo2,zoo3
