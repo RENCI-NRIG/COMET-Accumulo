@@ -319,7 +319,7 @@ fi
 if $IS_ACCUMULO_MASTER; then
   until sudo -u hadoop ssh hadoop@$NAMENODE ls /home/hadoop/setupcomplete; do sleep 2; done
   # initialize the Accumulo cluster
-  runuser -l hadoop -c $'${ACCUMULO_HOME}/bin/accumulo init --instance-name ${ACCUMULO_INSTANCE} <<EOF
+  runuser -l hadoop -c $'${ACCUMULO_HOME}/bin/accumulo init --force --instance-name ${ACCUMULO_INSTANCE} <<EOF
 ${ACCUMULO_PASSWORD}
 ${ACCUMULO_PASSWORD}
 EOF'
