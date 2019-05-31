@@ -19,13 +19,8 @@ if [ "$Node" = "resourcemgr" ]; then
     ./configure.sh comet-master comet-nn false false false false false false true 'comet-w1 comet-w2' 'comet-nn comet-mgr comet-w1 comet-w2 comet-master' > /var/log/configure.log 2>&1
 fi
 
-if [ "$Node" = "worker1" ]; then
-    #worker1
-    ./configure.sh comet-master comet-nn false true false false false true false 'comet-w1 comet-w2' 'comet-nn comet-mgr comet-w1 comet-w2 comet-master' > /var/log/configure.log 2>&1
-fi
-
-if [ "$Node" = "worker2" ]; then
-    #worker2
+if [ "$Node" = "worker" ]; then
+    #worker1 and worker2
     ./configure.sh comet-master comet-nn false true false false false true false 'comet-w1 comet-w2' 'comet-nn comet-mgr comet-w1 comet-w2 comet-master' > /var/log/configure.log 2>&1
 fi
 
