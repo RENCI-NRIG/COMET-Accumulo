@@ -79,6 +79,54 @@ runuser -l hadoop -c 'cat /home/hadoop/.ssh/id_rsa.pub >> /home/hadoop/.ssh/auth
 chmod 0600 $HADOOP_USER_HOME/.ssh/authorized_keys
 chmod 0600 $HADOOP_USER_HOME/.ssh/id_rsa
 ```
+### Allow Ports in firewalld
+Allow ports in firewalld as indicated below.
+
+#### Ports on Master and worker nodes
+Ports indicated below should be allowed on comet-master, comet-w1 and comet-w2 nodes.
+
+```
+cat /etc/firewalld/zones/public.xml
+<?xml version="1.0" encoding="utf-8"?>
+<zone>
+  <short>Public</short>
+  <description>For use in public areas. You do not trust the other computers on networks to not harm your computer. Only selected incoming connections are accepted.</description>
+  <service name="dhcpv6-client"/>
+  <port protocol="tcp" port="9995"/>
+  <port protocol="tcp" port="22"/>
+  <port protocol="tcp" port="9996"/>
+  <port protocol="tcp" port="9997"/>
+  <port protocol="tcp" port="9998"/>
+  <port protocol="tcp" port="9999"/>
+  <port protocol="tcp" port="4560"/>
+  <port protocol="tcp" port="10001"/>
+  <port protocol="tcp" port="10002"/>
+  <port protocol="tcp" port="2181"/>
+  <port protocol="tcp" port="2888"/>
+  <port protocol="tcp" port="3888"/>
+  <rule family="ipv4">
+    <source address="152.54.0.0/16"/>
+    <accept/>
+  </rule>
+</zone>
+```
+#### Ports on head nodes
+Ports indicated below should be allowed on comet-hn1 and comet-hn2 nodes.
+```
+<?xml version="1.0" encoding="utf-8"?>
+<zone>
+  <short>Public</short>
+  <description>For use in public areas. You do not trust the other computers on networks to not harm your computer. Only selected incoming connections are accepted.</description>
+  <service name="dhcpv6-client"/>
+  <port protocol="tcp" port="8111"/>
+  <port protocol="tcp" port="22"/>
+  <rule family="ipv4">
+    <source address="152.54.0.0/16"/>
+    <accept/>
+  </rule>
+</zone>
+```
+
 ### Configure Accumulo 
 Execute the following commands in order as root user
 #### Namenode
