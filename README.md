@@ -4,7 +4,7 @@
 
 COMET is a distributed RESTful meta-data service which stores key-value oriented configuration information about resources and applications running in the distributed cloud. Clients of COMET are elements of IaaS cloud provider system, user client tools, applications running in tenant virtual systems/slices. COMET provides strong authorization controls ensuring that information is only shared with appropriate clients.
 
-COMET (phase 2) is based on new design of mapping cloud service entries to [Accumulo](https://accumulo.apache.org) table entries.
+COMET is based on new design of mapping cloud service entries to [Accumulo](https://accumulo.apache.org) table entries.
 
 
 ![comet accumulo architecture](https://user-images.githubusercontent.com/29924060/54558372-ed31e100-4993-11e9-98ce-ffe342670e9e.jpg)
