@@ -254,9 +254,8 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
      * @return row
      * @throws TableNotFoundException table not found
      * @throws AccumuloException in case of accumulo error
-     * @throws AccumuloSecurityException in case of security error
      */
-    public Map<String[], Value> readOneRow(Connector conn, String tableName, Text rowID, Text colFam, Text colQual, String visibility) throws TableNotFoundException, AccumuloException, AccumuloSecurityException {
+    public Map<String[], Value> readOneRow(Connector conn, String tableName, Text rowID, Text colFam, Text colQual, String visibility) throws TableNotFoundException, AccumuloException {
         Map<String[], Value> output = new HashMap<>();
         try {
 
@@ -281,9 +280,10 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
             scanner.close();
         }
         catch (AccumuloSecurityException securityException) {
+            log.error("AccumuloSecurityException catched in readOneRow: " + securityException.toString());
             if( securityException.getMessage() != null) {
                 if(securityException.getMessage().contains("BAD_AUTHORIZATIONS")) {
-                    System.out.println("AccumuloOperationsApiImpl:readOneRow:Ignoring BAD_AUTHORIZATIONS intentionally= " + securityException.getMessage());
+                    log.error("AccumuloOperationsApiImpl:readOneRow:Ignoring BAD_AUTHORIZATIONS intentionally= " + securityException.getMessage());
                 }
             }
         }
