@@ -79,7 +79,7 @@ public class WriteScopeApiController implements WriteScopeApi {
         }
         
         JSONObject output = new JSONObject();
-        CometOps cometOps = new CometOps();
+        CometOps cometOps = CometOps.getInstance();
         
         // Check if scope exists, if no such scope, create a new scope which does not require valid certificate.
         try {
@@ -94,11 +94,17 @@ public class WriteScopeApiController implements WriteScopeApi {
             log.error("Accumulo internal error", e1);
             return new ResponseEntity<CometResponse>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        catch (AccumuloSecurityException e1) {
-                // Intentionally ignoring the exception
-                e1.printStackTrace();
+        catch (Exception e) {
+            if (e.getMessage() != null && (e.getMessage().contains("BAD_AUTHORIZATIONS"))) {
+                log.error("CometOps:writeScope: Intentionally ignoring the Exception; assuming row does not exist");
+                e.printStackTrace();
+            }
+            else {
+                log.error("Accumulo internal error", e);
+                return new ResponseEntity<CometResponse>(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
         }
-        
+
         if (certs != null) {
             try {
                 for (int i = 0; i < certs.length; i++)

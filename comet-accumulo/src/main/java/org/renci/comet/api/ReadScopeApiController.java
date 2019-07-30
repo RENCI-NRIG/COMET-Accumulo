@@ -105,29 +105,29 @@ public class ReadScopeApiController implements ReadScopeApi {
         log.debug("ReadScope operation: contextID: " + contextID + "\n family: " + family + "\n key: " + key + "\n readToken: " + readToken);
 
 		if (accept != null && accept.contains("application/json")) {
-        		try {
-        			CometOps cometOps = new CometOps();
-        			//JSONObject test = cometOps.readScope("id0001", "hero", "name", "secretId");
-        			//System.out.println(test);
-        			JSONObject output = cometOps.readScope(contextID, family, key, readToken);
-        			ObjectMapper objectMapper = new ObjectMapper();
-        			CometResponse comet = new CometResponse();
-        			comet.setValue(output.toString());
-        			comet.setStatus("OK");
-        			comet.setMessage("message");
-        			comet.setVersion("0.1");
-        			//System.out.println(comet.toString());
-        			String crTemp = "{  \"message\" : \"success\",  \"value\" : " + output.toString() + ",  \"version\" : \"" + CometInitializer.COMET_VERSION + "\",  \"status\" : \"OK\"}";
-        			//System.out.println(crTemp);
-        			//return new ResponseEntity<CometResponse>(objectMapper.readValue("{  \"message\" : \"message\",  \"value\" : \"{}\",  \"version\" : \"version\",  \"status\" : \"status\"}", CometResponse.class), HttpStatus.OK);
-        			return new ResponseEntity<CometResponse>(objectMapper.readValue(crTemp, CometResponse.class), HttpStatus.OK);
-        		} catch (IOException ioe) {
-                    log.error("Couldn't serialize response for content type application/json", ioe);
-                    return new ResponseEntity<CometResponse>(HttpStatus.INTERNAL_SERVER_ERROR);
-             } catch (Exception e) {
-        			log.error("Accumulo internal error", e);
+			try {
+				CometOps cometOps = CometOps.getInstance();
+				//JSONObject test = cometOps.readScope("id0001", "hero", "name", "secretId");
+				//System.out.println(test);
+				JSONObject output = cometOps.readScope(contextID, family, key, readToken);
+				ObjectMapper objectMapper = new ObjectMapper();
+				CometResponse comet = new CometResponse();
+				comet.setValue(output.toString());
+				comet.setStatus("OK");
+				comet.setMessage("message");
+				comet.setVersion("0.1");
+				//System.out.println(comet.toString());
+				String crTemp = "{  \"message\" : \"success\",  \"value\" : " + output.toString() + ",  \"version\" : \"" + CometInitializer.COMET_VERSION + "\",  \"status\" : \"OK\"}";
+				//System.out.println(crTemp);
+				//return new ResponseEntity<CometResponse>(objectMapper.readValue("{  \"message\" : \"message\",  \"value\" : \"{}\",  \"version\" : \"version\",  \"status\" : \"status\"}", CometResponse.class), HttpStatus.OK);
+				return new ResponseEntity<CometResponse>(objectMapper.readValue(crTemp, CometResponse.class), HttpStatus.OK);
+			} catch (IOException ioe) {
+				log.error("Couldn't serialize response for content type application/json", ioe);
+				return new ResponseEntity<CometResponse>(HttpStatus.INTERNAL_SERVER_ERROR);
+			} catch (Exception e) {
+				log.error("Accumulo internal error", e);
                 return new ResponseEntity<CometResponse>(HttpStatus.INTERNAL_SERVER_ERROR);
-        		}
+			}
         }
 
         ResponseEntity<CometResponse> cr = new ResponseEntity<CometResponse>(HttpStatus.BAD_REQUEST);

@@ -45,6 +45,7 @@ import java.util.Properties;
 import java.util.Map.Entry;
 import org.renci.comet.accumuloops.AccumuloOperationsApiIfce;
 import org.renci.comet.accumuloops.AccumuloOperationsApiImpl;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class CometOps implements CometOpsIfce {
     String instanceName = readProperties()[2];
@@ -57,6 +58,15 @@ public class CometOps implements CometOpsIfce {
     public static String SUCCESS = "Success";
     public static final int NUM_OF_SERIALIZED_PARAMETERS = 5;
     private static final Logger log = Logger.getLogger(CometOps.class);
+
+    private static final ReentrantLock fairLock = new ReentrantLock(true);
+    private static final CometOps cometOpsInstance = new CometOps();
+    private CometOps(){ }
+
+    public static CometOps getInstance() {
+        return cometOpsInstance;
+    }
+
 
     public static String[] readProperties() {
         String checkTokenStrength = "true";
@@ -199,172 +209,190 @@ public class CometOps implements CometOpsIfce {
 
     public JSONObject writeScope (String contextID, String family, String key, String scopeValue, String readToken, String writeToken) 
                                 throws AccumuloException, AccumuloSecurityException,TableNotFoundException, TableExistsException {
-        Instance inst = new ZooKeeperInstance(instanceName,zooServers);
-        Connector conn = inst.getConnector(userName, new PasswordToken(password));
-        AccumuloOperationsApiImpl accu = new AccumuloOperationsApiImpl();
+        synchronized (this) {
+            Instance inst = new ZooKeeperInstance(instanceName, zooServers);
+            Connector conn = inst.getConnector(userName, new PasswordToken(password));
+            AccumuloOperationsApiImpl accu = new AccumuloOperationsApiImpl();
+            JSONObject jsonOutput = null;
 
-        Text rowID = new Text(contextID);
-        Text colFam = new Text(family);
-        Text colQual = new Text(key);
-        Text vis = new Text(readToken);
-        
-        Map<String, Value> mapOutput = new HashMap<String, Value>();
-        try {
-            mapOutput = accu.readOneRowAccuFormat(conn, tableName, rowID, colFam, colQual, readToken);
+            Text rowID = new Text(contextID);
+            Text colFam = new Text(family);
+            Text colQual = new Text(key);
+            Text vis = new Text(readToken);
+
+            Map<String, Value> mapOutput = new HashMap<String, Value>();
+            fairLock.lock();
+            try {
+                mapOutput = accu.readOneRowAccuFormat(conn, tableName, rowID, colFam, colQual, readToken);
+                int mapSize = mapOutput.size();
+                if (mapSize == 0) {
+                    log.debug("No scope, creating new one.");
+                } else if (mapSize != 1) {
+                    log.debug("Conflict in Accumulo record, please clean up.");
+                } else {
+                    for (Map.Entry<String, Value> entry : mapOutput.entrySet()) {
+                        Value v = entry.getValue();
+                        log.debug("Comet readscope: got Value: " + v);
+                        String[] deserialized = null;
+                        try {
+                            deserialized = (String[]) deserialize(v.get());
+                        } catch (ClassNotFoundException | IOException e1) {
+                            log.error("deserialization failed: " + e1);
+                        }
+                        if (deserialized != null && deserialized.length == CometOps.NUM_OF_SERIALIZED_PARAMETERS) {
+                            log.debug("deserialized values:");
+                            for (String s : deserialized)
+                                log.debug(s);
+                            log.debug("deserialized values done.");
+                            if (deserialized[0].equals("true")) {
+                                try {
+                                    JSONObject output = new JSONObject();
+                                    output.put(ERROR, "Failed to write scope: scope already deleted.");
+                                    return output;
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                    }
+                }
+
+                //Accumulo value field format: {ifDeleted, writeToken, scopeValue, Comet_version, deletionTimeStamp}
+                String[] value = {"false", writeToken, scopeValue, CometInitializer.COMET_VERSION, ""};
+                log.debug("Writing in scope: contextID: " + contextID + "\n family: " + family + "\n key: " + key + "\n readToken: " + readToken);
+
+                byte[] serializedByteArray = null;
+                try {
+                    serializedByteArray = serialize(value);
+                    log.debug("Serialize successful!");
+                } catch (IOException e) {
+                    log.debug(e.toString());
+                }
+
+                org.apache.accumulo.core.data.Value accumuloValue = new org.apache.accumulo.core.data.Value(serializedByteArray);
+                log.debug("Writing to Accumulo done!");
+                jsonOutput = accu.addAccumuloRow(conn, tableName, rowID, colFam, colQual, accumuloValue, vis);
+            } catch (Exception e) {
+                if (e.getMessage() != null && (e.getMessage().contains("BAD_AUTHORIZATIONS"))) {
+                    log.error("CometOps:writeScope:Intentionally ignoring the Exception; assuming row does not exist");
+                    e.printStackTrace();
+                } else {
+                    throw e;
+                }
+            } finally {
+                fairLock.unlock();
+            }
+            return jsonOutput;
         }
-        catch(AccumuloSecurityException e) {
-            log.error("Intentionally ignoring this exception; assuming row does not exist");
-            e.printStackTrace();
-        }
-        int mapSize = mapOutput.size();
-        if (mapSize == 0) {
-            log.debug("No scope, creating new one.");
-        } else if (mapSize != 1) {
-            log.debug("Conflict in Accumulo record, please clean up.");
-        } else {
-            for (Map.Entry<String, Value> entry : mapOutput.entrySet()) {
+    }
+
+    public JSONObject deleteScope (String contextID, String family, String key, String readToken, String writeToken) throws AccumuloException, AccumuloSecurityException, TableNotFoundException, JSONException {
+        synchronized (this) {
+            Instance inst = new ZooKeeperInstance(instanceName, zooServers);
+            Connector conn = inst.getConnector(userName, new PasswordToken(password));
+            AccumuloOperationsApiImpl accu = new AccumuloOperationsApiImpl();
+            JSONObject jsonOutput = new JSONObject();
+
+            Text rowID = new Text(contextID);
+            Text colFam = new Text(family);
+            Text colQual = new Text(key);
+            Text vis = new Text(readToken);
+            Map<String, Value> mapOutput = new HashMap<String, Value>();
+
+            fairLock.lock();
+            try {
+                mapOutput = accu.readOneRowAccuFormat(conn, tableName, rowID, colFam, colQual, readToken);
+
+                int mapSize = mapOutput.size();
+                if (mapSize == 0) {
+                    jsonOutput.put(ERROR, "Failed to delete scope: no such entry");
+                    return jsonOutput;
+                }
+
+                if (mapSize != 1) {
+                    jsonOutput.put(ERROR, "Failed to delete scope: conflict in Accumulo record, please clean up");
+                    return jsonOutput;
+                }
+
+                for (Map.Entry<String, Value> entry : mapOutput.entrySet()) {
                     Value v = entry.getValue();
-                    log.debug("Comet readscope: got Value: " + v);
                     String[] deserialized = null;
                     try {
                         deserialized = (String[]) deserialize(v.get());
                     } catch (ClassNotFoundException | IOException e1) {
                         log.error("deserialization failed: " + e1);
+                        jsonOutput.put(ERROR, "Failed to delete scope: deserialization failed");
                     }
                     if (deserialized != null && deserialized.length == CometOps.NUM_OF_SERIALIZED_PARAMETERS) {
-                        log.debug("deserialized values:");
-                        for (String s : deserialized)
-                            log.debug(s);
-                        log.debug("deserialized values done.");
-                        if (deserialized[0].equals("true")) {
+                        if (!writeToken.equals(deserialized[1])) {
                             try {
-                                JSONObject output = new JSONObject();
-                                output.put(ERROR, "Failed to write scope: scope already deleted.");
-                                return output;
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+                                jsonOutput.put(ERROR, "Cannot delete scope: incorrect write token");
+                            } catch (JSONException e) {
+                                log.error("JSON Exception: " + e.getMessage());
+                            }
+                            log.error("Cannot delete scope: incorrect write token");
+                            return jsonOutput;
                         }
-                        }
-                    }
-            }
-        }
-        
-        //Accumulo value field format: {ifDeleted, writeToken, scopeValue, Comet_version, deletionTimeStamp}
-        String[] value = {"false", writeToken, scopeValue, CometInitializer.COMET_VERSION, ""};
-        log.debug("Writing in scope: contextID: " + contextID + "\n family: " + family + "\n key: " + key + "\n readToken: " + readToken);
 
-        byte[] serializedByteArray = null;
-        try {
-            serializedByteArray = serialize(value);
-            log.debug("Serialize successful!");
-        } catch (IOException e) {
-            log.debug(e.toString());
-        }
+                        deserialized[0] = "true";
 
-        org.apache.accumulo.core.data.Value accumuloValue = new org.apache.accumulo.core.data.Value(serializedByteArray);
+                        long unixTimestamp = Instant.now().getEpochSecond();
+                        String strLong = Long.toString(unixTimestamp);
+                        deserialized[4] = strLong;
 
-        log.debug("Writing to Accumulo done!");
-
-        JSONObject jsonOutput = accu.addAccumuloRow(conn, tableName, rowID, colFam, colQual, accumuloValue, vis);
-
-        return jsonOutput;
-    }
-
-    public JSONObject deleteScope (String contextID, String family, String key, String readToken, String writeToken) throws AccumuloException, AccumuloSecurityException, TableNotFoundException, JSONException {
-
-        Instance inst = new ZooKeeperInstance(instanceName,zooServers);
-        Connector conn = inst.getConnector(userName, new PasswordToken(password));
-        AccumuloOperationsApiImpl accu = new AccumuloOperationsApiImpl();
-        JSONObject jsonOutput = new JSONObject();
-
-        Text rowID = new Text(contextID);
-        Text colFam = new Text(family);
-        Text colQual = new Text(key);
-        Text vis = new Text(readToken);
-        Map<String, Value> mapOutput = new HashMap<String, Value>();
-        mapOutput = accu.readOneRowAccuFormat(conn, tableName, rowID, colFam, colQual, readToken);
-
-        int mapSize = mapOutput.size();
-        if (mapSize == 0) {
-            jsonOutput.put(ERROR, "Failed to delete scope: no such entry");
-            return jsonOutput;
-        }
-
-        if (mapSize != 1) {
-            jsonOutput.put(ERROR, "Failed to delete scope: conflict in Accumulo record, please clean up");
-            return jsonOutput;
-        }
-
-        for (Map.Entry<String, Value> entry : mapOutput.entrySet()) {
-                Value v = entry.getValue();
-                String[] deserialized = null;
-            try {
-                deserialized = (String[]) deserialize(v.get());
-            } catch (ClassNotFoundException | IOException e1) {
-                log.error("deserialization failed: " + e1);
-                jsonOutput.put(ERROR, "Failed to delete scope: deserialization failed");
-            }
-                if (deserialized != null && deserialized.length == CometOps.NUM_OF_SERIALIZED_PARAMETERS) {
-                    if (!writeToken.equals(deserialized[1])) {
+                        byte[] serializedByteArray = null;
                         try {
-                        jsonOutput.put(ERROR, "Cannot delete scope: incorrect write token");
-                    } catch (JSONException e) {
-                        log.error("JSON Exception: " + e.getMessage());
-                    }
-                        log.error("Cannot delete scope: incorrect write token");
-                        return jsonOutput;
-                    }
+                            serializedByteArray = serialize(deserialized);
+                            org.apache.accumulo.core.data.Value accumuloValue = new org.apache.accumulo.core.data.Value(serializedByteArray);
 
-                    deserialized[0] = "true";
-                    
-                    long unixTimestamp = Instant.now().getEpochSecond();
-                    String strLong = Long.toString(unixTimestamp);
-                    deserialized[4] = strLong;
-                    
-                    byte[] serializedByteArray = null;
-                    try {
-                        serializedByteArray = serialize(deserialized);
-                        org.apache.accumulo.core.data.Value accumuloValue = new org.apache.accumulo.core.data.Value(serializedByteArray);
+                            JSONObject output = accu.addAccumuloRow(conn, tableName, rowID, colFam, colQual, accumuloValue, vis);
 
-                        JSONObject output = accu.addAccumuloRow(conn, tableName, rowID, colFam, colQual, accumuloValue, vis);
+                            try {
+                                jsonOutput.put(SUCCESS, "Scope deleted");
+                            } catch (JSONException e) {
+                                log.error("JSON Exception: " + e.getMessage());
+                            }
 
-                        try {
-                        jsonOutput.put(SUCCESS, "Scope deleted");
-                        } catch (JSONException e) {
-                            log.error("JSON Exception: " + e.getMessage());
+                        } catch (IOException e) {
+                            log.error("IO Exception: " + e.getMessage());
                         }
-
-                    } catch (IOException e) {
-                        log.error("IO Exception: " + e.getMessage());
                     }
                 }
+            } finally {
+                fairLock.unlock();
+            }
+            return jsonOutput;
         }
-
-        return jsonOutput;
     }
 
 
     public JSONObject readScope (String contextID, String family, String key, String readToken) throws AccumuloException, AccumuloSecurityException,TableNotFoundException, TableExistsException {
-        Instance inst = new ZooKeeperInstance(instanceName,zooServers);
-        Connector conn = inst.getConnector(userName, new PasswordToken(password));
-        AccumuloOperationsApiImpl accu = new AccumuloOperationsApiImpl();
+        synchronized (this) {
+            Instance inst = new ZooKeeperInstance(instanceName, zooServers);
+            Connector conn = inst.getConnector(userName, new PasswordToken(password));
+            AccumuloOperationsApiImpl accu = new AccumuloOperationsApiImpl();
 
-        Text rowID = new Text(contextID);
-        Text colFam = new Text(family);
-        Text colQual = new Text(key);
-        String scopeValue = null;
-        Map<String[], Value> output = new HashMap<String[], Value>();
+            Text rowID = new Text(contextID);
+            Text colFam = new Text(family);
+            Text colQual = new Text(key);
+            String scopeValue = null;
+            Map<String[], Value> output = new HashMap<String[], Value>();
 
-        JSONObject jsonOutput = new JSONObject();
-        output = accu.readOneRow(conn, tableName, rowID, colFam, colQual, readToken);
-        for (Map.Entry<String[], Value> entry : output.entrySet()) {
+            JSONObject jsonOutput = new JSONObject();
+            fairLock.lock();
+            try {
+                output = accu.readOneRow(conn, tableName, rowID, colFam, colQual, readToken);
+            } finally {
+                fairLock.unlock();
+            }
+            for (Map.Entry<String[], Value> entry : output.entrySet()) {
                 Value v = entry.getValue();
                 String[] deserialized = null;
-            try {
-                deserialized = (String[]) deserialize(v.get());
-            } catch (ClassNotFoundException | IOException e1) {
-                log.error("deserialization failed: " + e1);
-            }
+                try {
+                    deserialized = (String[]) deserialize(v.get());
+                } catch (ClassNotFoundException | IOException e1) {
+                    log.error("deserialization failed: " + e1);
+                }
                 if (deserialized != null && deserialized.length == CometOps.NUM_OF_SERIALIZED_PARAMETERS) {
                     log.debug("deserialized values:");
                     for (String s : deserialized)
@@ -374,64 +402,66 @@ public class CometOps implements CometOpsIfce {
                         try {
                             jsonOutput.put(ERROR, "Failed to read scope: scope already deleted.");
                             return jsonOutput;
-                    } catch (JSONException e) {
-                        e.printStackTrace();
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
                     }
-                    }
-                    
+
                     try {
                         jsonOutput.put("contextId", entry.getKey()[0]);
                         jsonOutput.put("family", entry.getKey()[1]);
                         jsonOutput.put("key", entry.getKey()[2]);
                         jsonOutput.put("value", deserialized[2]);
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 }
-                }
+            }
+            return jsonOutput;
         }
-        return jsonOutput;
     }
     
     public JSONObject enumerateScopesWithFamily(String contextID, String family, String readToken) throws AccumuloException, AccumuloSecurityException {
+        synchronized (this) {
+            Instance inst = new ZooKeeperInstance(instanceName, zooServers);
+            Connector conn = inst.getConnector(userName, new PasswordToken(password));
+            AccumuloOperationsApiImpl accu = new AccumuloOperationsApiImpl();
 
-        Instance inst = new ZooKeeperInstance(instanceName,zooServers);
-    
-        Connector conn = inst.getConnector(userName, new PasswordToken(password));
-    
-        AccumuloOperationsApiImpl accu = new AccumuloOperationsApiImpl();
-    
-        Text rowID = new Text(contextID);
-        Map<String[], Value> output = new HashMap<String[], Value>();
-    
-        JSONObject jsonOutput = new JSONObject();
-        
-        try {
-            output = accu.enumerateRows(conn, tableName, rowID, readToken);
-        } catch (TableNotFoundException e2) {
-            // TODO Auto-generated catch block
-            log.error("Table not found: " + e2);
-        }
-    
-        try {
-            jsonOutput.put("contextId", contextID);
-            jsonOutput.put("family", family);
-        } catch (JSONException e3) {
-            e3.printStackTrace();
-        }
-        
-        JSONArray jArr = new JSONArray();
-        
-        for (Map.Entry<String[], Value> entry : output.entrySet()) {
-            JSONObject arrayElement = new JSONObject();
+            Text rowID = new Text(contextID);
+            Map<String[], Value> output = new HashMap<String[], Value>();
+
+            JSONObject jsonOutput = new JSONObject();
+
+            fairLock.lock();
+            try {
+                output = accu.enumerateRows(conn, tableName, rowID, readToken);
+            } catch (TableNotFoundException e2) {
+                // TODO Auto-generated catch block
+                log.error("Table not found: " + e2);
+            } finally {
+                fairLock.unlock();
+            }
+
+            try {
+                jsonOutput.put("contextId", contextID);
+                jsonOutput.put("family", family);
+            } catch (JSONException e3) {
+                e3.printStackTrace();
+            }
+
+            JSONArray jArr = new JSONArray();
+
+            for (Map.Entry<String[], Value> entry : output.entrySet()) {
+                JSONObject arrayElement = new JSONObject();
                 Value v = entry.getValue();
                 String[] deserialized = null;
-                
-            try {
-                deserialized = (String[]) deserialize(v.get());
-            } catch (ClassNotFoundException | IOException e1) {
-                log.error("deserialization failed: " + e1);
-            }
-            
+
+                try {
+                    deserialized = (String[]) deserialize(v.get());
+                } catch (ClassNotFoundException | IOException e1) {
+                    log.error("deserialization failed: " + e1);
+                }
+
                 if (deserialized != null && deserialized.length == CometOps.NUM_OF_SERIALIZED_PARAMETERS) {
                     log.debug("deserialized values:");
                     for (String s : deserialized)
@@ -442,61 +472,65 @@ public class CometOps implements CometOpsIfce {
                             arrayElement.put("key", entry.getKey()[2]);
                             arrayElement.put("value", deserialized[2]);
                             jArr.put(arrayElement);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
+            }
+
+            try {
+                jsonOutput.put("entries", jArr);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            return jsonOutput;
         }
-        
-        try {
-            jsonOutput.put("entries", jArr);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        
-        return jsonOutput;
     }
     
     
 
     public JSONObject enumerateScopes(String contextID, String readToken) throws AccumuloException, AccumuloSecurityException {
+        synchronized (this) {
+            Instance inst = new ZooKeeperInstance(instanceName, zooServers);
+            Connector conn = inst.getConnector(userName, new PasswordToken(password));
+            AccumuloOperationsApiImpl accu = new AccumuloOperationsApiImpl();
 
-        Instance inst = new ZooKeeperInstance(instanceName,zooServers);
-        Connector conn = inst.getConnector(userName, new PasswordToken(password));
-        AccumuloOperationsApiImpl accu = new AccumuloOperationsApiImpl();
-    
-        Text rowID = new Text(contextID);
-        Map<String[], Value> output = new HashMap<String[], Value>();
-    
-        JSONObject jsonOutput = new JSONObject();
-        
-        try {
-            output = accu.enumerateRows(conn, tableName, rowID, readToken);
-        } catch (TableNotFoundException e2) {
-            // TODO Auto-generated catch block
-            log.error("Table not found: " + e2);
-        }
-    
-        try {
-            jsonOutput.put("contextId", contextID);
-        } catch (JSONException e3) {
-            e3.printStackTrace();
-        }
-        
-        JSONArray jArr = new JSONArray();
-        
-        for (Map.Entry<String[], Value> entry : output.entrySet()) {
-            JSONObject arrayElement = new JSONObject();
+            Text rowID = new Text(contextID);
+            Map<String[], Value> output = new HashMap<String[], Value>();
+
+            JSONObject jsonOutput = new JSONObject();
+
+            fairLock.lock();
+            try {
+                output = accu.enumerateRows(conn, tableName, rowID, readToken);
+            } catch (TableNotFoundException e2) {
+                // TODO Auto-generated catch block
+                log.error("Table not found: " + e2);
+            } finally {
+                fairLock.unlock();
+            }
+
+            try {
+                jsonOutput.put("contextId", contextID);
+            } catch (JSONException e3) {
+                e3.printStackTrace();
+            }
+
+            JSONArray jArr = new JSONArray();
+
+            for (Map.Entry<String[], Value> entry : output.entrySet()) {
+                JSONObject arrayElement = new JSONObject();
                 Value v = entry.getValue();
                 String[] deserialized = null;
-                
-            try {
-                deserialized = (String[]) deserialize(v.get());
-            } catch (ClassNotFoundException | IOException e1) {
-                log.error("deserialization failed: " + e1);
-            }
-            
+
+                try {
+                    deserialized = (String[]) deserialize(v.get());
+                } catch (ClassNotFoundException | IOException e1) {
+                    log.error("deserialization failed: " + e1);
+                }
+
                 if (deserialized != null && deserialized.length == CometOps.NUM_OF_SERIALIZED_PARAMETERS) {
                     log.debug("deserialized values:");
                     for (String s : deserialized)
@@ -508,19 +542,19 @@ public class CometOps implements CometOpsIfce {
                             arrayElement.put("key", entry.getKey()[2]);
                             arrayElement.put("value", deserialized[2]);
                             jArr.put(arrayElement);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
+            }
+
+            try {
+                jsonOutput.put("entries", jArr);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            return jsonOutput;
         }
-        
-        try {
-            jsonOutput.put("entries", jArr);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        
-        return jsonOutput;
     }
 }
