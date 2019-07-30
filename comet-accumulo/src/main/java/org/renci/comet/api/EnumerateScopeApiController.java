@@ -72,7 +72,7 @@ public class EnumerateScopeApiController implements EnumerateScopeApi {
             //if (certValid) {
             // For testing only
             try {
-                CometOps cometOps = new CometOps();
+                CometOps cometOps = CometOps.getInstance();
                 JSONObject output = new JSONObject();
                 if (family != null) {
                 		output = cometOps.enumerateScopesWithFamily(contextID, family, readToken);
@@ -91,9 +91,9 @@ public class EnumerateScopeApiController implements EnumerateScopeApi {
             } catch (IOException ioe) {
                 log.error("Couldn't serialize response for content type application/json", ioe);
                 return new ResponseEntity<CometResponse>(HttpStatus.INTERNAL_SERVER_ERROR);
-         } catch (Exception e) {
+            } catch (Exception e) {
                 log.error("Accumulo internal error", e);
-            return new ResponseEntity<CometResponse>(HttpStatus.INTERNAL_SERVER_ERROR);
+                return new ResponseEntity<CometResponse>(HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
 

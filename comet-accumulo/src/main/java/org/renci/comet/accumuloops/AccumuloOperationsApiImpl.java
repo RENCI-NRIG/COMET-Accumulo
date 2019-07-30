@@ -233,12 +233,12 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
             scanner.close();
 
         }
-        catch (AccumuloSecurityException securityException) {
-            if( securityException.getMessage() != null) {
-                if(securityException.getMessage().contains("BAD_AUTHORIZATIONS")) {
-                    System.out.println("AccumuloOperationsApiImpl:enumerateRows: Ignoring BAD_AUTHORIZATIONS intentionally= " + securityException.getMessage());
-                }
+        catch (Exception e) {
+            log.error("Exception catched and thrown again in enumerateRows: " + e.toString());
+            if (e.getMessage() != null && (e.getMessage().contains("BAD_AUTHORIZATIONS"))) {
+                log.error("AccumuloOperationsApiImpl:enumerateRows:Got Exception BAD_AUTHORIZATIONS =" + e.getMessage());
             }
+            throw e;
         }
         return output;
     }
@@ -255,7 +255,7 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
      * @throws TableNotFoundException table not found
      * @throws AccumuloException in case of accumulo error
      */
-    public Map<String[], Value> readOneRow(Connector conn, String tableName, Text rowID, Text colFam, Text colQual, String visibility) throws TableNotFoundException, AccumuloException {
+    public Map<String[], Value> readOneRow(Connector conn, String tableName, Text rowID, Text colFam, Text colQual, String visibility) throws TableNotFoundException, AccumuloException, AccumuloSecurityException {
         Map<String[], Value> output = new HashMap<>();
         try {
 
@@ -279,13 +279,14 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
             }
             scanner.close();
         }
-        catch (AccumuloSecurityException securityException) {
-            log.error("AccumuloSecurityException catched in readOneRow: " + securityException.toString());
-            if( securityException.getMessage() != null) {
-                if(securityException.getMessage().contains("BAD_AUTHORIZATIONS")) {
-                    log.error("AccumuloOperationsApiImpl:readOneRow:Ignoring BAD_AUTHORIZATIONS intentionally= " + securityException.getMessage());
-                }
+        catch (Exception e) {
+            log.error("Exception catched and thrown again in readOneRow: " + e.toString());
+            if (e.getMessage() != null && (e.getMessage().contains("BAD_AUTHORIZATIONS"))) {
+                log.error("AccumuloOperationsApiImpl:readOneRow:Got Exception BAD_AUTHORIZATIONS =" + e.getMessage());
+                log.error("authorizaions request: " + visibility);
+                log.error("authorizaions actual: " + conn.securityOperations().getUserAuthorizations("root").toString());
             }
+            throw e;
         }
         return output;
     }
@@ -325,12 +326,12 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
             }
             scanner.close();
         }
-        catch (AccumuloSecurityException securityException) {
-            if( securityException.getMessage() != null) {
-                if(securityException.getMessage().contains("BAD_AUTHORIZATIONS")) {
-                    System.out.println("AccumuloOperationsApiImpl:readOneRowAccuFormat:Ignoring BAD_AUTHORIZATIONS intentionally= " + securityException.getMessage());
-                }
+        catch (Exception e) {
+            log.error("Exception catched and thrown again in readOneRowAccuFormat: " + e.toString());
+            if (e.getMessage() != null && (e.getMessage().contains("BAD_AUTHORIZATIONS"))) {
+                log.error("AccumuloOperationsApiImpl:readOneRowAccuFormat:Got Exception BAD_AUTHORIZATIONS =" + e.getMessage());
             }
+            throw e;
         }
         return output;
     }
