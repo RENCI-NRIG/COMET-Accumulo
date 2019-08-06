@@ -21,6 +21,7 @@ ZOO_USER=zookeeper
 ZOO_CONF_DIR=/conf
 ZOO_DATA_DIR=/data
 ZOO_DATA_LOG_DIR=/datalog
+ZOO_LOG_DIR=/var/log/zookeeper
 ZOO_PORT=2181
 ZOO_TICK_TIME=2000
 ZOO_INIT_LIMIT=5
@@ -31,8 +32,8 @@ ZOO_MAX_CLIENT_CNXNS=60
 echo "Adding user $ZOO_USER"
 adduser $ZOO_USER
 echo "Setting up zookeeper directories"
-mkdir -p $ZOO_DATA_LOG_DIR $ZOO_DATA_DIR $ZOO_CONF_DIR
-chown "$ZOO_USER:$ZOO_USER" $ZOO_DATA_LOG_DIR $ZOO_DATA_DIR $ZOO_CONF_DIR
+mkdir -p $ZOO_DATA_LOG_DIR $ZOO_DATA_DIR $ZOO_CONF_DIR $ZOO_LOG_DIR
+chown "$ZOO_USER:$ZOO_USER" $ZOO_DATA_LOG_DIR $ZOO_DATA_DIR $ZOO_CONF_DIR $ZOO_LOG_DIR
 DISTRO_NAME=zookeeper-${ZOOKEEPER_VERSION}
 echo "Download zookeeper tarball ${DISTRO_NAME}.tar.gz "
 curl -o $WORKDIR/${DISTRO_NAME}.tar.gz "https://archive.apache.org/dist/zookeeper/$DISTRO_NAME/$DISTRO_NAME.tar.gz"
@@ -41,6 +42,7 @@ tar -xzf $WORKDIR/${DISTRO_NAME}.tar.gz -C $WORKDIR
 echo "Clean up"
 mv $WORKDIR/$DISTRO_NAME $WORKDIR/zookeeper
 rm -rf $WORKDIR/$DISTRO_NAME.tar.gz
+echo "log4j.appender.ROLLINGFILE.MaxBackupIndex=10" >> $WORKDIR/zookeeper/conf/log4j.properties
 cp $WORKDIR/zookeeper/conf/log4j.properties /root/
 
 #Setup zookeper profile
@@ -57,6 +59,8 @@ export ZOO_INIT_LIMIT=5
 export ZOO_SYNC_LIMIT=2
 export ZOO_MAX_CLIENT_CNXNS=60
 export ZOOCFGDIR=/conf
+export ZOO_LOG_DIR=/var/log/zookeeper
+export ZOO_LOG4J_PROP=INFO,ROLLINGFILE
 EOL
 
 # Setup zoo.cfg
@@ -71,6 +75,8 @@ maxClientCnxns=60
 server.1=zoo1:2888:3888
 server.2=zoo2:2888:3888
 server.3=zoo3:2888:3888
+autopurge.snapRetainCount=3
+autopurge.purgeInterval=1
 EOL
 
 
