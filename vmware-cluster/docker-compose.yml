@@ -28,3 +28,5 @@ services:
       COMET_SSL_KEY_PWD: 'changeme'
       COMET_SSL_TRUST_STORE: comettrustedstore.jks
       COMET_SSL_TRUST_STORE_PWD: 'changeme'
+    logging:
+      driver: "none"
