@@ -90,9 +90,9 @@ public class DeleteScopeApiController implements DeleteScopeApi {
 
 		if (certValid && accept != null && accept.contains("application/json")) {
 			try {
-				log.debug("DeleteScope: certificate is valid.");
+				log.info("DeleteScope: certificate is valid.");
 				CometOps cometOps = CometOps.getInstance();
-				log.debug("DeleteScope Operation: contectID: " + contextID + "; family: " + family + "; key: " + key + "; readToken: " + readToken + "; writeToken: " + writeToken);
+				log.info("DeleteScope Operation: contectID: " + contextID + "; family: " + family + "; key: " + key + "; readToken: " + readToken + "; writeToken: " + writeToken);
 				JSONObject output = cometOps.deleteScope(contextID, family, key, readToken, writeToken);
 				//return new ResponseEntity<CometResponse>(objectMapper.readValue("{  \"message\" : \"message\",  \"value\" : \"{}\",  \"version\" : \"version\",  \"status\" : \"status\"}", CometResponse.class), HttpStatus.OK);
 				CometResponse comet = new CometResponse();

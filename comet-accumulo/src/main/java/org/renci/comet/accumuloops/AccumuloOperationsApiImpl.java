@@ -124,6 +124,7 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
         bw.flush();
         bw.close();
         try {
+            log.warn("Added to Accumulo " + visibility + "/" + rowID + "/" + colFam + "/" + colQual);
             output.put(SUCCESS, "success, added Accumulo row: " + rowID + " to table: " + tableName);
         } catch (JSONException e1) {
             log.error("JSON Exception: " + e1.getMessage());
@@ -229,7 +230,10 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
                 Value value = entry.getValue();
                 output.put(keys, value);
             }
-
+            if (output.size() == 0 )
+            {
+                log.info("Output empty");
+            }
             scanner.close();
 
         }
@@ -277,6 +281,10 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
                 Value value = entry.getValue();
                 output.put(keys, value);
             }
+            if (output.size() == 0 )
+            {
+                log.info("Output empty");
+            }
             scanner.close();
         }
         catch (Exception e) {
@@ -323,6 +331,10 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
                 String key = entry.getKey().getRow() + " " + entry.getKey().getColumnFamily() + ":" + entry.getKey().getColumnQualifier();
                 Value value = entry.getValue();
                 output.put(key, value);
+            }
+            if (output.size() == 0 )
+            {
+                log.info("Output empty");
             }
             scanner.close();
         }
