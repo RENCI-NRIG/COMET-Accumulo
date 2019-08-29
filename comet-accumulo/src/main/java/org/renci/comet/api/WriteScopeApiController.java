@@ -70,7 +70,7 @@ public class WriteScopeApiController implements WriteScopeApi {
         X509Certificate[] certs = (X509Certificate[])request.getAttribute("javax.servlet.request.X509Certificate");
         log.debug("WriteScope: got request");
         if (certs == null) {
-            log.error("Spring: Certificate is null!");
+            log.error("Certificate is null!");
         } else {
             log.debug("Got client certificate:");
             for (X509Certificate x : certs) {
@@ -85,10 +85,10 @@ public class WriteScopeApiController implements WriteScopeApi {
         try {
             output = cometOps.readScope(contextID, family, key, readToken);
             if (output.length() != 0) {
-                log.debug("Scope: " + contextID + " exists, modifying existing Accumulo entry. Valid certificate required");
+                log.info("Scope: " + contextID + " exists, modifying existing Accumulo entry. Valid certificate required");
                 certValid = true;
             } else {
-                log.debug("Scope: " + contextID + " does not exists, creating new Accumulo entry. Trusted certificate required");
+                log.info("Scope: " + contextID + " does not exists, creating new Accumulo entry. Trusted certificate required");
             }
         } catch (AccumuloException | TableNotFoundException | TableExistsException e1) {
             log.error("Accumulo internal error", e1);
@@ -115,9 +115,10 @@ public class WriteScopeApiController implements WriteScopeApi {
             }
         }
 
-        log.debug("WriteScope operation: contextID: " + contextID + "\n family: " + family + "\n key: " + key + "\n value: " + value + "\n readToken: " + readToken + "\n writeToken: " + writeToken);
+        log.info("WriteScope operation: contextID: " + contextID + "\n family: " + family + "\n key: " + key + "\n value: " + value + "\n readToken: " + readToken + "\n writeToken: " + writeToken);
 
         if (!certValid) {
+            log.warn("Invalid certificate: Unauthorized client");
             try {
                 return new ResponseEntity<CometResponse>(objectMapper.readValue("{  \"message\" : \"Invalid certificate: Unauthorized client\",  \"value\" : \"{Unauthorized client}\",  \"version\" : \"" + CometInitializer.COMET_VERSION + "\",  \"status\" : \"status\"}", CometResponse.class), HttpStatus.BAD_REQUEST);
             } catch (JsonParseException e) {
@@ -198,7 +199,7 @@ public class WriteScopeApiController implements WriteScopeApi {
                 return new ResponseEntity<CometResponse>(HttpStatus.INTERNAL_SERVER_ERROR);
             } catch (Exception e) {
                 log.error("Accumulo internal error", e);
-            return new ResponseEntity<CometResponse>(HttpStatus.INTERNAL_SERVER_ERROR);
+                return new ResponseEntity<CometResponse>(HttpStatus.INTERNAL_SERVER_ERROR);
             }
 
         }

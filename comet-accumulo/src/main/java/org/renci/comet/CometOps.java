@@ -226,13 +226,13 @@ public class CometOps implements CometOpsIfce {
                 mapOutput = accu.readOneRowAccuFormat(conn, tableName, rowID, colFam, colQual, readToken);
                 int mapSize = mapOutput.size();
                 if (mapSize == 0) {
-                    log.debug("No scope, creating new one.");
+                    log.info("No scope, creating new one.");
                 } else if (mapSize != 1) {
-                    log.debug("Conflict in Accumulo record, please clean up.");
+                    log.error("mapSize != 1 - Conflict in Accumulo record, please clean up.");
                 } else {
                     for (Map.Entry<String, Value> entry : mapOutput.entrySet()) {
                         Value v = entry.getValue();
-                        log.debug("Comet readscope: got Value: " + v);
+                        log.info("got Value: " + v + "from readOneRowAccuFormat()");
                         String[] deserialized = null;
                         try {
                             deserialized = (String[]) deserialize(v.get());
@@ -240,33 +240,43 @@ public class CometOps implements CometOpsIfce {
                             log.error("deserialization failed: " + e1);
                         }
                         if (deserialized != null && deserialized.length == CometOps.NUM_OF_SERIALIZED_PARAMETERS) {
-                            log.debug("deserialized values:");
+                            String debugString = "";
                             for (String s : deserialized)
-                                log.debug(s);
-                            log.debug("deserialized values done.");
+                                debugString = debugString + s + " ,";
+                            log.info("deserialized values:" + debugString);
                             if (deserialized[0].equals("true")) {
                                 try {
                                     JSONObject output = new JSONObject();
                                     output.put(ERROR, "Failed to write scope: scope already deleted.");
+                                    log.error("Failed to write scope: scope already deleted.");
                                     return output;
                                 } catch (JSONException e) {
+                                    log.error("JSONException: " + e.getMessage());
                                     e.printStackTrace();
                                 }
                             }
+                        }
+                        else if (deserialized == null) {
+                            log.warn("deserialized values == null");
+                        }
+                        else {
+                            log.error("deserialized.length: " + deserialized.length);
+                            for (String s : deserialized)
+                                log.info(s);
                         }
                     }
                 }
 
                 //Accumulo value field format: {ifDeleted, writeToken, scopeValue, Comet_version, deletionTimeStamp}
                 String[] value = {"false", writeToken, scopeValue, CometInitializer.COMET_VERSION, ""};
-                log.debug("Writing in scope: contextID: " + contextID + "\n family: " + family + "\n key: " + key + "\n readToken: " + readToken);
+                log.info("Writing in scope: contextID: " + contextID + "\n family: " + family + "\n key: " + key + "\n readToken: " + readToken);
 
                 byte[] serializedByteArray = null;
                 try {
                     serializedByteArray = serialize(value);
                     log.debug("Serialize successful!");
                 } catch (IOException e) {
-                    log.debug(e.toString());
+                    log.error(e.toString());
                 }
 
                 org.apache.accumulo.core.data.Value accumuloValue = new org.apache.accumulo.core.data.Value(serializedByteArray);
@@ -305,11 +315,13 @@ public class CometOps implements CometOpsIfce {
 
                 int mapSize = mapOutput.size();
                 if (mapSize == 0) {
+                    log.error("Failed to delete scope: no such entry");
                     jsonOutput.put(ERROR, "Failed to delete scope: no such entry");
                     return jsonOutput;
                 }
 
                 if (mapSize != 1) {
+                    log.error("Failed to delete scope: conflict in Accumulo record, please clean up");
                     jsonOutput.put(ERROR, "Failed to delete scope: conflict in Accumulo record, please clean up");
                     return jsonOutput;
                 }
@@ -346,7 +358,7 @@ public class CometOps implements CometOpsIfce {
                             org.apache.accumulo.core.data.Value accumuloValue = new org.apache.accumulo.core.data.Value(serializedByteArray);
 
                             JSONObject output = accu.addAccumuloRow(conn, tableName, rowID, colFam, colQual, accumuloValue, vis);
-
+                            log.info("Scope deleted, writeToken = " + writeToken);
                             try {
                                 jsonOutput.put(SUCCESS, "Scope deleted");
                             } catch (JSONException e) {
@@ -385,6 +397,13 @@ public class CometOps implements CometOpsIfce {
             } finally {
                 fairLock.unlock();
             }
+            String debugString2 = output.size() + " record," + readToken + "/" + contextID + "/" + family + "/" + key;
+            if (output.size() == 0) {
+                log.warn(debugString2);
+            }
+            else{
+                log.info(debugString2);
+            }
             for (Map.Entry<String[], Value> entry : output.entrySet()) {
                 Value v = entry.getValue();
                 String[] deserialized = null;
@@ -394,15 +413,17 @@ public class CometOps implements CometOpsIfce {
                     log.error("deserialization failed: " + e1);
                 }
                 if (deserialized != null && deserialized.length == CometOps.NUM_OF_SERIALIZED_PARAMETERS) {
-                    log.debug("deserialized values:");
+                    String debugString = "";
                     for (String s : deserialized)
-                        log.debug(s);
-                    log.debug("deserialized values done.");
+                        debugString = debugString + s + " ,";
+                    log.debug("deserialized values:" + debugString);
                     if (deserialized[0].equals("true")) {
                         try {
                             jsonOutput.put(ERROR, "Failed to read scope: scope already deleted.");
+                            log.error("Failed to read scope: scope already deleted.");
                             return jsonOutput;
                         } catch (JSONException e) {
+                            log.error("JSONException: " + e.getMessage());
                             e.printStackTrace();
                         }
                     }
@@ -413,8 +434,17 @@ public class CometOps implements CometOpsIfce {
                         jsonOutput.put("key", entry.getKey()[2]);
                         jsonOutput.put("value", deserialized[2]);
                     } catch (JSONException e) {
+                        log.error("JSONException: " + e.getMessage());
                         e.printStackTrace();
                     }
+                }
+                else if (deserialized == null) {
+                    log.warn("deserialized values == null");
+                }
+                else {
+                    log.error("deserialized.length: " + deserialized.length);
+                    for (String s : deserialized)
+                        log.info(s);
                 }
             }
             return jsonOutput;
@@ -451,6 +481,14 @@ public class CometOps implements CometOpsIfce {
 
             JSONArray jArr = new JSONArray();
 
+            String debugString2 = output.size() + " record," + readToken + "/" + contextID + "/" + family;
+            if (output.size() == 0) {
+                log.warn(debugString2);
+            }
+            else{
+                log.info(debugString2);
+            }
+
             for (Map.Entry<String[], Value> entry : output.entrySet()) {
                 JSONObject arrayElement = new JSONObject();
                 Value v = entry.getValue();
@@ -463,19 +501,28 @@ public class CometOps implements CometOpsIfce {
                 }
 
                 if (deserialized != null && deserialized.length == CometOps.NUM_OF_SERIALIZED_PARAMETERS) {
-                    log.debug("deserialized values:");
+                    String debugString = "";
                     for (String s : deserialized)
-                        log.debug(s);
-                    log.debug("deserialized values done.");
+                        debugString = debugString + s + " ,";
+                    log.debug("deserialized values:" + debugString);
                     if (deserialized[0].equals("false") && entry.getKey()[1].equals(family)) {
                         try {
                             arrayElement.put("key", entry.getKey()[2]);
                             arrayElement.put("value", deserialized[2]);
                             jArr.put(arrayElement);
                         } catch (JSONException e) {
+                            log.error("JSONException: " + e.getMessage());
                             e.printStackTrace();
                         }
                     }
+                }
+                else if (deserialized == null) {
+                    log.warn("deserialized values == null");
+                }
+                else {
+                    log.error("deserialized.length: " + deserialized.length);
+                    for (String s : deserialized)
+                        log.debug(s);
                 }
             }
 
@@ -520,6 +567,13 @@ public class CometOps implements CometOpsIfce {
 
             JSONArray jArr = new JSONArray();
 
+            String debugString2 = output.size() + " record," + readToken + "/" + contextID;
+            if (output.size() == 0) {
+                log.warn(debugString2);
+            }
+            else{
+                log.info(debugString2);
+            }
             for (Map.Entry<String[], Value> entry : output.entrySet()) {
                 JSONObject arrayElement = new JSONObject();
                 Value v = entry.getValue();
@@ -532,10 +586,10 @@ public class CometOps implements CometOpsIfce {
                 }
 
                 if (deserialized != null && deserialized.length == CometOps.NUM_OF_SERIALIZED_PARAMETERS) {
-                    log.debug("deserialized values:");
+                    String debugString = "";
                     for (String s : deserialized)
-                        log.debug(s);
-                    log.debug("deserialized values done.");
+                        debugString = debugString + s + " ,";
+                    log.debug("deserialized values:" + debugString);
                     if (deserialized[0].equals("false")) {
                         try {
                             arrayElement.put("family", entry.getKey()[1]);
@@ -543,6 +597,7 @@ public class CometOps implements CometOpsIfce {
                             arrayElement.put("value", deserialized[2]);
                             jArr.put(arrayElement);
                         } catch (JSONException e) {
+                            log.error("JSONException: " + e.getMessage());
                             e.printStackTrace();
                         }
                     }
@@ -552,6 +607,7 @@ public class CometOps implements CometOpsIfce {
             try {
                 jsonOutput.put("entries", jArr);
             } catch (JSONException e) {
+                log.error("JSONException: " + e.getMessage());
                 e.printStackTrace();
             }
             return jsonOutput;

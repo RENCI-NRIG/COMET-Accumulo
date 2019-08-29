@@ -61,6 +61,10 @@ export ZOO_MAX_CLIENT_CNXNS=60
 export ZOOCFGDIR=/conf
 export ZOO_LOG_DIR=/var/log/zookeeper
 export ZOO_LOG4J_PROP=INFO,ROLLINGFILE
+export JMXPORT=8001
+export JMXAUTH=false
+export JMXSSL=false
+export JMXLOG4J=true
 EOL
 
 # Setup zoo.cfg
