@@ -153,6 +153,7 @@ git clone https://github.com/RENCI-NRIG/COMET-Accumulo.git
 cd COMET-Accumulo/vmware-cluster/
 ```
 - Update docker-compose.yml to include IPs for zoo servers and workers
+  and set the accumulo username/password of this comet head node
 
 ```
     extra_hosts:
@@ -161,6 +162,9 @@ cd COMET-Accumulo/vmware-cluster/
       - "zoo3:192.168.100.31"
       - "comet-w1:192.168.100.32"
       - "comet-w2:192.168.100.33"
+    environment:
+      ACCUMULO_USER: < username >
+      ACCUMULO_PASSWORD: < password >
 ```
 - Bring up comet head node
 ```
