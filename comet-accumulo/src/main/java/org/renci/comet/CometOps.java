@@ -145,7 +145,6 @@ public class CometOps implements CometOpsIfce {
                         + ", userName: " +  userName
                         + ", password: " +  password
                         + ", tableName: " +  tableName); */
-
                 return new String[] {checkTokenStrength, checkClientCert, instanceName, zooServers, userName, password, tableName};
     
             } catch (IOException ex) {
@@ -212,7 +211,7 @@ public class CometOps implements CometOpsIfce {
         synchronized (this) {
             Instance inst = new ZooKeeperInstance(instanceName, zooServers);
             Connector conn = inst.getConnector(userName, new PasswordToken(password));
-            AccumuloOperationsApiImpl accu = new AccumuloOperationsApiImpl();
+            AccumuloOperationsApiImpl accu = new AccumuloOperationsApiImpl(userName);
             JSONObject jsonOutput = null;
 
             Text rowID = new Text(contextID);
@@ -300,7 +299,7 @@ public class CometOps implements CometOpsIfce {
         synchronized (this) {
             Instance inst = new ZooKeeperInstance(instanceName, zooServers);
             Connector conn = inst.getConnector(userName, new PasswordToken(password));
-            AccumuloOperationsApiImpl accu = new AccumuloOperationsApiImpl();
+            AccumuloOperationsApiImpl accu = new AccumuloOperationsApiImpl(userName);
             JSONObject jsonOutput = new JSONObject();
 
             Text rowID = new Text(contextID);
@@ -382,7 +381,7 @@ public class CometOps implements CometOpsIfce {
         synchronized (this) {
             Instance inst = new ZooKeeperInstance(instanceName, zooServers);
             Connector conn = inst.getConnector(userName, new PasswordToken(password));
-            AccumuloOperationsApiImpl accu = new AccumuloOperationsApiImpl();
+            AccumuloOperationsApiImpl accu = new AccumuloOperationsApiImpl(userName);
 
             Text rowID = new Text(contextID);
             Text colFam = new Text(family);
@@ -455,7 +454,7 @@ public class CometOps implements CometOpsIfce {
         synchronized (this) {
             Instance inst = new ZooKeeperInstance(instanceName, zooServers);
             Connector conn = inst.getConnector(userName, new PasswordToken(password));
-            AccumuloOperationsApiImpl accu = new AccumuloOperationsApiImpl();
+            AccumuloOperationsApiImpl accu = new AccumuloOperationsApiImpl(userName);
 
             Text rowID = new Text(contextID);
             Map<String[], Value> output = new HashMap<String[], Value>();
@@ -542,7 +541,7 @@ public class CometOps implements CometOpsIfce {
         synchronized (this) {
             Instance inst = new ZooKeeperInstance(instanceName, zooServers);
             Connector conn = inst.getConnector(userName, new PasswordToken(password));
-            AccumuloOperationsApiImpl accu = new AccumuloOperationsApiImpl();
+            AccumuloOperationsApiImpl accu = new AccumuloOperationsApiImpl(userName);
 
             Text rowID = new Text(contextID);
             Map<String[], Value> output = new HashMap<String[], Value>();

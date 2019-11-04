@@ -41,9 +41,19 @@ import java.util.concurrent.TimeUnit;
 
 
 public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
-    public static String ERROR = "error";
-    public static String SUCCESS = "Success";
+    public static final String ERROR = "error";
+    public static final String SUCCESS = "Success";
     private static final Logger log = Logger.getLogger(AccumuloOperationsApiImpl.class);
+    private static String user;
+    
+    /**
+     * Constructor
+     * @param username username to access accumulo
+     */
+    public AccumuloOperationsApiImpl(String username) {
+        super();
+        user = username;
+    }
 
     /**
      * Create unified JSONObject
@@ -214,7 +224,7 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
             //ScannerOpts scanOpts = new ScannerOpts();
             // Create a scanner
             Authorizations auths = new Authorizations(visibility);
-            conn.securityOperations().changeUserAuthorizations("root", auths);
+            conn.securityOperations().changeUserAuthorizations(user, auths);
             Scanner scanner = conn.createScanner(tableName, auths);
             //scanner.setBatchSize(scanOpts.scanBatchSize);
             // Say start key is the one with key of row
@@ -266,7 +276,7 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
             //ScannerOpts scanOpts = new ScannerOpts();
             // Create a scanner
             Authorizations auths = new Authorizations(visibility);
-            conn.securityOperations().changeUserAuthorizations("root", auths);
+            conn.securityOperations().changeUserAuthorizations(user, auths);
             Scanner scanner = conn.createScanner(tableName, auths);
             //scanner.setBatchSize(scanOpts.scanBatchSize);
             // Say start key is the one with key of row
@@ -292,7 +302,7 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
             if (e.getMessage() != null && (e.getMessage().contains("BAD_AUTHORIZATIONS"))) {
                 log.error("AccumuloOperationsApiImpl:readOneRow:Got Exception BAD_AUTHORIZATIONS =" + e.getMessage());
                 log.error("authorizaions request: " + visibility);
-                log.error("authorizaions actual: " + conn.securityOperations().getUserAuthorizations("root").toString());
+                log.error("authorizaions actual: " + conn.securityOperations().getUserAuthorizations(user).toString());
             }
             throw e;
         }
@@ -319,7 +329,7 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
             //ScannerOpts scanOpts = new ScannerOpts();
             // Create a scanner
             Authorizations auths = new Authorizations(visibility);
-            conn.securityOperations().changeUserAuthorizations("root", auths);
+            conn.securityOperations().changeUserAuthorizations(user, auths);
             Scanner scanner = conn.createScanner(tableName, auths);
             //scanner.setBatchSize(scanOpts.scanBatchSize);
             // Say start key is the one with key of row
