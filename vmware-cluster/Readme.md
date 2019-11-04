@@ -137,16 +137,51 @@ Execute the following commands in order as root user
 ```
 ./setup.sh resourcemgr
 ```
-#### accumulomaster
+#### Accumulomaster
 ```
 ./setup.sh master
 ```
-#### workers
+
+**[First-Time Setup for new comet head node]**
+
+* If the table which the new comet head node(s) going to use is not yet existing,
+create a new table by:
+
+
+```
+#./create-accu-table.sh
+password of accumulo root:
+new table name: < tablename >
+
+```
+
+
+* Each comet head node will use its own username/password to communicate with Accumulo.
+To create new user in Accumulo for the new comet head node:
+
+```
+#./create-accu-user.sh
+password of accumulo root:
+username of the new user: < username >
+Enter new password for 'username': < password >
+Please confirm new password for 'username': < password >
+Enter the table name for the user to READ/WRITE: < tablename >
+
+```
+
+
+#### Workers
 ```
 ./setup.sh worker
 ```
-#### headnodes
+#### Head nodes
 NOTE: All commands to be executed as root user
+
+**[Before starting new head node]**
+Each head node uses its own username/password to communicate with Accumulo. Make sure the username/password are created in Accumulo for every headnode. see [First-Time Setup in Accumulo](#Accumulomaster).
+
+**[Start comet head nodes]**
+
 - Clone code and go to vmware-cluster
 ```
 git clone https://github.com/RENCI-NRIG/COMET-Accumulo.git
@@ -165,6 +200,7 @@ cd COMET-Accumulo/vmware-cluster/
     environment:
       ACCUMULO_USER: < username >
       ACCUMULO_PASSWORD: < password >
+      ACCUMULO_TABLENAME: < tablename >
 ```
 - Bring up comet head node
 ```
