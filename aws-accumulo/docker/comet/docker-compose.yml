@@ -21,6 +21,8 @@ services:
       ACCUMULO_TABLENAME: trace
       ACCUMULO_ZOOSERVERS: zoo1,zoo2,zoo3
       ACCUMULO_INSTANCE: aws-development
+      ACCUMULO_USER: 'changeme'
+      ACCUMULO_PASSWORD: 'changeme'
       COMET_CHECK_TOKEN_STRENGTH: 'false'
       COMET_CHECK_CLIENT_CERT: 'false'
       COMET_SSL_KEY_STORE: cometserver.jks
