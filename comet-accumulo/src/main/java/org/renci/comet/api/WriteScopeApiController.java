@@ -50,7 +50,7 @@ public class WriteScopeApiController implements WriteScopeApi {
 
     private boolean certValid = false;
     
-    private String checkCert = org.renci.comet.CometOps.readProperties()[1];
+    private String checkCert = CometOps.getInstance().checkCert;
     
     //@Value("${cometconfig.certCheck}")
     //private String certCheck;

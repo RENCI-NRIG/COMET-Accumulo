@@ -40,7 +40,7 @@ public class DeleteScopeApiController implements DeleteScopeApi {
 
     private boolean certValid = false;
     
-    private String checkCert = org.renci.comet.CometOps.readProperties()[1];
+    private String checkCert = CometOps.getInstance().checkCert;
 
     @org.springframework.beans.factory.annotation.Autowired
     public DeleteScopeApiController(ObjectMapper objectMapper, HttpServletRequest request) {
