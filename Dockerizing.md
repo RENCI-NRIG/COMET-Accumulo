@@ -8,12 +8,15 @@ docker pull rencinrig/comet-spring:latest
 
 ## Or Build docker image locally
 Dockerfile is in the same directory as pom.xml: 
+
 ```
 comet-accumulo/
     Dockerfile
     pom.xml
 ```
+
 Follwing command will build the docker image:
+
 ```
 cd comet-accumulo/
 mvn clean package dockerfile:build
@@ -92,6 +95,10 @@ Accumulo password. Default is `secret`.
 ### `ACCUMULO_TABLENAME`
 
 Accumulo table name. Default is `trace`.
+
+### `COMET_RETRY_DURATION`
+
+For some accumulo operations such as read and enumerate, COMET will retry for this duration of time. Default is `1000` milliseconds.
 
 
 You can use a file of environment variables: 

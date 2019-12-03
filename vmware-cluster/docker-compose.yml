@@ -20,7 +20,9 @@ services:
     environment:
       ACCUMULO_TABLENAME: trace
       ACCUMULO_ZOOSERVERS: zoo1,zoo2,zoo3
-      ACCUMULO_INSTANCE: aws-development
+      ACCUMULO_INSTANCE: exogeni-accumulo
+      ACCUMULO_USER: 'changeme'
+      ACCUMULO_PASSWORD: 'changeme'
       COMET_CHECK_TOKEN_STRENGTH: 'false'
       COMET_CHECK_CLIENT_CERT: 'false'
       COMET_SSL_KEY_STORE: cometserver.jks
@@ -28,5 +30,6 @@ services:
       COMET_SSL_KEY_PWD: 'changeme'
       COMET_SSL_TRUST_STORE: comettrustedstore.jks
       COMET_SSL_TRUST_STORE_PWD: 'changeme'
+      COMET_RETRY_DURATION: '1000'
     logging:
       driver: "none"

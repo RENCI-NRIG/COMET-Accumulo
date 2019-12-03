@@ -38,6 +38,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
+import org.renci.comet.CometOps;
 
 
 public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
@@ -45,7 +46,8 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
     public static final String SUCCESS = "Success";
     private static final Logger log = Logger.getLogger(AccumuloOperationsApiImpl.class);
     private static String user;
-    
+    private int retryDuration;
+
     /**
      * Constructor
      * @param username username to access accumulo
@@ -53,6 +55,7 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
     public AccumuloOperationsApiImpl(String username) {
         super();
         user = username;
+        retryDuration = CometOps.getInstance().retryDuration;
     }
 
     /**
@@ -220,39 +223,61 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
 
     public Map<String[], Value> enumerateRows(Connector conn, String tableName, Text rowID, String visibility) throws TableNotFoundException, AccumuloException, AccumuloSecurityException {
         Map<String[], Value> output = new HashMap<>();
-        try {
-            //ScannerOpts scanOpts = new ScannerOpts();
-            // Create a scanner
-            Authorizations auths = new Authorizations(visibility);
-            conn.securityOperations().changeUserAuthorizations(user, auths);
-            Scanner scanner = conn.createScanner(tableName, auths);
-            //scanner.setBatchSize(scanOpts.scanBatchSize);
-            // Say start key is the one with key of row
-            // and end key is the one that immediately follows the row
-            scanner.setRange(new Range(rowID));
+        Scanner scanner = null;
+        int count = 0;
+        boolean succeed = false;
+        long beginTime = System.currentTimeMillis();
+        while(!succeed) {
+            try {
+                //ScannerOpts scanOpts = new ScannerOpts();
+                // Create a scanner
+                Authorizations auths = new Authorizations(visibility);
+                conn.securityOperations().changeUserAuthorizations(user, auths);
+                scanner = conn.createScanner(tableName, auths);
+                //scanner.setBatchSize(scanOpts.scanBatchSize);
+                // Say start key is the one with key of row
+                // and end key is the one that immediately follows the row
+                scanner.setRange(new Range(rowID));
 
-            for (Map.Entry<Key, Value> entry : scanner) {
-                //String[] key format: {Row, ColFam, ColQual}
-                String[] keys = new String[3];
-                keys[0] = entry.getKey().getRow().toString();
-                keys[1] = entry.getKey().getColumnFamily().toString();
-                keys[2] = entry.getKey().getColumnQualifier().toString();
-                Value value = entry.getValue();
-                output.put(keys, value);
+                for (Map.Entry<Key, Value> entry : scanner) {
+                    //String[] key format: {Row, ColFam, ColQual}
+                    String[] keys = new String[3];
+                    keys[0] = entry.getKey().getRow().toString();
+                    keys[1] = entry.getKey().getColumnFamily().toString();
+                    keys[2] = entry.getKey().getColumnQualifier().toString();
+                    Value value = entry.getValue();
+                    output.put(keys, value);
+                }
+                if (output.size() == 0 )
+                {
+                    log.info("Output empty:" + visibility + "/" + rowID.toString());
+                }
+                succeed = true;
+                if (count > 0) {
+                    log.warn("retry(" + count + ") succeed after " + (System.currentTimeMillis()- beginTime) + "(ms)");
+                }
             }
-            if (output.size() == 0 )
-            {
-                log.info("Output empty");
+            catch (Exception e) {
+                log.error("Exception catched: " + e.toString());
+                if (e.getMessage() != null && (e.getMessage().contains("BAD_AUTHORIZATIONS"))) {
+                    if (visibility.equals(conn.securityOperations().getUserAuthorizations(user).toString())
+                       && (System.currentTimeMillis() <= (beginTime + retryDuration)))
+                    {
+                        //zookeepers might not fully propagate yet, give it a retry
+                        count++;
+                        log.error("retry(" + count + "): " + visibility + "/" + rowID.toString());
+                        continue;
+                    }
+                    log.error("BAD_AUTHORIZATIONS " + visibility + "/" + rowID.toString());
+                    log.error("authorizaions request: " + visibility);
+                    log.error("authorizaions actual: " + conn.securityOperations().getUserAuthorizations(user).toString());
+                }
+                throw e;
+            } finally {
+                if(scanner != null) {
+                    scanner.close();
+                }
             }
-            scanner.close();
-
-        }
-        catch (Exception e) {
-            log.error("Exception catched and thrown again in enumerateRows: " + e.toString());
-            if (e.getMessage() != null && (e.getMessage().contains("BAD_AUTHORIZATIONS"))) {
-                log.error("AccumuloOperationsApiImpl:enumerateRows:Got Exception BAD_AUTHORIZATIONS =" + e.getMessage());
-            }
-            throw e;
         }
         return output;
     }
@@ -271,40 +296,63 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
      */
     public Map<String[], Value> readOneRow(Connector conn, String tableName, Text rowID, Text colFam, Text colQual, String visibility) throws TableNotFoundException, AccumuloException, AccumuloSecurityException {
         Map<String[], Value> output = new HashMap<>();
-        try {
+        Scanner scanner = null;
+        int count = 0;
+        boolean succeed = false;
+        long beginTime = System.currentTimeMillis();
+        while(!succeed) {
+            try {
 
-            //ScannerOpts scanOpts = new ScannerOpts();
-            // Create a scanner
-            Authorizations auths = new Authorizations(visibility);
-            conn.securityOperations().changeUserAuthorizations(user, auths);
-            Scanner scanner = conn.createScanner(tableName, auths);
-            //scanner.setBatchSize(scanOpts.scanBatchSize);
-            // Say start key is the one with key of row
-            // and end key is the one that immediately follows the row
-            scanner.setRange(new Range(rowID));
-            scanner.fetchColumn(colFam, colQual);
-            for (Map.Entry<Key, Value> entry : scanner) {
-                String[] keys = new String[3];
-                keys[0] = entry.getKey().getRow().toString();
-                keys[1] = entry.getKey().getColumnFamily().toString();
-                keys[2] = entry.getKey().getColumnQualifier().toString();
-                Value value = entry.getValue();
-                output.put(keys, value);
+                //ScannerOpts scanOpts = new ScannerOpts();
+                // Create a scanner
+                Authorizations auths = new Authorizations(visibility);
+                conn.securityOperations().changeUserAuthorizations(user, auths);
+                scanner = conn.createScanner(tableName, auths);
+                //scanner.setBatchSize(scanOpts.scanBatchSize);
+                // Say start key is the one with key of row
+                // and end key is the one that immediately follows the row
+                scanner.setRange(new Range(rowID));
+                scanner.fetchColumn(colFam, colQual);
+                for (Map.Entry<Key, Value> entry : scanner) {
+                    String[] keys = new String[5];
+                    keys[0] = entry.getKey().getRow().toString();
+                    keys[1] = entry.getKey().getColumnFamily().toString();
+                    keys[2] = entry.getKey().getColumnQualifier().toString();
+                    keys[3] = Long.toString(entry.getKey().getTimestamp());
+                    keys[4] = Boolean.toString(entry.getKey().isDeleted());
+                    Value value = entry.getValue();
+                    output.put(keys, value);
+                }
+                if (output.size() == 0 )
+                {
+                    log.info("Output empty:" + visibility + "/" + rowID.toString() + "/" + colFam.toString() + "/" + colQual.toString());
+                }
+                succeed = true;
+                if (count > 0) {
+                    log.warn("retry(" + count + ") succeed after " + (System.currentTimeMillis()- beginTime) + "(ms)");
+                }
             }
-            if (output.size() == 0 )
-            {
-                log.info("Output empty");
+            catch (Exception e) {
+                log.error("Exception catched: " + e.toString());
+                if (e.getMessage() != null && (e.getMessage().contains("BAD_AUTHORIZATIONS"))) {
+                    if (visibility.equals(conn.securityOperations().getUserAuthorizations(user).toString())
+                        && (System.currentTimeMillis() <= (beginTime + retryDuration)))
+                    {
+                        //zookeepers might not fully propagate yet, give it a retry
+                        count++;
+                        log.error("retry(" + count + "): " + visibility + "/" + rowID.toString() + "/" + colFam.toString() + "/" + colQual.toString());
+                        continue;
+                    }
+                    log.error("BAD_AUTHORIZATIONS " + visibility + "/" + rowID.toString() + "/" + colFam.toString() + "/" + colQual.toString());
+                    log.error("authorizaions request: " + visibility);
+                    log.error("authorizaions actual: " + conn.securityOperations().getUserAuthorizations(user).toString());
+                }
+                throw e;
+            } finally {
+                if(scanner != null) {
+                    scanner.close();
+                }
             }
-            scanner.close();
-        }
-        catch (Exception e) {
-            log.error("Exception catched and thrown again in readOneRow: " + e.toString());
-            if (e.getMessage() != null && (e.getMessage().contains("BAD_AUTHORIZATIONS"))) {
-                log.error("AccumuloOperationsApiImpl:readOneRow:Got Exception BAD_AUTHORIZATIONS =" + e.getMessage());
-                log.error("authorizaions request: " + visibility);
-                log.error("authorizaions actual: " + conn.securityOperations().getUserAuthorizations(user).toString());
-            }
-            throw e;
         }
         return output;
     }
@@ -325,35 +373,58 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
      */
     public Map<String, Value> readOneRowAccuFormat(Connector conn, String tableName, Text rowID, Text colFam, Text colQual, String visibility) throws TableNotFoundException, AccumuloException, AccumuloSecurityException {
         Map<String, Value> output = new HashMap<>();
-        try {
-            //ScannerOpts scanOpts = new ScannerOpts();
-            // Create a scanner
-            Authorizations auths = new Authorizations(visibility);
-            conn.securityOperations().changeUserAuthorizations(user, auths);
-            Scanner scanner = conn.createScanner(tableName, auths);
-            //scanner.setBatchSize(scanOpts.scanBatchSize);
-            // Say start key is the one with key of row
-            // and end key is the one that immediately follows the row
-            scanner.setRange(new Range(rowID));
-            scanner.fetchColumn(colFam, colQual);
+        Scanner scanner = null;
+        int count = 0;
+        boolean succeed = false;
+        long beginTime = System.currentTimeMillis();
+        while(!succeed) {
+            try {
+                //ScannerOpts scanOpts = new ScannerOpts();
+                // Create a scanner
+                Authorizations auths = new Authorizations(visibility);
+                conn.securityOperations().changeUserAuthorizations(user, auths);
+                scanner = conn.createScanner(tableName, auths);
+                //scanner.setBatchSize(scanOpts.scanBatchSize);
+                // Say start key is the one with key of row
+                // and end key is the one that immediately follows the row
+                scanner.setRange(new Range(rowID));
+                scanner.fetchColumn(colFam, colQual);
 
-            for (Map.Entry<Key, Value> entry : scanner) {
-                String key = entry.getKey().getRow() + " " + entry.getKey().getColumnFamily() + ":" + entry.getKey().getColumnQualifier();
-                Value value = entry.getValue();
-                output.put(key, value);
+                for (Map.Entry<Key, Value> entry : scanner) {
+                    String key = entry.getKey().getRow() + " " + entry.getKey().getColumnFamily() + ":" + entry.getKey().getColumnQualifier();
+                    Value value = entry.getValue();
+                    output.put(key, value);
+                }
+                if (output.size() == 0 )
+                {
+                    log.info("Output empty:" + visibility + "/" + rowID.toString() + "/" + colFam.toString() + "/" + colQual.toString());
+                }
+                succeed = true;
+                if (count > 0) {
+                    log.warn("retry(" + count + ") succeed after " + (System.currentTimeMillis()- beginTime) + "(ms)");
+                }
             }
-            if (output.size() == 0 )
-            {
-                log.info("Output empty");
+            catch (Exception e) {
+                log.error("Exception catched: " + e.toString());
+                if (e.getMessage() != null && (e.getMessage().contains("BAD_AUTHORIZATIONS"))) {
+                    if (visibility.equals(conn.securityOperations().getUserAuthorizations(user).toString())
+                        && (System.currentTimeMillis() <= (beginTime + retryDuration)))
+                    {
+                        //zookeepers might not fully propagate yet, give it a retry
+                        count++;
+                        log.error("retry(" + count + "): " + visibility + "/" + rowID.toString() + "/" + colFam.toString() + "/" + colQual.toString());
+                        continue;
+                    }
+                    log.error("BAD_AUTHORIZATIONS " + visibility + "/" + rowID.toString() + "/" + colFam.toString() + "/" + colQual.toString());
+                    log.error("authorizaions request: " + visibility);
+                    log.error("authorizaions actual: " + conn.securityOperations().getUserAuthorizations(user).toString());
+                }
+                throw e;
+            } finally {
+                if(scanner != null) {
+                    scanner.close();
+                }
             }
-            scanner.close();
-        }
-        catch (Exception e) {
-            log.error("Exception catched and thrown again in readOneRowAccuFormat: " + e.toString());
-            if (e.getMessage() != null && (e.getMessage().contains("BAD_AUTHORIZATIONS"))) {
-                log.error("AccumuloOperationsApiImpl:readOneRowAccuFormat:Got Exception BAD_AUTHORIZATIONS =" + e.getMessage());
-            }
-            throw e;
         }
         return output;
     }
