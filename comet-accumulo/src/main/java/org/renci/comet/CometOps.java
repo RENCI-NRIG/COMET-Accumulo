@@ -43,6 +43,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Map.Entry;
+import java.util.Date;
 import org.renci.comet.accumuloops.AccumuloOperationsApiIfce;
 import org.renci.comet.accumuloops.AccumuloOperationsApiImpl;
 import java.util.concurrent.locks.ReentrantLock;
@@ -56,6 +57,7 @@ public class CometOps implements CometOpsIfce {
     public String tableName; //provide Accumulo table name
     public String checkCert;
     public int retryDuration; // in milliseconds, this will be used by class AccumuloOperationsApiImpl() when retry
+    private long accuTTL; // in milliseconds, this will be used to do interal write (user unaware) to avoid by accumulo age-off setting
     
     public static final String ERROR = "error";
     public static final String SUCCESS = "Success";
@@ -81,7 +83,9 @@ public class CometOps implements CometOpsIfce {
         password = properties[5]; // Provide password
         tableName = properties[6]; //provide Accumulo table name
         retryDuration = Integer.parseInt(properties[7]);
+        accuTTL = Long.parseLong(properties[8]); //change to ms to compare with timestamp
         log.warn("retryDuration = " + retryDuration);
+        log.warn("accuTTL = " + accuTTL);
     }
 
     public static CometOps getInstance() {
@@ -98,6 +102,7 @@ public class CometOps implements CometOpsIfce {
         String password = "secret"; // Provide password
         String tableName="trace"; //provide Accumulo table name
         String retryDuration = "1000";
+        String accuTTL = "0";
 
             Properties prop = new Properties();
             InputStream input = null;
@@ -127,6 +132,9 @@ public class CometOps implements CometOpsIfce {
             }
             if(env_map.get("COMET_RETRY_DURATION") != null) {
                 retryDuration = env_map.get("COMET_RETRY_DURATION");
+            }
+            if(env_map.get("ACCUMULO_AGEOFF_TTL") != null) {
+                accuTTL = env_map.get("ACCUMULO_AGEOFF_TTL");
             }
 
 
@@ -166,6 +174,9 @@ public class CometOps implements CometOpsIfce {
                 if(env_map.get("COMET_RETRY_DURATION") == null) {
                     retryDuration = prop.getProperty("comet.retryDuration");
                 }
+                if(env_map.get("ACCUMULO_AGEOFF_TTL") == null) {
+                    accuTTL = prop.getProperty("accumulo.ageoffTTL");
+                }
 
                 /* log.debug("checkTokenStrength: " + checkTokenStrength
                         + ", checkClientCert: " + checkClientCert
@@ -174,7 +185,7 @@ public class CometOps implements CometOpsIfce {
                         + ", userName: " +  userName
                         + ", password: " +  password
                         + ", tableName: " +  tableName); */
-                return new String[] {checkTokenStrength, checkClientCert, instanceName, zooServers, userName, password, tableName, retryDuration};
+                return new String[] {checkTokenStrength, checkClientCert, instanceName, zooServers, userName, password, tableName, retryDuration, accuTTL};
     
             } catch (IOException ex) {
                 ex.printStackTrace();
@@ -188,7 +199,7 @@ public class CometOps implements CometOpsIfce {
                 }
             }
             log.debug("Some properties are missing in the application.properties file, using default values."); 
-            return new String[] {checkTokenStrength, checkClientCert, instanceName, zooServers, userName, password, tableName, retryDuration};
+            return new String[] {checkTokenStrength, checkClientCert, instanceName, zooServers, userName, password, tableName, retryDuration, accuTTL};
     }
     
     /**
@@ -294,8 +305,9 @@ public class CometOps implements CometOpsIfce {
                 }
             }
 
-            //Accumulo value field format: {ifDeleted, writeToken, scopeValue, Comet_version, deletionTimeStamp}
-            String[] value = {"false", writeToken, scopeValue, CometInitializer.COMET_VERSION, ""};
+            //Accumulo value field format: {ifDeleted, writeToken, scopeValue, Comet_version, deletionTimeStamp, userWriteTimeStamp}
+            long userWriteTimeStamp = System.currentTimeMillis();
+            String[] value = {"false", writeToken, scopeValue, CometInitializer.COMET_VERSION, "", Long.toString(userWriteTimeStamp)};
             log.info("Writing in scope: contextID: " + contextID + "\n family: " + family + "\n key: " + key + "\n readToken: " + readToken);
 
             byte[] serializedByteArray = null;
@@ -371,6 +383,20 @@ public class CometOps implements CometOpsIfce {
                         return jsonOutput;
                     }
 
+                    try {
+                        accu.deleteAccumuloRow(conn, tableName, rowID, colFam, colQual, vis);
+                        log.info("Scope deleted, writeToken = " + writeToken);
+                        try {
+                            jsonOutput.put(SUCCESS, "Scope deleted");
+                        } catch (JSONException e) {
+                            log.error("JSON Exception: " + e.getMessage());
+                        }
+                    } catch (Exception e) {
+                        log.error("Exception: " + e.getMessage());
+                    }
+
+                    /* just delete it, instead of marking the private delete field */
+                    /*
                     deserialized[FIELD_ISDELETED] = "true";
 
                     long unixTimestamp = Instant.now().getEpochSecond();
@@ -393,6 +419,7 @@ public class CometOps implements CometOpsIfce {
                     } catch (IOException e) {
                         log.error("IO Exception: " + e.getMessage());
                     }
+                    */
                 }
             }
         } finally {
@@ -401,6 +428,49 @@ public class CometOps implements CometOpsIfce {
         return jsonOutput;
     }
 
+    /* to avoid this data age-off by accumulo, comet will do a internal write to the data to update ts if ts is too old */
+    private void updateAccuTimestamp(Map.Entry<String[], Value> entry, String[] deserialized, Connector conn, String tableName, Text rowID, Text colFam, Text colQual, Text vis) {
+        try {
+            String sAccuTimestamp = entry.getKey()[3];
+            long accumuloTime = Long.parseLong(sAccuTimestamp);
+            long currentTime = System.currentTimeMillis();
+            
+            if ((currentTime - accumuloTime) >= (accuTTL/2) ) {
+                String userWriteTimeStamp = sAccuTimestamp;
+                if (deserialized.length > FIELD_WRITETIMESTAMP){
+                    userWriteTimeStamp = deserialized[FIELD_WRITETIMESTAMP];
+                }
+                Date userWriteDate = new Date(Long.parseLong(userWriteTimeStamp));
+                log.info("deserialized.length = " + deserialized.length);
+                log.info("CurrentTime: " + currentTime + "AccuTimestamp: " + accumuloTime + ", diff(ms) = " + (currentTime - accumuloTime) + " > " + (accuTTL/2) );
+                log.info("userWriteTimeStamp: " + userWriteTimeStamp + ", userWriteDate: " + userWriteDate);
+
+                //Accumulo value field format: {ifDeleted, writeToken, scopeValue, Comet_version, deletionTimeStamp, userWriteTimeStamp}
+                String[] value = {"false", deserialized[FIELD_WRITETOKEN], deserialized[FIELD_SCOPEVAUE], CometInitializer.COMET_VERSION, "", userWriteTimeStamp};
+                log.warn("internal write for ts update: " + vis +"/" + rowID + "/" + colFam + "/" + colQual);
+                for (String s : value) {
+                    log.debug("internal write value: " + s);
+                }
+                
+                fairLock.lock();
+                try {
+                    AccumuloOperationsApiImpl accu = new AccumuloOperationsApiImpl(userName);
+                    byte[] serializedByteArray = null;
+                    serializedByteArray = serialize(value);
+                    org.apache.accumulo.core.data.Value accumuloValue = new org.apache.accumulo.core.data.Value(serializedByteArray);
+                    accu.addAccumuloRow(conn, tableName, rowID, colFam, colQual, accumuloValue, vis);
+                } catch (Exception e) {
+                    log.error(e.toString());
+                } finally {
+                    fairLock.unlock();
+                }
+            }
+        }
+        catch (Exception e) {
+            log.error(e.getMessage());
+            e.printStackTrace();
+        }
+    }
 
     public JSONObject readScope (String contextID, String family, String key, String readToken) throws AccumuloException, AccumuloSecurityException,TableNotFoundException, TableExistsException {
         Instance inst = new ZooKeeperInstance(instanceName, zooServers);
@@ -460,6 +530,10 @@ public class CometOps implements CometOpsIfce {
                     log.error("JSONException: " + e.getMessage());
                     e.printStackTrace();
                 }
+
+                if ( accuTTL != 0 ) {
+                    updateAccuTimestamp(entry, deserialized, conn, tableName, rowID, colFam, colQual, new Text(readToken));
+                }
             }
             else if (deserialized == null) {
                 log.warn("deserialized values == null");
@@ -472,7 +546,7 @@ public class CometOps implements CometOpsIfce {
         }
         return jsonOutput;
     }
-    
+
     public JSONObject enumerateScopesWithFamily(String contextID, String family, String readToken) throws AccumuloException, AccumuloSecurityException {
         Instance inst = new ZooKeeperInstance(instanceName, zooServers);
         Connector conn = inst.getConnector(userName, new PasswordToken(password));
@@ -535,6 +609,9 @@ public class CometOps implements CometOpsIfce {
                         log.error("JSONException: " + e.getMessage());
                         e.printStackTrace();
                     }
+                    if ( accuTTL != 0 ) {
+                        updateAccuTimestamp(entry, deserialized, conn, tableName, rowID, new Text(family), new Text(entry.getKey()[2]), new Text(readToken));
+                    }
                 }
             }
             else if (deserialized == null) {
@@ -555,8 +632,6 @@ public class CometOps implements CometOpsIfce {
 
         return jsonOutput;
     }
-    
-    
 
     public JSONObject enumerateScopes(String contextID, String readToken) throws AccumuloException, AccumuloSecurityException {
         Instance inst = new ZooKeeperInstance(instanceName, zooServers);
@@ -618,6 +693,9 @@ public class CometOps implements CometOpsIfce {
                     } catch (JSONException e) {
                         log.error("JSONException: " + e.getMessage());
                         e.printStackTrace();
+                    }
+                    if ( accuTTL != 0 ) {
+                        updateAccuTimestamp(entry, deserialized, conn, tableName, rowID, new Text(entry.getKey()[1]), new Text(entry.getKey()[2]), new Text(readToken));
                     }
                 }
             }

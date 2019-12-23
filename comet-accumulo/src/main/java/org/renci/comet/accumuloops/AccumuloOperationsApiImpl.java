@@ -32,6 +32,7 @@ import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -192,7 +193,6 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
     /**
      * Create new Accumulo table.
      * @param conn conn
-     * @param scanner scanner
      * @param tableName tableName
      * @param rowID rowID
      * @param colFam colFam
@@ -202,20 +202,51 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
      * @throws TableNotFoundException table not found
      * @throws MutationsRejectedException change rejected
      */
-    public Map<String, Value> deleteAccumuloRow(Connector conn, Scanner scanner, String tableName, Text rowID, Text colFam, Text colQual, Text visibility) throws TableNotFoundException, MutationsRejectedException {
+    public Map<String, Value> deleteAccumuloRow(Connector conn, String tableName, Text rowID, Text colFam, Text colQual, Text visibility) throws TableNotFoundException, MutationsRejectedException, AccumuloException, AccumuloSecurityException {
         Map<String, Value> output = new HashMap<>();
-        Authorizations auths = new Authorizations(visibility.toString());
-        BatchDeleter deleter= conn.createBatchDeleter(tableName, auths, 1, new BatchWriterConfig());
-        Collection<Range> ranges = new ArrayList<Range>();
-        Scanner tableScannerRange= conn.createScanner(tableName, auths);
-        tableScannerRange.setRange(Range.exact(rowID));
-        for (Entry<Key, Value> entry : tableScannerRange) {
-            ranges.add(new Range(entry.getKey().getRow()));
-            output.put(entry.getKey().toString(), entry.getValue());
+        BatchDeleter deleter = null;
+        int count = 0;
+        boolean succeed = false;
+        long beginTime = System.currentTimeMillis();
+        while(!succeed) {
+            try {
+                Authorizations auths = new Authorizations(visibility.toString());
+                conn.securityOperations().changeUserAuthorizations(user, auths);
+                deleter = conn.createBatchDeleter(tableName, auths, 1, new BatchWriterConfig());
+                /*
+                Collection<Range> ranges = new ArrayList<Range>();
+                tableScannerRange= conn.createScanner(tableName, auths);
+                tableScannerRange.setRange(Range.exact(rowID));
+                for (Entry<Key, Value> entry : tableScannerRange) {
+                    ranges.add(new Range(entry.getKey().getRow()));
+                    output.put(entry.getKey().toString(), entry.getValue());
+                }
+                */
+                deleter.setRanges(Arrays.asList(Range.exact(rowID, colFam, colQual)));
+                deleter.delete();
+                succeed = true;
+            }
+            catch (Exception e) {
+                log.error("Exception catched: " + e.toString());
+                if (e.getMessage() != null && (e.getMessage().contains("BAD_AUTHORIZATIONS"))) {
+                    if (visibility.equals(conn.securityOperations().getUserAuthorizations(user).toString())
+                       && (System.currentTimeMillis() <= (beginTime + retryDuration)))
+                    {
+                        //zookeepers might not fully propagate yet, give it a retry
+                        count++;
+                        log.error("retry(" + count + "): " + visibility + "/" + rowID.toString());
+                        continue;
+                    }
+                    log.error("authorizaions request: " + visibility + "/" + rowID.toString());
+                    log.error("authorizaions actual: " + conn.securityOperations().getUserAuthorizations(user).toString());
+                }
+                throw e;
+            } finally {
+                if(deleter != null) {
+                    deleter.close();
+                }
+            }
         }
-        deleter.setRanges(ranges);
-        deleter.delete();
-        deleter.close();
         return output;
     }
 
@@ -241,10 +272,12 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
 
                 for (Map.Entry<Key, Value> entry : scanner) {
                     //String[] key format: {Row, ColFam, ColQual}
-                    String[] keys = new String[3];
+                    String[] keys = new String[5];
                     keys[0] = entry.getKey().getRow().toString();
                     keys[1] = entry.getKey().getColumnFamily().toString();
                     keys[2] = entry.getKey().getColumnQualifier().toString();
+                    keys[3] = Long.toString(entry.getKey().getTimestamp());
+                    keys[4] = Boolean.toString(entry.getKey().isDeleted());
                     Value value = entry.getValue();
                     output.put(keys, value);
                 }

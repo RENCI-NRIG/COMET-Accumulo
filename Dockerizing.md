@@ -1,4 +1,5 @@
-This is the docker image of [COMET server](https://github.com/RENCI-NRIG/COMET-Accumulo/tree/dockerize/).
+
+# [COMET Docker image](https://hub.docker.com/repository/docker/rencinrig/comet-spring)
 
 ## Pull image from dockerhub
 
@@ -27,7 +28,7 @@ Run together with zookeeper and RENCI accumulo docker images to form the cluster
 - [Zookeeper](https://hub.docker.com/_/zookeeper)
 - [Accumulo](https://github.com/RENCI-NRIG/accumulo)
 
-The [docker-compose.yml](https://github.com/RENCI-NRIG/COMET-Accumulo/tree/dockerize/docker-compose/docker-compose.yml) and the site-files to start the Accumulo cluster instances are under folder [docker-compose](docker-compose).
+The [docker-compose.yml](docker-compose/docker-compose.yml) and the site-files to start the Accumulo cluster instances are under folder [docker-compose](docker-compose).
 
 Start Comet after Zookeepers and Accumulo are ready:
 ```
@@ -98,20 +99,27 @@ Accumulo table name. Default is `trace`.
 
 ### `COMET_RETRY_DURATION`
 
-For some accumulo operations such as read and enumerate, COMET will retry for this duration of time. Default is `1000` milliseconds.
+In milliseconds. <br>
+Default is `1000` (1s). <br>
+For some accumulo operations such as read and enumerate, COMET will retry for this duration of time. 
+
+### `ACCUMULO_AGEOFF_TTL`
+
+In milliseconds. 
+Set this value to Accumulo AgeOffFilter Time-To-Live setting. <br>
+Default value is 0, which means Comet won't do anything to guarantee TTL; if Accumulo has AgeOffFilter set up, records might be lost.<br>
+**[Note] Records are expected to be accessed (read/enumerate/write) at least every (0.5 * ACCUMULO_AGEOFF_TTL) in order to keep records alive.** Comet checks accumulo timestamp when a record is read. If the timestamp is older than "0.5 * ACCUMULO_AGEOFF_TTL" ago, Comet will trigger internal write operation to accumulo to update the timestamp to avoid ageoff removal for this record.
+<br>
 
 
-You can use a file of environment variables: 
-
-Example of `comet_example.env`:
-
+## Example
 ```
 COMET_CHECK_TOKEN_STRENGTH=false
 COMET_CHECK_CLIENT_CERT=false
 ACCUMULO_INSTANCE=docker-development
 ACCUMULO_ZOOSERVERS=zoo1,zoo2,zoo3
-ACCUMULO_USER=root
-ACCUMULO_PASSWORD=secret
+ACCUMULO_USER=user
+ACCUMULO_PASSWORD=password
 ACCUMULO_TABLENAME=trace
 ```
 

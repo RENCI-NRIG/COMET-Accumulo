@@ -10,7 +10,7 @@
     <appender name="FileAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>/var/log/comet.log</file>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-          <level>INFO</level>
+          <level>DEBUG</level>
         </filter>
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
             <Pattern>%d{MM-dd HH:mm:ss} [%.3thread] %-5level %logger{0}.%M - %msg%n</Pattern>
