@@ -106,7 +106,7 @@ For some accumulo operations such as read and enumerate, COMET will retry for th
 ### `COMET_RECORD_EXPIRE_TIME`
 
 In milliseconds. <br>
-Records are expected to access (i.e. Read or Write) at least once in this period of time in order to keep records alive.
+Records are expected to access (i.e. Read/Enumerate/Write) at least once in this period of time in order to keep records alive.
 Otherwise records might be deleted by Accumulo ageoff feature. <br>
 <br>
 Default value is 0, which means Comet won't do anything to guarantee TTL. <br> 

@@ -68,7 +68,7 @@ public class CometOps implements CometOpsIfce {
     public static final int FIELD_DELTIMESTAMP = 4;
     public static final int FIELD_WRITETIMESTAMP = 5;
 
-    /* following are what inside in entry read/enumerated from AccumuloOperationsApiImpl */
+    /* following are the fields in key (string[]) of entry read/enumerated from AccumuloOperationsApiImpl */
     public static final int INDEX_ROW = AccumuloOperationsApiImpl.INDEX_ROW;
     public static final int INDEX_FAMILY = AccumuloOperationsApiImpl.INDEX_FAMILY;
     public static final int INDEX_KEY = AccumuloOperationsApiImpl.INDEX_KEY;

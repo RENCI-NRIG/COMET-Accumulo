@@ -220,15 +220,6 @@ public class AccumuloOperationsApiImpl implements AccumuloOperationsApiIfce {
                 Authorizations auths = new Authorizations(visibility.toString());
                 conn.securityOperations().changeUserAuthorizations(user, auths);
                 deleter = conn.createBatchDeleter(tableName, auths, 1, new BatchWriterConfig());
-                /*
-                Collection<Range> ranges = new ArrayList<Range>();
-                tableScannerRange= conn.createScanner(tableName, auths);
-                tableScannerRange.setRange(Range.exact(rowID));
-                for (Entry<Key, Value> entry : tableScannerRange) {
-                    ranges.add(new Range(entry.getKey().getRow()));
-                    output.put(entry.getKey().toString(), entry.getValue());
-                }
-                */
                 deleter.setRanges(Arrays.asList(Range.exact(rowID, colFam, colQual)));
                 deleter.delete();
                 succeed = true;
