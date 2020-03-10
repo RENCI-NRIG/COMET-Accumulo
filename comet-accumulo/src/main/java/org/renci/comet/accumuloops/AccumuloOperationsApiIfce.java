@@ -66,7 +66,6 @@ public interface AccumuloOperationsApiIfce {
     /**
 	 * Delete Accumulo row. Mark row as deleted.
 	 * @param conn conn
-	 * @param scanner scanner
 	 * @param tableName tableName
 	 * @param rowID rowID
 	 * @param colFam colFam
@@ -76,7 +75,7 @@ public interface AccumuloOperationsApiIfce {
 	 * @throws MutationsRejectedException change rejected
 	 * @throws TableNotFoundException table not found
 	 */
-   public Map<String, Value> deleteAccumuloRow(Connector conn, Scanner scanner, String tableName, Text rowID, Text colFam, Text colQual, Text visibility) throws MutationsRejectedException, TableNotFoundException;
+   public Map<String, Value> deleteAccumuloRow(Connector conn, String tableName, Text rowID, Text colFam, Text colQual, Text visibility) throws MutationsRejectedException, TableNotFoundException, AccumuloException, AccumuloSecurityException;
 
    /**
 	 * Enumerate Accumulo row that with the specific rowID and visibility.

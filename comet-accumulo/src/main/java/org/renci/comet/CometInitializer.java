@@ -12,7 +12,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @EnableSwagger2
 @ComponentScan(basePackages = { "org.renci.comet", "org.renci.comet.api" })
 public class CometInitializer implements CommandLineRunner {
-	public static final String COMET_VERSION = "1.0.0";
+	public static final String COMET_VERSION = "1.0.5";
 	public static final String COMET_API_VERSION = "1.0.0";
 	public static final String COMET_SCHEMA_VERSION = "1.0.0";
     @Override
