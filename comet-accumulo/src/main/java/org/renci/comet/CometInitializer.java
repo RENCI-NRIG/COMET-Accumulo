@@ -14,7 +14,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 public class CometInitializer implements CommandLineRunner {
 	public static final String COMET_VERSION = "1.0.5";
 	public static final String COMET_API_VERSION = "1.0.0";
-	public static final String COMET_SCHEMA_VERSION = "1.0.0";
+	public static final String COMET_SCHEMA_VERSION = "1.0.1";
     @Override
     public void run(String... arg0) throws Exception {
         if (arg0.length > 0 && arg0[0].equals("exitcode")) {
