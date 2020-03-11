@@ -103,7 +103,6 @@ public class CometOps implements CometOpsIfce {
             catch(Exception e) {
                 log.error(e);
                 log.error("ageoff config failed - check with accumulo admin to see if you have permission" );
-                System.exit(1);
             }
         }
     }
