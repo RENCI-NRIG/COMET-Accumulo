@@ -39,19 +39,21 @@ Install and configure using the steps below.
 
 ### Namenode
 Namenode server should be configured the first. Execute the following commands as root user.
+
 ```
 git clone https://github.com/RENCI-NRIG/COMET-Accumulo.git
 cd COMET-Accumulo/vmware-cluster
-# ./install.sh <ZooKeeperVersion> <HadoopVersion> <AccumuloVersion> namenode
-./install.sh 3.4.12 2.9.0 1.9.3 namenode
+# ./install.sh <ZooKeeperVersion> <HadoopVersion> <AccumuloVersion> namenode <AccumuloPassword>
+./install.sh 3.4.12 2.9.0 1.9.3 namenode <AccumuloPassword>
 ```
 ### Others
 Configure rest of the servers(master, resource manager, worker1 and worker2) using following commands as root user.
+
 ```
 git clone https://github.com/RENCI-NRIG/COMET-Accumulo.git
 cd COMET-Accumulo/vmware-cluster
-# ./install.sh <ZooKeeperVersion> <HadoopVersion> <AccumuloVersion> accumulo
-./install.sh 3.4.12 2.9.0 1.9.3 accumulo
+# ./install.sh <ZooKeeperVersion> <HadoopVersion> <AccumuloVersion> accumulo <AccumuloPassword>
+./install.sh 3.4.12 2.9.0 1.9.3 accumulo <AccumuloPassword>
 ```
 ### Host names
 Update /etc/hosts on all servers(master, resource manager, worker1, worker2, comet-hn1 and comet-hn2) with hostnames pointing to internal IPs

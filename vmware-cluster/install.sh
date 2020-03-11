@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
-if [ $# -ne 4 ]; then
-    echo "Required arguments [ZooKeeperVersion] [HadoopVersion] [AccumuloVersion] [Node]"
+if [ $# -ne 5 ]; then
+    echo "Required arguments [ZooKeeperVersion] [HadoopVersion] [AccumuloVersion] [Node] [AccumuloPassword]"
     exit 1
 fi
 
@@ -10,6 +10,9 @@ ZooKeeperVersion=$1
 HadoopVersion=$2
 AccumuloVersion=$3
 Node=$4
+AccumuloPassword=$5
+
+sed -i "s/ACCUMULO_PASSWORD=.*/ACCUMULO_PASSWORD=${AccumuloPassword}/" ./setupaccumulo.sh
 
 yum install -y java-1.8.0-openjdk
 ./setupzookeeper.sh $ZooKeeperVersion > /var/log/setupzookeeper.log 2>&1
