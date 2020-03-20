@@ -10,7 +10,7 @@ if [ $# -ne 1 ]; then
 fi
 
 JAVA_VERSION=`java -version 2>&1 | awk -F '\"' '/version/ {print $2}'| cut -d'_' -f1`
-if ["$JAVA_VERSION" !="1.8.0" ]; then
+if [ "$JAVA_VERSION" != "1.8.0" ]; then
     echo "Removing $JAVA_VERSION"
     java_rpm_to_be_removed=`rpm -qa | grep openjdk-$JAVA_VERSION`
     rpm -e \"$java_rpm_to_be_removed

@@ -7,4 +7,5 @@ runuser -l hadoop -c "${ACCUMULO_HOME}/bin/accumulo shell -u root -p ${rootpass}
 read -p 'Enter the table name for the user to READ/WRITE: ' table
 runuser -l hadoop -c "${ACCUMULO_HOME}/bin/accumulo shell -u root -p ${rootpass} -e \"grant Table.READ -t ${table} -u ${username}\""
 runuser -l hadoop -c "${ACCUMULO_HOME}/bin/accumulo shell -u root -p ${rootpass} -e \"grant Table.WRITE -t ${table} -u ${username}\""
+runuser -l hadoop -c "${ACCUMULO_HOME}/bin/accumulo shell -u root -p ${rootpass} -e \"grant Table.ALTER_TABLE -t ${table} -u ${username}\""
 runuser -l hadoop -c "${ACCUMULO_HOME}/bin/accumulo shell -u root -p ${rootpass} -e \"grant -s System.ALTER_USER -u ${username}\""

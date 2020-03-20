@@ -3,14 +3,14 @@ version: '3.1'
 services:
 
   comet:
-    image: rencinrig/comet-spring
-    container_name: comet
+    image: rencinrig/comet-spring:1.0.5-SNAPSHOT
+    container_name: comet-test
     volumes:
-      - /var/log:/var/log #modify to your desired local directory
+      - /tmp/cometlog:/var/log/
     restart: always
-    hostname: comet
+    hostname: comet-test
     ports:
-      - 8111:8111
+      - 8222:8111                            # use port 8222
     extra_hosts:
       - "zoo1:192.168.100.34"
       - "zoo2:192.168.100.35"
@@ -18,11 +18,11 @@ services:
       - "comet-w1:192.168.100.32"
       - "comet-w2:192.168.100.33"
     environment:
-      ACCUMULO_TABLENAME: trace
+      ACCUMULO_TABLENAME: testtable          # use test table
       ACCUMULO_ZOOSERVERS: zoo1,zoo2,zoo3
       ACCUMULO_INSTANCE: exogeni-accumulo
-      ACCUMULO_USER: 'changeme'
-      ACCUMULO_PASSWORD: 'changeme'
+      ACCUMULO_USER: testuser                # use test user
+      ACCUMULO_PASSWORD: nrig
       COMET_CHECK_TOKEN_STRENGTH: 'false'
       COMET_CHECK_CLIENT_CERT: 'false'
       COMET_SSL_KEY_STORE: cometserver.jks
@@ -31,6 +31,7 @@ services:
       COMET_SSL_TRUST_STORE: comettrustedstore.jks
       COMET_SSL_TRUST_STORE_PWD: 'changeme'
       COMET_RETRY_DURATION: '1000'
-      COMET_RECORD_EXPIRE_TIME: '15552000000' # 180 days in milliseconds
+      COMET_RECORD_EXPIRE_TIME: '6000'            # 6 seconds
     logging:
       driver: "none"
+

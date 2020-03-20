@@ -31,5 +31,6 @@ services:
       COMET_SSL_TRUST_STORE: comettrustedstore.jks
       COMET_SSL_TRUST_STORE_PWD: 'changeme'
       COMET_RETRY_DURATION: '1000'
+      #COMET_RECORD_EXPIRE_TIME: '0' #please see Dockerizing.md to set this value
     logging:
       driver: "none"
