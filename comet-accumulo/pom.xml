@@ -294,7 +294,7 @@
         <dependency>
             <groupId>org.apache.accumulo</groupId>
             <artifactId>accumulo-core</artifactId>
-            <version>1.8.1</version>
+            <version>1.10.1</version>
             <!-- Exclude servlet because we are using Spring, disable Guava because Spring needs higher version -->
             <exclusions>
                 <exclusion>
